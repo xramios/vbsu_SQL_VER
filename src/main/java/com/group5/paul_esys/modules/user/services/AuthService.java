@@ -23,7 +23,7 @@ public class AuthService {
 
       return Optional.of(
           UserUtils.mapResultSetToUserInformation(ps.executeQuery())
-      )
+      );
     } catch (SQLException e) {
       System.out.println("ERROR: " + e.getMessage());
     }

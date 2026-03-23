@@ -6,7 +6,8 @@
 *.log
 
 .idea
-target
+.venv
+__pycache__
 
 # BlueJ files
 *.ctxt
@@ -52,20 +53,6 @@ buildNumber.properties
 
 # Used by previous versions of JEnv
 .jenv-version
-
-### VirtualEnv template
-# Virtualenv
-# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
 
 ### Eclipse template
 .metadata

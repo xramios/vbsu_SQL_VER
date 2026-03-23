@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS curriculum
     id       bigint PRIMARY KEY AUTO_INCREMENT,
     semester varchar(24),
     cur_year date,
-    course uuid
+    course bigint
 );
 
 CREATE TABLE IF NOT EXISTS rooms
