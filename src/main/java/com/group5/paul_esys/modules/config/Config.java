@@ -8,5 +8,5 @@ public class Config {
   public static final String DB_NAME = "enrollment_system";
   public static final String DB_URL = "jdbc:mysql://localhost:3306/" + DB_NAME;
   public static final String DB_USER = "root";
-  public static final String DB_PASS = "";
+  public static final String DB_PASS = "1234";
 }
