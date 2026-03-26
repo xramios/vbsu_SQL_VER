@@ -20,6 +20,7 @@ public class StudentService {
   public Optional<Student> get(String studentId) {
     String sql = "SELECT * FROM students WHERE student_id = ?";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setString(1, studentId);
       ResultSet rs = stmt.executeQuery();
 
       if (rs.next()) {
@@ -32,6 +33,8 @@ public class StudentService {
     } catch (SQLException e) {
       logger.error(e.getMessage());
     }
+
+    return Optional.empty();
   }
 
   public Optional<Student> insert(Student student) {
@@ -48,22 +51,21 @@ public class StudentService {
         ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
       stmt.setString(1, student.getStudentId());
-      stmt.setInt(2, student.getUserId());
+      stmt.setLong(2, student.getUserId());
       stmt.setString(3, student.getFirstName());
       stmt.setString(4, student.getLastName());
       stmt.setString(5, student.getMiddleName());
       stmt.setDate(6, new java.sql.Date(student.getBirthdate().getTime()));
       stmt.setString(7, student.getStudentStatus().name());
-      stmt.setInt(8, student.getCourseId());
-      stmt.setInt(9, student.getYearLevel());
+      stmt.setLong(8, student.getCourseId());
+      stmt.setLong(9, student.getYearLevel());
 
-      ResultSet rs = stmt.executeQuery();
-      if (rs.next()) {
-        return Optional.of(StudentMapper.mapToStudent(rs));
-      } else {
-        return Optional.empty();
+      int rowsInserted = stmt.executeUpdate();
+      if (rowsInserted > 0) {
+        logger.info("A new student was inserted successfully!");
+        return Optional.of(student);
       }
-    } catch (SQLException e ) {
+    } catch (SQLException e) {
       logger.error(e.getMessage());
     }
 
@@ -74,11 +76,11 @@ public class StudentService {
     String sql = "DELETE FROM students WHERE student_id = ?";
 
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-      stmt.setString(1,  studentId);
+      stmt.setString(1, studentId);
       int rowsDeleted = stmt.executeUpdate();
 
-      if (rs.next()) {
-        logger.info("Student with ID %s was successfully deleted!", rs);
+      if (rowsDeleted > 0) {
+        logger.info("Student with ID %s was successfully deleted!", studentId);
       }
     } catch (SQLException e) {
       logger.error(e.getMessage());
