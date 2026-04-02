@@ -1,10 +1,10 @@
 /**
  * Apache Derby Database Schema for Enrollment System
- * 
+ *
  * Defines the complete database structure for a university enrollment management
  * system, including student records, course catalogs, scheduling, and enrollment
  * tracking with full referential integrity.
- * 
+ *
  * @database Apache Derby
  * @schema enrollment_system
  */
@@ -55,7 +55,8 @@ CREATE TABLE students
     student_status varchar(20) DEFAULT 'REGULAR' CHECK (student_status IN ('REGULAR', 'IRREGULAR')),
     course_id      bigint,
     year_level     int         default 1,
-    created_at     timestamp   default current_timestamp
+    created_at     timestamp   default current_timestamp,
+    updated_at     timestamp   default current_timestamp,
 );
 
 /**
@@ -125,6 +126,7 @@ CREATE TABLE semester
  */
 CREATE TABLE semester_subjects
 (
+    id          bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     semester_id bigint NOT NULL REFERENCES semester (id),
     subject_id  bigint NOT NULL REFERENCES subjects (id),
     year_level  int    NOT NULL, -- Ito yung year na dapat kunin ng student
@@ -136,7 +138,7 @@ CREATE TABLE semester_subjects
  * Tracks all subjects that students have enrolled in or completed.
  * Links students to semester subjects with status tracking (ENROLLED/COMPLETED/DROPPED).
  * Essential for prerequisite checking and academic history tracking.
- * 
+ *
  * Note: This table is needed to track which subjects students have taken,
  * allowing the system to check prerequisites for future enrollments.
  * Students can take subjects incrementally per year.
@@ -144,7 +146,7 @@ CREATE TABLE semester_subjects
 CREATE TABLE student_enrolled_subjects
 (
     student_id          varchar(32)                                                        NOT NULL REFERENCES students (student_id),
-    semester_subject_id bigint                                                             NOT NULL REFERENCES semester_subjects (semester_id),
+    semester_subject_id bigint                                                             NOT NULL REFERENCES semester_subjects (id),
     status              varchar(20) CHECK (status IN ('ENROLLED', 'COMPLETED', 'DROPPED')) NOT NULL DEFAULT 'ENROLLED',
     created_at          timestamp                                                                   default current_timestamp,
     updated_at          timestamp                                                                   default current_timestamp
@@ -176,6 +178,18 @@ CREATE TABLE faculty
     department_id bigint,
     updated_at    timestamp default current_timestamp,
     created_at    timestamp default current_timestamp
+);
+
+CREATE TABLE registrar
+(
+    id             bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id        bigint,
+    employee_id    varchar(20),
+    first_name     varchar(128),
+    last_name      varchar(128),
+    contact_number varchar(20),
+    updated_at     timestamp default current_timestamp,
+    created_at     timestamp default current_timestamp
 );
 
 /**
@@ -279,7 +293,7 @@ CREATE TABLE departments
     created_at      timestamp default current_timestamp
 );
 
-CREATE UNIQUE INDEX student_enrolled_subjects_index_0 ON student_enrolled_subjects (student_id, subject_id);
+CREATE UNIQUE INDEX student_enrolled_subjects_index_0 ON student_enrolled_subjects (student_id, semester_subject_id);
 
 ALTER TABLE students
     ADD CONSTRAINT fk_students_user FOREIGN KEY (user_id) REFERENCES users (id);
@@ -330,7 +344,7 @@ ALTER TABLE student_enrolled_subjects
     ADD CONSTRAINT fk_ses_student FOREIGN KEY (student_id) REFERENCES students (student_id);
 
 ALTER TABLE student_enrolled_subjects
-    ADD CONSTRAINT fk_ses_subject FOREIGN KEY (subject_id) REFERENCES subjects (id);
+    ADD CONSTRAINT fk_ses_subject FOREIGN KEY (semester_subject_id) REFERENCES subjects (id);
 
 ALTER TABLE courses
     ADD CONSTRAINT fk_courses_dept FOREIGN KEY (department_id) REFERENCES departments (id);
