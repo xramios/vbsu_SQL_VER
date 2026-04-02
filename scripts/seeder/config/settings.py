@@ -56,6 +56,7 @@ TABLES_TO_CLEAR: list[str] = [
     "semester",
     "curriculum",
     "faculty",
+    "registrar",
     "students",
     "users",
     "rooms",

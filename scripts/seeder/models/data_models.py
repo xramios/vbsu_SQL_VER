@@ -72,6 +72,18 @@ class Faculty:
 
 
 @dataclass
+class Registrar:
+    """Represents a registrar staff member record."""
+
+    id: int
+    user_id: int
+    employee_id: str
+    first_name: str
+    last_name: str
+    contact_number: Optional[str] = None
+
+
+@dataclass
 class Curriculum:
     """Represents a curriculum entry linking course and semester."""
 
@@ -168,6 +180,7 @@ class Semester:
 class SemesterSubject:
     """Represents a many-to-many link between semesters and subjects."""
 
+    id: int
     semester_id: int
     subject_id: int
     year_level: int
@@ -191,6 +204,7 @@ class SeedingState:
     rooms: List[Room] = field(default_factory=list)
     users: List[User] = field(default_factory=list)
     faculty: List[Faculty] = field(default_factory=list)
+    registrars: List[Registrar] = field(default_factory=list)
     students: List[Student] = field(default_factory=list)
     subjects: List[Subject] = field(default_factory=list)
     sections: List[Section] = field(default_factory=list)

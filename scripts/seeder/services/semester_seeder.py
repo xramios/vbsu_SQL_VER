@@ -33,12 +33,12 @@ class SemesterSeeder(BaseSeeder):
 
     SEMESTER_SUBJECTS_CREATE_SQL = """
         CREATE TABLE APP.semester_subjects (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             semester_id INTEGER,
             subject_id INTEGER,
             year_level INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (semester_id, subject_id),
             FOREIGN KEY (semester_id) REFERENCES APP.semester(id),
             FOREIGN KEY (subject_id) REFERENCES APP.subjects(id)
         )
@@ -165,8 +165,11 @@ class SemesterSeeder(BaseSeeder):
                         """
                         cursor.execute(query, (semester.id, subject.id, year_level))
 
+                    last_id = self.adapter.get_last_insert_id(cursor, "semester_subjects")
+
                     self.state.semester_subjects.append(
                         SemesterSubject(
+                            id=last_id,
                             semester_id=semester.id,
                             subject_id=subject.id,
                             year_level=year_level,
@@ -229,7 +232,7 @@ class SemesterSeeder(BaseSeeder):
                                 SELECT COUNT(*) FROM APP.student_enrolled_subjects
                                 WHERE student_id = ? AND semester_subject_id = ?
                             """,
-                            (student.student_id, semester_subject.semester_id),
+                            (student.student_id, semester_subject.id),
                         )
                         if cursor.fetchone()[0] > 0:
                             continue
@@ -238,18 +241,18 @@ class SemesterSeeder(BaseSeeder):
                             INSERT INTO APP.student_enrolled_subjects (student_id, semester_subject_id, status)
                             VALUES (?, ?, ?)
                         """
-                        cursor.execute(query, (student.student_id, semester_subject.semester_id, status))
+                        cursor.execute(query, (student.student_id, semester_subject.id, status))
                     else:
                         query = """
                             INSERT IGNORE INTO student_enrolled_subjects (student_id, semester_subject_id, status)
                             VALUES (%s, %s, %s)
                         """
-                        cursor.execute(query, (student.student_id, semester_subject.semester_id, status))
+                        cursor.execute(query, (student.student_id, semester_subject.id, status))
 
                     self.state.student_enrolled_subjects.append(
                         StudentEnrolledSubject(
                             student_id=student.student_id,
-                            semester_subject_id=semester_subject.semester_id,
+                            semester_subject_id=semester_subject.id,
                             status=status,
                         )
                     )

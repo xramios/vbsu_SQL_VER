@@ -297,7 +297,7 @@ class EnrollmentSeeder(BaseSeeder):
                         enrollment_id = self.adapter.get_last_insert_id(cursor, "enrollments")
 
                     if status in ["APPROVED", "ENROLLED"]:
-                        self._create_enrollment_details(cursor, enrollment_id, student.student_id)
+                        self._create_enrollment_details(cursor, enrollment_id, student.student_id, semester)
 
             self.db_manager.commit()
         finally:
@@ -315,7 +315,7 @@ class EnrollmentSeeder(BaseSeeder):
         self.seed_enrollments()
 
     def _create_enrollment_details(
-        self, cursor: any, enrollment_id: int, student_id: str
+        self, cursor: any, enrollment_id: int, student_id: str, semester: int = 1
     ) -> None:
         """Create enrollment details for an enrollment.
 
@@ -323,11 +323,17 @@ class EnrollmentSeeder(BaseSeeder):
             cursor: Database cursor
             enrollment_id: Enrollment ID
             student_id: Student ID
+            semester: Semester number (1 or 2) for finding correct semester_subject
         """
         num_subjects = random.randint(3, 7)
         available_sections = random.sample(
             self.state.sections, min(num_subjects, len(self.state.sections))
         )
+
+        # Get student's course_id for finding correct semester_subjects
+        student = next((s for s in self.state.students if s.student_id == student_id), None)
+        student_course_id = student.course_id if student else None
+        student_year_level = student.year_level if student else 1
 
         for section in available_sections:
             detail_status = random.choice(ENROLLMENT_DETAIL_STATUSES)
@@ -354,7 +360,57 @@ class EnrollmentSeeder(BaseSeeder):
                     query, (enrollment_id, section.id, section.subject_id, units, detail_status)
                 )
 
-            self._insert_student_enrolled_subject(cursor, student_id, section.subject_id)
+            # Find the correct semester_subject_id for this subject and semester
+            semester_subject_id = self._find_semester_subject_id(
+                section.subject_id, semester, student_course_id, student_year_level
+            )
+            if semester_subject_id:
+                self._insert_student_enrolled_subject(cursor, student_id, semester_subject_id)
+
+    def _find_semester_subject_id(
+        self, subject_id: int, semester_num: int, course_id: int = None, year_level: int = None
+    ) -> int | None:
+        """Find the semester_subject_id for a given subject and semester context.
+
+        Args:
+            subject_id: The subject ID
+            semester_num: Semester number (1 or 2)
+            course_id: Optional course ID to narrow down by curriculum
+            year_level: Optional student year level for filtering
+
+        Returns:
+            The semester_subject ID if found, None otherwise
+        """
+        if not self.state.semester_subjects:
+            return None
+
+        # Build a list of semester IDs matching the semester number
+        semester_name = f"Semester {semester_num}"
+        matching_semester_ids = {
+            s.id for s in self.state.semesters if s.semester == semester_name
+        }
+
+        # If course_id provided, narrow down to semesters from that course's curriculums
+        if course_id:
+            course_curriculum_ids = {c.id for c in self.state.curriculums if c.course_id == course_id}
+            matching_semester_ids = {
+                s.id for s in self.state.semesters
+                if s.semester == semester_name and s.curriculum_id in course_curriculum_ids
+            }
+
+        # Find semester_subjects matching the criteria
+        candidates = [
+            ss for ss in self.state.semester_subjects
+            if ss.subject_id == subject_id and ss.semester_id in matching_semester_ids
+        ]
+
+        # Filter by year level if provided (allow subjects at or below student's year)
+        if year_level:
+            candidates = [ss for ss in candidates if ss.year_level <= year_level]
+
+        if candidates:
+            return random.choice(candidates).id
+        return None
 
     def _insert_student_enrolled_subject(
         self, cursor: any, student_id: str, semester_subject_id: int
@@ -364,7 +420,7 @@ class EnrollmentSeeder(BaseSeeder):
         Args:
             cursor: Database cursor
             student_id: Student ID
-            semester_subject_id: Semester Subject ID (actually subject_id)
+            semester_subject_id: Semester Subject ID (from semester_subjects table)
         """
         if self.db_manager.db_type == "derby":
             # Derby doesn't support INSERT IGNORE, check existence first

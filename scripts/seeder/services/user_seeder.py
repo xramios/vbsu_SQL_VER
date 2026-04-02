@@ -8,23 +8,24 @@ Generates user accounts, student records, and faculty records.
 import random
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
-from tqdm import tqdm
-import bcrypt
 
-from seeder.services.base_seeder import BaseSeeder
+import bcrypt
+from tqdm import tqdm
+
 from seeder.config.constants import (
-    SEEDING_COUNTS,
-    USER_ROLES,
-    DEFAULT_PASSWORD,
+    BACHELOR_MAX_YEAR,
     BCRYPT_ROUNDS,
+    DEFAULT_PASSWORD,
+    SEEDING_COUNTS,
+    STUDENT_AGE_RANGE,
     STUDENT_DEMOGRAPHICS,
     STUDENT_STATUS_CONFIG,
-    STUDENT_AGE_RANGE,
     STUDENT_YEAR_LEVEL_RANGE,
-    BACHELOR_MAX_YEAR,
+    USER_ROLES,
 )
+from seeder.models.data_models import Faculty, Registrar, Student, User
+from seeder.services.base_seeder import BaseSeeder
 from seeder.utils.faker_instance import fake
-from seeder.models.data_models import User, Student, Faculty
 
 if TYPE_CHECKING:
     from seeder.core.database import DatabaseManager
@@ -55,6 +56,8 @@ class UserSeeder(BaseSeeder):
             student_status VARCHAR(50),
             course_id INTEGER,
             year_level INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES APP.users(id),
             FOREIGN KEY (course_id) REFERENCES APP.courses(id)
         )
@@ -69,6 +72,20 @@ class UserSeeder(BaseSeeder):
             department_id INTEGER,
             FOREIGN KEY (user_id) REFERENCES APP.users(id),
             FOREIGN KEY (department_id) REFERENCES APP.departments(id)
+        )
+    """
+
+    REGISTRAR_CREATE_SQL = """
+        CREATE TABLE TABLE_NAME (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id INTEGER,
+            employee_id VARCHAR(20),
+            first_name VARCHAR(128),
+            last_name VARCHAR(128),
+            contact_number VARCHAR(20),
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES APP.users(id)
         )
     """
 
@@ -109,7 +126,9 @@ class UserSeeder(BaseSeeder):
         try:
             self._create_users(cursor, student_count, USER_ROLES["STUDENT"], "student")
             self._create_users(cursor, faculty_count, USER_ROLES["FACULTY"], "faculty")
-            self._create_users(cursor, registrar_count, USER_ROLES["REGISTRAR"], "registrar")
+            self._create_users(
+                cursor, registrar_count, USER_ROLES["REGISTRAR"], "registrar"
+            )
             self.db_manager.commit()
         finally:
             cursor.close()
@@ -132,8 +151,10 @@ class UserSeeder(BaseSeeder):
             ).decode("utf-8")
 
             last_id = self.execute_insert(
-                "users", ["email", "password", "role"], [email, password, role],
-                cursor=cursor
+                "users",
+                ["email", "password", "role"],
+                [email, password, role],
+                cursor=cursor,
             )
 
             self.state.users.append(
@@ -156,7 +177,9 @@ class UserSeeder(BaseSeeder):
         try:
             student_users = [u for u in self.state.users if u.user_type == "student"]
 
-            for user in tqdm(student_users, desc="Creating student records", unit="student"):
+            for user in tqdm(
+                student_users, desc="Creating student records", unit="student"
+            ):
                 self._create_student_record(cursor, user)
 
             self.db_manager.commit()
@@ -173,7 +196,9 @@ class UserSeeder(BaseSeeder):
             user: User object for the student
         """
         year = random.randint(*STUDENT_DEMOGRAPHICS["year_range"])
-        student_number = f"{year}-{random.randint(*STUDENT_DEMOGRAPHICS['student_number_range'])}"
+        student_number = (
+            f"{year}-{random.randint(*STUDENT_DEMOGRAPHICS['student_number_range'])}"
+        )
 
         # Ensure uniqueness
         existing_ids = [s.student_id for s in self.state.students]
@@ -246,14 +271,16 @@ class UserSeeder(BaseSeeder):
     def seed(self) -> None:
         """Execute all user-related seeding operations.
 
-        Orchestrates the three-phase seeding process:
+        Orchestrates the four-phase seeding process:
         1. User accounts (students, faculty, registrars)
         2. Student records
         3. Faculty records
+        4. Registrar records
         """
         self.seed_users()
         self.seed_students()
         self.seed_faculty()
+        self.seed_registrars()
 
     def seed_faculty(self) -> None:
         """Seed faculty table with instructor information."""
@@ -265,7 +292,9 @@ class UserSeeder(BaseSeeder):
         try:
             faculty_users = [u for u in self.state.users if u.user_type == "faculty"]
 
-            for user in tqdm(faculty_users, desc="Creating faculty records", unit="faculty"):
+            for user in tqdm(
+                faculty_users, desc="Creating faculty records", unit="faculty"
+            ):
                 first_name = fake.first_name()
                 last_name = fake.last_name()
                 department = random.choice(self.state.departments)
@@ -292,3 +321,55 @@ class UserSeeder(BaseSeeder):
             cursor.close()
 
         print(f"Created {len(self.state.faculty)} faculty members")
+
+    def seed_registrars(self) -> None:
+        """Seed registrar table with registrar staff information."""
+        print("Seeding registrars...")
+
+        self.create_table_if_not_exists("registrar", self.REGISTRAR_CREATE_SQL)
+
+        cursor = self.db_manager.connection.cursor()
+        try:
+            registrar_users = [
+                u for u in self.state.users if u.user_type == "registrar"
+            ]
+
+            for user in tqdm(
+                registrar_users, desc="Creating registrar records", unit="registrar"
+            ):
+                first_name = fake.first_name()
+                last_name = fake.last_name()
+                # Generate employee ID like EMP-XXXX
+                employee_id = f"EMP-{random.randint(1000, 9999)}"
+                # Generate Philippines mobile number format: 09XX-XXX-XXXX
+                contact_number = f"09{random.randint(10, 99)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
+
+                last_id = self.execute_insert(
+                    "registrar",
+                    [
+                        "user_id",
+                        "employee_id",
+                        "first_name",
+                        "last_name",
+                        "contact_number",
+                    ],
+                    [user.id, employee_id, first_name, last_name, contact_number],
+                    cursor=cursor,
+                )
+
+                self.state.registrars.append(
+                    Registrar(
+                        id=last_id,
+                        user_id=user.id,
+                        employee_id=employee_id,
+                        first_name=first_name,
+                        last_name=last_name,
+                        contact_number=contact_number,
+                    )
+                )
+
+            self.db_manager.commit()
+        finally:
+            cursor.close()
+
+        print(f"Created {len(self.state.registrars)} registrars")
