@@ -4,6 +4,8 @@
  */
 package com.group5.paul_esys.screens.sign_in;
 
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme;
+
 /**
  *
  * @author nytri
@@ -16,7 +18,9 @@ public class VerificationCodeConfirmation extends javax.swing.JFrame {
 	 * Creates new form VerificationCodeConfirmation
 	 */
 	public VerificationCodeConfirmation() {
-		initComponents();
+        FlatMTGitHubIJTheme.setup();
+
+        initComponents();
 	}
 
 	/**
@@ -97,23 +101,6 @@ public class VerificationCodeConfirmation extends javax.swing.JFrame {
 	 * @param args the command line arguments
 	 */
 	public static void main(String args[]) {
-		/* Set the Nimbus look and feel */
-		//<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-		/* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-		 */
-		try {
-			for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					javax.swing.UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-			logger.log(java.util.logging.Level.SEVERE, null, ex);
-		}
-		//</editor-fold>
-
 		/* Create and display the form */
 		java.awt.EventQueue.invokeLater(() -> new VerificationCodeConfirmation().setVisible(true));
 	}
