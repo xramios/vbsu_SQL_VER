@@ -51,7 +51,7 @@ public class StudentDashboard extends javax.swing.JFrame {
     this.setUndecorated(true);
     initComponents();
     this.setLocationRelativeTo(null);
-    this.windowBar1.setTitle(fullName);
+    this.windowBar1.setTitle("Welcome " + fullName);
   }
 
   /**
