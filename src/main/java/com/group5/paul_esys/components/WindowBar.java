@@ -4,8 +4,8 @@
  */
 package com.group5.paul_esys.components;
 
+import java.awt.Frame;
 import java.awt.Window;
-import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 /**
@@ -13,6 +13,24 @@ import javax.swing.SwingUtilities;
  * @author nytri
  */
 public class WindowBar extends javax.swing.JPanel {
+
+	private String title = "Title";
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		String oldTitle = this.title;
+		this.title = title;
+
+		// Important: Fire the event so the GUI builder knows the property changed
+		firePropertyChange("title", oldTitle, title);
+		jLabel3.setText(title);
+
+		// Redraw the component in the design view
+		repaint();
+	}
 
 	/**
 	 * Creates new form WindowBar
@@ -30,45 +48,70 @@ public class WindowBar extends javax.swing.JPanel {
         // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
         private void initComponents() {
 
-                lblMinimize = new javax.swing.JLabel();
-                jLabel2 = new javax.swing.JLabel();
-                lblClose = new javax.swing.JLabel();
+                jPanel2 = new javax.swing.JPanel();
+                jLabel3 = new javax.swing.JLabel();
+                jPanel3 = new javax.swing.JPanel();
+                btnMinimize = new javax.swing.JLabel();
+                btnClose = new javax.swing.JLabel();
 
                 setBackground(new java.awt.Color(119, 0, 0));
-                setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+                setPreferredSize(new java.awt.Dimension(430, 36));
+                setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.LINE_AXIS));
 
-                lblMinimize.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/minus.png"))); // NOI18N
-                lblMinimize.addMouseListener(new java.awt.event.MouseAdapter() {
+                jPanel2.setBackground(new java.awt.Color(119, 0, 0));
+                java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 8);
+                flowLayout1.setAlignOnBaseline(true);
+                jPanel2.setLayout(flowLayout1);
+
+                jLabel3.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                jLabel3.setForeground(new java.awt.Color(255, 255, 255));
+                jLabel3.setText("Title");
+                jPanel2.add(jLabel3);
+
+                add(jPanel2);
+
+                jPanel3.setBackground(new java.awt.Color(119, 0, 0));
+                jPanel3.setPreferredSize(new java.awt.Dimension(63, 36));
+                java.awt.FlowLayout flowLayout2 = new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 5, 6);
+                flowLayout2.setAlignOnBaseline(true);
+                jPanel3.setLayout(flowLayout2);
+
+                btnMinimize.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/minus.png"))); // NOI18N
+                btnMinimize.addMouseListener(new java.awt.event.MouseAdapter() {
                         public void mouseClicked(java.awt.event.MouseEvent evt) {
-                                lblMinimizeMouseClicked(evt);
+                                btnMinimizeMouseClicked(evt);
                         }
                 });
-                add(lblMinimize);
-                add(jLabel2);
+                jPanel3.add(btnMinimize);
 
-                lblClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/close.png"))); // NOI18N
-                lblClose.addMouseListener(new java.awt.event.MouseAdapter() {
+                btnClose.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/close.png"))); // NOI18N
+                btnClose.addMouseListener(new java.awt.event.MouseAdapter() {
                         public void mouseClicked(java.awt.event.MouseEvent evt) {
-                                lblCloseMouseClicked(evt);
+                                btnCloseMouseClicked(evt);
                         }
                 });
-                add(lblClose);
+                jPanel3.add(btnClose);
+
+                add(jPanel3);
         }// </editor-fold>//GEN-END:initComponents
 
-        private void lblCloseMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblCloseMouseClicked
-		Window win = SwingUtilities.getWindowAncestor(this);
-		win.dispose();
-        }//GEN-LAST:event_lblCloseMouseClicked
+        private void btnCloseMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnCloseMouseClicked
+		Window window = SwingUtilities.getWindowAncestor(this);
+		window.dispose();
+        }//GEN-LAST:event_btnCloseMouseClicked
 
-        private void lblMinimizeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lblMinimizeMouseClicked
-		Window win = SwingUtilities.getWindowAncestor(this);
-		((JFrame) win).setState(JFrame.ICONIFIED);
-        }//GEN-LAST:event_lblMinimizeMouseClicked
+        private void btnMinimizeMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnMinimizeMouseClicked
+		Window window = SwingUtilities.getWindowAncestor(this);
+		Frame frame = (Frame) window;
+		frame.setExtendedState(Frame.ICONIFIED);
+        }//GEN-LAST:event_btnMinimizeMouseClicked
 
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
-        private javax.swing.JLabel jLabel2;
-        private javax.swing.JLabel lblClose;
-        private javax.swing.JLabel lblMinimize;
+        private javax.swing.JLabel btnClose;
+        private javax.swing.JLabel btnMinimize;
+        private javax.swing.JLabel jLabel3;
+        private javax.swing.JPanel jPanel2;
+        private javax.swing.JPanel jPanel3;
         // End of variables declaration//GEN-END:variables
 }
