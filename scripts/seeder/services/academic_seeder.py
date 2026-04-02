@@ -1,0 +1,300 @@
+#!/usr/bin/env python3
+"""
+Academic seeder module.
+
+Generates curriculum, subjects, sections, and prerequisites.
+"""
+
+import random
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
+from tqdm import tqdm
+
+from seeder.services.base_seeder import BaseSeeder
+from seeder.config.constants import (
+    SEEDING_COUNTS,
+    SUBJECT_TEMPLATES,
+    SECTIONS_PER_SUBJECT,
+    SECTION_CAPACITY_RANGE,
+    PREREQUISITE_PROBABILITY,
+    PREREQUISITES_PER_SUBJECT,
+    SUBJECTS_WITH_PREREQUISITES,
+)
+from seeder.models.data_models import Curriculum, Subject, Section
+
+if TYPE_CHECKING:
+    from seeder.core.database import DatabaseManager
+    from seeder.models.data_models import SeedingState
+
+
+class AcademicSeeder(BaseSeeder):
+    """Seeder for curriculum, subjects, sections, and prerequisites."""
+
+    CURRICULUM_CREATE_SQL = """
+        CREATE TABLE APP.curriculum (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            semester VARCHAR(255),
+            cur_year DATE,
+            course INTEGER,
+            FOREIGN KEY (course) REFERENCES APP.courses(id)
+        )
+    """
+
+    SUBJECTS_CREATE_SQL = """
+        CREATE TABLE APP.subjects (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            subject_name VARCHAR(255) NOT NULL,
+            subject_code VARCHAR(50) NOT NULL,
+            units INTEGER,
+            description CLOB,
+            curriculum_id INTEGER,
+            department_id INTEGER,
+            FOREIGN KEY (curriculum_id) REFERENCES APP.curriculum(id),
+            FOREIGN KEY (department_id) REFERENCES APP.departments(id)
+        )
+    """
+
+    SECTIONS_CREATE_SQL = """
+        CREATE TABLE APP.sections (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            section_name VARCHAR(255) NOT NULL,
+            section_code VARCHAR(50) NOT NULL,
+            subject_id INTEGER,
+            capacity INTEGER,
+            FOREIGN KEY (subject_id) REFERENCES APP.subjects(id)
+        )
+    """
+
+    PREREQUISITES_CREATE_SQL = """
+        CREATE TABLE APP.prerequisites (
+            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            pre_subject_id INTEGER,
+            subject_id INTEGER,
+            FOREIGN KEY (pre_subject_id) REFERENCES APP.subjects(id),
+            FOREIGN KEY (subject_id) REFERENCES APP.subjects(id)
+        )
+    """
+
+    def __init__(self, db_manager: "DatabaseManager", state: "SeedingState") -> None:
+        """Initialize academic seeder.
+
+        Args:
+            db_manager: Database manager instance
+            state: Shared seeding state
+        """
+        super().__init__(db_manager, state)
+
+    def seed(self) -> None:
+        """Seed academic data."""
+        self.seed_curriculum()
+        self.seed_subjects()
+        self.seed_sections()
+        self.seed_prerequisites()
+
+    def seed_curriculum(self) -> None:
+        """Seed curriculum table with semester-based curriculum entries."""
+        print("Seeding curriculum...")
+
+        if self.db_manager.db_type == "derby":
+            self.create_table_if_not_exists("curriculum", self.CURRICULUM_CREATE_SQL)
+
+        cursor = self.db_manager.connection.cursor()
+        try:
+            for course in self.state.courses:
+                for year in range(1, 5):
+                    for semester in [1, 2]:
+                        curriculum_year = datetime.now() - timedelta(
+                            days=random.randint(365, 1825)
+                        )
+                        curriculum_year_str = self.format_datetime(curriculum_year)
+
+                        if self.db_manager.db_type == "derby":
+                            query = """
+                                INSERT INTO APP.curriculum (semester, cur_year, course)
+                                VALUES (?, ?, ?)
+                            """
+                            cursor.execute(
+                                query, (f"Semester {semester}", curriculum_year_str, course.id)
+                            )
+                        else:
+                            query = """
+                                INSERT INTO curriculum (semester, cur_year, course)
+                                VALUES (%s, %s, %s)
+                            """
+                            cursor.execute(query, (f"Semester {semester}", curriculum_year, course.id))
+
+                        last_id = self.adapter.get_last_insert_id(cursor, "curriculum")
+
+                        self.state.curriculums.append(
+                            Curriculum(
+                                id=last_id,
+                                semester=f"Semester {semester}",
+                                course_id=course.id,
+                                cur_year=curriculum_year,
+                            )
+                        )
+
+            self.db_manager.commit()
+        finally:
+            cursor.close()
+
+        print(f"Created {len(self.state.curriculums)} curriculum entries")
+
+    def seed_subjects(self, count: int = None) -> None:
+        """Seed subjects table with academic courses.
+
+        Args:
+            count: Number of subjects to create (default from SEEDING_COUNTS)
+        """
+        count = count or SEEDING_COUNTS["subjects"]
+        print(f"Seeding {count} subjects...")
+
+        if self.db_manager.db_type == "derby":
+            self.create_table_if_not_exists("subjects", self.SUBJECTS_CREATE_SQL)
+
+        cursor = self.db_manager.connection.cursor()
+        try:
+            for i in tqdm(range(count), desc="Creating subjects", unit="subject"):
+                template = random.choice(SUBJECT_TEMPLATES)
+                subject_name = f"{template[0]} {random.randint(1, 4)}"
+                subject_code = f"{template[1]}{random.randint(100, 999)}"
+                units = template[2]
+                description = template[3]
+
+                curriculum = (
+                    random.choice(self.state.curriculums) if self.state.curriculums else None
+                )
+                department = random.choice(self.state.departments)
+
+                curriculum_id = curriculum.id if curriculum else None
+
+                if self.db_manager.db_type == "derby":
+                    query = """
+                        INSERT INTO APP.subjects
+                        (subject_name, subject_code, units, description, curriculum_id, department_id)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """
+                    cursor.execute(
+                        query,
+                        (subject_name, subject_code, units, description, curriculum_id, department.id),
+                    )
+                else:
+                    query = """
+                        INSERT INTO subjects
+                        (subject_name, subject_code, units, description, curriculum_id, department_id)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(
+                        query,
+                        (subject_name, subject_code, units, description, curriculum_id, department.id),
+                    )
+
+                last_id = self.adapter.get_last_insert_id(cursor, "subjects")
+
+                self.state.subjects.append(
+                    Subject(
+                        id=last_id,
+                        name=subject_name,
+                        code=subject_code,
+                        units=units,
+                        department_id=department.id,
+                        description=description,
+                        curriculum_id=curriculum_id,
+                    )
+                )
+
+            self.db_manager.commit()
+        finally:
+            cursor.close()
+
+        print(f"Created {len(self.state.subjects)} subjects")
+
+    def seed_sections(self) -> None:
+        """Seed sections table with class sections for each subject."""
+        print("Seeding sections...")
+
+        if self.db_manager.db_type == "derby":
+            self.create_table_if_not_exists("sections", self.SECTIONS_CREATE_SQL)
+
+        cursor = self.db_manager.connection.cursor()
+        try:
+            for subject in tqdm(self.state.subjects, desc="Creating sections", unit="subject"):
+                num_sections = random.randint(*SECTIONS_PER_SUBJECT)
+
+                for i in range(num_sections):
+                    section_name = f"{subject.code}-{chr(65 + i)}"
+                    section_code = f"SEC{subject.id}-{i+1}"
+                    capacity = random.randint(*SECTION_CAPACITY_RANGE)
+
+                    if self.db_manager.db_type == "derby":
+                        query = """
+                            INSERT INTO APP.sections (section_name, section_code, subject_id, capacity)
+                            VALUES (?, ?, ?, ?)
+                        """
+                        cursor.execute(query, (section_name, section_code, subject.id, capacity))
+                    else:
+                        query = """
+                            INSERT INTO sections (section_name, section_code, subject_id, capacity)
+                            VALUES (%s, %s, %s, %s)
+                        """
+                        cursor.execute(query, (section_name, section_code, subject.id, capacity))
+
+                    last_id = self.adapter.get_last_insert_id(cursor, "sections")
+
+                    self.state.sections.append(
+                        Section(
+                            id=last_id,
+                            name=section_name,
+                            code=section_code,
+                            subject_id=subject.id,
+                            capacity=capacity,
+                        )
+                    )
+
+            self.db_manager.commit()
+        finally:
+            cursor.close()
+
+        print(f"Created {len(self.state.sections)} sections")
+
+    def seed_prerequisites(self) -> None:
+        """Seed prerequisites table with course prerequisite relationships."""
+        print("Seeding prerequisites...")
+
+        if self.db_manager.db_type == "derby":
+            self.create_table_if_not_exists("prerequisites", self.PREREQUISITES_CREATE_SQL)
+
+        cursor = self.db_manager.connection.cursor()
+        try:
+            for i, subject in enumerate(self.state.subjects[:SUBJECTS_WITH_PREREQUISITES]):
+                if random.random() > PREREQUISITE_PROBABILITY:
+                    continue
+
+                num_prereqs = random.randint(*PREREQUISITES_PER_SUBJECT)
+                available_prereqs = [s for s in self.state.subjects if s.id != subject.id]
+
+                for _ in range(num_prereqs):
+                    if not available_prereqs:
+                        break
+
+                    prereq = random.choice(available_prereqs)
+                    available_prereqs.remove(prereq)
+
+                    if self.db_manager.db_type == "derby":
+                        query = """
+                            INSERT INTO APP.prerequisites (pre_subject_id, subject_id)
+                            VALUES (?, ?)
+                        """
+                        cursor.execute(query, (prereq.id, subject.id))
+                    else:
+                        query = """
+                            INSERT INTO prerequisites (pre_subject_id, subject_id)
+                            VALUES (%s, %s)
+                        """
+                        cursor.execute(query, (prereq.id, subject.id))
+
+            self.db_manager.commit()
+        finally:
+            cursor.close()
+
+        print("Created prerequisites")
