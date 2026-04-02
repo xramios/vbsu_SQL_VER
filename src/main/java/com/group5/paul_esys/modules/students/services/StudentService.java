@@ -87,4 +87,23 @@ public class StudentService {
     }
   }
 
+  public Optional<Student> getStudentByUserId(String userId) {
+    String sql = "SELECT * FROM students WHERE user_id = ?";
+    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+      stmt.setString(1, userId);
+      ResultSet rs = stmt.executeQuery();
+
+      if (rs.next()) {
+        if (rs.getRow() > 0) {
+          return Optional.of(StudentMapper.mapToStudent(rs));
+        } else {
+          return Optional.empty();
+        }
+      }
+    } catch (SQLException e) {
+      logger.error(e.getMessage());
+    }
+
+    return Optional.empty();
+  }
 }

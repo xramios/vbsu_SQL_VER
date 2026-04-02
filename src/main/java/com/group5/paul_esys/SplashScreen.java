@@ -14,15 +14,16 @@ import javax.swing.Timer;
  * @author nytri
  */
 public class SplashScreen extends javax.swing.JFrame {
-    
+
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SplashScreen.class.getName());
 
     /**
      * Creates new form SplashScreen
      */
     public SplashScreen() {
+	this.setUndecorated(true);
         initComponents();
-	this.setLocationRelativeTo(null);
+        this.setLocationRelativeTo(null);
     }
 
     /**
@@ -36,7 +37,6 @@ public class SplashScreen extends javax.swing.JFrame {
 
                 jPanel1 = new javax.swing.JPanel();
                 jLabel1 = new javax.swing.JLabel();
-                jLabel2 = new javax.swing.JLabel();
 
                 setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
                 setBackground(new java.awt.Color(255, 255, 255));
@@ -48,37 +48,17 @@ public class SplashScreen extends javax.swing.JFrame {
 
                 jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
-                jLabel1.setFont(new java.awt.Font("Liberation Sans", 0, 48)); // NOI18N
-                jLabel1.setText("Welcome to");
-
-                jLabel2.setFont(new java.awt.Font("Liberation Sans", 0, 24)); // NOI18N
-                jLabel2.setText("State University");
+                jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/splash.png"))); // NOI18N
 
                 javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
                 jPanel1.setLayout(jPanel1Layout);
                 jPanel1Layout.setHorizontalGroup(
                         jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(83, 83, 83)
-                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                                .addComponent(jLabel1)
-                                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                                        .addGap(45, 45, 45)
-                                                        .addComponent(jLabel2)))
-                                        .addContainerGap(84, Short.MAX_VALUE)))
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 );
                 jPanel1Layout.setVerticalGroup(
                         jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 367, Short.MAX_VALUE)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                        .addGap(122, 122, 122)
-                                        .addComponent(jLabel1)
-                                        .addGap(33, 33, 33)
-                                        .addComponent(jLabel2)
-                                        .addContainerGap(128, Short.MAX_VALUE)))
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 );
 
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -95,20 +75,17 @@ public class SplashScreen extends javax.swing.JFrame {
                 pack();
         }// </editor-fold>//GEN-END:initComponents
 
-        private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-		ActionListener actionListener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SplashScreen.this.dispose();
-				SignIn signIn = new SignIn();
-				signIn.setVisible(true);
-			}
-		};
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        ActionListener actionListener = (ActionEvent e) -> {
+		SplashScreen.this.dispose();
+		SignIn signIn = new SignIn();
+		signIn.setVisible(true);
+	};
 
-		Timer timer = new Timer(1000, actionListener);
-
-		timer.start();
-        }//GEN-LAST:event_formWindowOpened
+        Timer timer = new Timer(2000, actionListener);
+        timer.setRepeats(false);
+        timer.start();
+    }//GEN-LAST:event_formWindowOpened
 
     /**
      * @param args the command line arguments
@@ -117,7 +94,7 @@ public class SplashScreen extends javax.swing.JFrame {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
@@ -137,7 +114,6 @@ public class SplashScreen extends javax.swing.JFrame {
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
         private javax.swing.JLabel jLabel1;
-        private javax.swing.JLabel jLabel2;
         private javax.swing.JPanel jPanel1;
         // End of variables declaration//GEN-END:variables
 }
