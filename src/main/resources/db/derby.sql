@@ -33,10 +33,10 @@ CREATE TABLE enrollment_period
  */
 CREATE TABLE users
 (
-    id       bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    email    varchar(255),
-    password char(60),
-    role     varchar(20) CHECK (role IN ('STUDENT', 'REGISTRAR', 'FACULTY')),
+    id         bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    email      varchar(255),
+    password   char(60),
+    role       varchar(20) CHECK (role IN ('STUDENT', 'REGISTRAR', 'FACULTY')),
     created_at timestamp default current_timestamp,
     updated_at timestamp default current_timestamp
 );
@@ -102,9 +102,10 @@ CREATE TABLE sections
  */
 CREATE TABLE curriculum
 (
-    id       bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    cur_year date,
-    course   bigint,
+    id         bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    name       varchar(64) UNIQUE,
+    cur_year   date,
+    course     bigint,
     created_at timestamp default current_timestamp,
     updated_at timestamp default current_timestamp
 );
@@ -163,9 +164,9 @@ CREATE TABLE student_enrolled_subjects
  */
 CREATE TABLE rooms
 (
-    id       bigint      NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    room     varchar(32) NOT NULL,
-    capacity int         NOT NULL,
+    id         bigint      NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    room       varchar(32) NOT NULL,
+    capacity   int         NOT NULL,
     created_at timestamp default current_timestamp,
     updated_at timestamp default current_timestamp
 );
@@ -205,16 +206,16 @@ CREATE TABLE registrar
  */
 CREATE TABLE schedules
 (
-    id          bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    section_id  bigint,
-    room_id     bigint,
-    faculty_id  bigint,
-    day         varchar(3) CHECK (day IN ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')),
-    start_time  time,
-    end_time    time,
+    id                   bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    section_id           bigint,
+    room_id              bigint,
+    faculty_id           bigint,
+    day                  varchar(3) CHECK (day IN ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')),
+    start_time           time,
+    end_time             time,
     enrollment_period_id bigint,
-    updated_at  timestamp default current_timestamp,
-    created_at  timestamp default current_timestamp
+    updated_at           timestamp default current_timestamp,
+    created_at           timestamp default current_timestamp
 );
 
 /**
@@ -224,15 +225,15 @@ CREATE TABLE schedules
  */
 CREATE TABLE enrollments
 (
-    id           bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    student_id   varchar(32),
+    id                   bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    student_id           varchar(32),
     enrollment_period_id bigint,
-    status       varchar(20) CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'CANCELLED')),
-    max_units    float,
-    total_units  float,
-    submitted_at TIMESTAMP,
-    updated_at   timestamp default current_timestamp,
-    created_at   timestamp default current_timestamp
+    status               varchar(20) CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'CANCELLED')),
+    max_units            float,
+    total_units          float,
+    submitted_at         TIMESTAMP,
+    updated_at           timestamp default current_timestamp,
+    created_at           timestamp default current_timestamp
 );
 
 /**
