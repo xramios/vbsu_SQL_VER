@@ -349,7 +349,7 @@ ALTER TABLE student_enrolled_subjects
     ADD CONSTRAINT fk_ses_student FOREIGN KEY (student_id) REFERENCES students (student_id);
 
 ALTER TABLE student_enrolled_subjects
-    ADD CONSTRAINT fk_ses_subject FOREIGN KEY (semester_subject_id) REFERENCES subjects (id);
+    ADD CONSTRAINT fk_ses_subject FOREIGN KEY (semester_subject_id) REFERENCES semester_subjects (id);
 
 ALTER TABLE courses
     ADD CONSTRAINT fk_courses_dept FOREIGN KEY (department_id) REFERENCES departments (id);
