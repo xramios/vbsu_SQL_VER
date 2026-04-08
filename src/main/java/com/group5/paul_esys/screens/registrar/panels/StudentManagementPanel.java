@@ -35,6 +35,7 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
          */
         public StudentManagementPanel() {
                 initComponents();
+                tableRegistrarStudents.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
                 cbxStatusFilter.removeAllItems();
                 cbxStatusFilter.addItem("ALL");
                 cbxStatusFilter.addItem("REGULAR");
@@ -66,6 +67,56 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
                         .filter(student -> studentId.equals(student.getStudentId()))
                         .findFirst()
                         .orElse(null);
+        }
+
+        private List<Student> getSelectedStudents() {
+                int[] selectedRows = tableRegistrarStudents.getSelectedRows();
+                if (selectedRows.length == 0) {
+                        return List.of();
+                }
+
+                List<Student> selectedStudents = new ArrayList<>();
+                for (int selectedRow : selectedRows) {
+                        int modelRow = tableRegistrarStudents.convertRowIndexToModel(selectedRow);
+                        Object studentIdCell = tableRegistrarStudents.getModel().getValueAt(modelRow, 0);
+
+                        if (studentIdCell == null) {
+                                continue;
+                        }
+
+                        String studentId = studentIdCell.toString();
+                        students
+                                .stream()
+                                .filter(student -> studentId.equals(student.getStudentId()))
+                                .findFirst()
+                                .ifPresent(selectedStudents::add);
+                }
+
+                return selectedStudents;
+        }
+
+        private String buildDeleteConfirmationMessage(List<Student> selectedStudents) {
+                if (selectedStudents.size() == 1) {
+                        return "Delete student " + selectedStudents.get(0).getStudentId() + "?";
+                }
+
+                int previewCount = Math.min(10, selectedStudents.size());
+                StringBuilder message = new StringBuilder(
+                        "Delete " + selectedStudents.size() + " selected students?\n\n"
+                );
+
+                for (int index = 0; index < previewCount; index++) {
+                        message.append("- ")
+                                .append(selectedStudents.get(index).getStudentId())
+                                .append("\n");
+                }
+
+                if (selectedStudents.size() > previewCount) {
+                        int remaining = selectedStudents.size() - previewCount;
+                        message.append("... and ").append(remaining).append(" more.");
+                }
+
+                return message.toString().trim();
         }
 
         private void populateStudentDetails(Student student) {
@@ -455,6 +506,17 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
         }//GEN-LAST:event_btnRefreshActionPerformed
 
         private void btnUpdateStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateStudentActionPerformed
+                int[] selectedRows = tableRegistrarStudents.getSelectedRows();
+                if (selectedRows.length > 1) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Please select only one student to update.",
+                                "Update Student",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
                 Student selectedStudent = getSelectedStudent();
                 if (selectedStudent == null) {
                         JOptionPane.showMessageDialog(
@@ -481,11 +543,11 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
         }//GEN-LAST:event_btnUpdateStudentActionPerformed
 
         private void btnDeleteStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteStudentActionPerformed
-                Student selectedStudent = getSelectedStudent();
-                if (selectedStudent == null) {
+                List<Student> selectedStudents = getSelectedStudents();
+                if (selectedStudents.isEmpty()) {
                         JOptionPane.showMessageDialog(
                                 this,
-                                "Please select a student to delete.",
+                                "Please select at least one student to delete.",
                                 "Delete Student",
                                 JOptionPane.WARNING_MESSAGE
                         );
@@ -494,8 +556,8 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
 
                 int decision = JOptionPane.showConfirmDialog(
                         this,
-                        "Delete student " + selectedStudent.getStudentId() + "?",
-                        "Confirm Delete",
+                        buildDeleteConfirmationMessage(selectedStudents),
+                        selectedStudents.size() == 1 ? "Confirm Delete" : "Confirm Bulk Delete",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE
                 );
@@ -504,8 +566,17 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
                         return;
                 }
 
-                studentService.delete(selectedStudent.getStudentId());
+                studentService.deleteAll(selectedStudents);
                 initializeStudents();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        selectedStudents.size() == 1
+                                ? "Student deleted successfully."
+                                : selectedStudents.size() + " students deleted successfully.",
+                        "Delete Student",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
         }//GEN-LAST:event_btnDeleteStudentActionPerformed
 
         private void btnAddStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddStudentActionPerformed

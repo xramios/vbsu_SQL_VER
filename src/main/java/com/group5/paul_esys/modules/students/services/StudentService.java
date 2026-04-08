@@ -346,4 +346,26 @@ public class StudentService {
 
         return List.of(); // Placeholder muna
     }
+
+    public void deleteAll(List<Student> students) {
+        String sql = "DELETE FROM students WHERE student_id = ?";
+
+        try (
+            Connection conn = ConnectionService.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            for (Student student : students) {
+                stmt.setString(1, student.getStudentId());
+                stmt.addBatch();
+            }
+
+            int[] rowsDeleted = stmt.executeBatch();
+            logger.info(
+                "%d students were successfully deleted!",
+                rowsDeleted.length
+            );
+        } catch (SQLException e) {
+            logger.error(e.getMessage());
+        }
+    }
 }
