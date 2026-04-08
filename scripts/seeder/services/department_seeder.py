@@ -23,11 +23,11 @@ class DepartmentSeeder(BaseSeeder):
     # SQL for creating departments table in Derby
     CREATE_TABLE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            department_name VARCHAR(255) NOT NULL,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            department_name VARCHAR(48),
             description CLOB,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """
 
@@ -62,7 +62,11 @@ class DepartmentSeeder(BaseSeeder):
                 )
 
                 self.state.departments.append(
-                    Department(id=last_id, name=name, description=description)
+                    Department(
+                        id=last_id,
+                        department_name=name,
+                        description=description,
+                    )
                 )
 
             self.db_manager.commit()

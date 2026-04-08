@@ -6,7 +6,8 @@ Generates curriculum, subjects, sections, and prerequisites.
 """
 
 import random
-from datetime import datetime, timedelta
+import re
+from datetime import datetime
 from typing import TYPE_CHECKING
 from tqdm import tqdm
 
@@ -32,25 +33,27 @@ class AcademicSeeder(BaseSeeder):
 
     CURRICULUM_CREATE_SQL = """
         CREATE TABLE APP.curriculum (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            semester VARCHAR(255),
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            name VARCHAR(64) UNIQUE,
             cur_year DATE,
-            course INTEGER,
+            course BIGINT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (course) REFERENCES APP.courses(id)
         )
     """
 
     SUBJECTS_CREATE_SQL = """
         CREATE TABLE APP.subjects (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            subject_name VARCHAR(255) NOT NULL,
-            subject_code VARCHAR(50) NOT NULL,
-            units INTEGER,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            subject_name VARCHAR(32),
+            subject_code VARCHAR(32),
+            units FLOAT,
             description CLOB,
-            curriculum_id INTEGER,
-            department_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            curriculum_id BIGINT,
+            department_id BIGINT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (curriculum_id) REFERENCES APP.curriculum(id),
             FOREIGN KEY (department_id) REFERENCES APP.departments(id)
         )
@@ -58,24 +61,24 @@ class AcademicSeeder(BaseSeeder):
 
     SECTIONS_CREATE_SQL = """
         CREATE TABLE APP.sections (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            section_name VARCHAR(255) NOT NULL,
-            section_code VARCHAR(50) NOT NULL,
-            subject_id INTEGER,
-            capacity INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            section_name VARCHAR(48),
+            section_code VARCHAR(48),
+            subject_id BIGINT,
+            capacity INT NOT NULL,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (subject_id) REFERENCES APP.subjects(id)
         )
     """
 
     PREREQUISITES_CREATE_SQL = """
         CREATE TABLE APP.prerequisites (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            pre_subject_id INTEGER,
-            subject_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            pre_subject_id BIGINT,
+            subject_id BIGINT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (pre_subject_id) REFERENCES APP.subjects(id),
             FOREIGN KEY (subject_id) REFERENCES APP.subjects(id)
         )
@@ -97,48 +100,108 @@ class AcademicSeeder(BaseSeeder):
         self.seed_sections()
         self.seed_prerequisites()
 
+    @staticmethod
+    def _abbreviate(text: str, stop_words: set[str], single_word_length: int = 2) -> str:
+        """Build an uppercase abbreviation from significant words."""
+        words = [re.sub(r"[^A-Za-z]", "", token) for token in text.split()]
+        words = [word for word in words if word]
+
+        filtered_words = [word for word in words if word.lower() not in stop_words]
+        source_words = filtered_words or words
+
+        if not source_words:
+            return "XX"
+
+        if len(source_words) == 1:
+            return source_words[0][:single_word_length].upper()
+
+        return "".join(word[0].upper() for word in source_words)
+
+    def _build_course_code(self, course_name: str) -> str:
+        """Build a short code from the course name (e.g., Information Technology -> IT)."""
+        normalized = course_name.lower()
+        program_name = course_name
+
+        if " in " in normalized:
+            split_index = normalized.rfind(" in ") + len(" in ")
+            program_name = course_name[split_index:]
+
+        return self._abbreviate(
+            program_name,
+            stop_words={"bachelor", "master", "of", "science", "arts", "the", "and", "in"},
+        )
+
+    def _build_department_code(self, department_name: str) -> str:
+        """Build a short code from the department name (e.g., Engineering -> EN)."""
+        normalized = department_name.lower()
+        unit_name = department_name
+
+        if " of " in normalized:
+            split_index = normalized.rfind(" of ") + len(" of ")
+            unit_name = department_name[split_index:]
+
+        return self._abbreviate(
+            unit_name,
+            stop_words={"college", "school", "department", "of", "the", "and"},
+        )
+
+    def _build_curriculum_name(self, course_name: str, department_name: str, year: int) -> str:
+        """Build curriculum name in COURSEDEPTYEAR format (e.g., ITEN2023)."""
+        course_code = self._build_course_code(course_name)
+        department_code = self._build_department_code(department_name)
+        return f"{course_code}{department_code}{year}"
+
     def seed_curriculum(self) -> None:
-        """Seed curriculum table with semester-based curriculum entries."""
+        """Seed curriculum table with course/year curriculum entries."""
         print("Seeding curriculum...")
 
         if self.db_manager.db_type == "derby":
             self.create_table_if_not_exists("curriculum", self.CURRICULUM_CREATE_SQL)
 
+        current_year = datetime.now().year
+        curriculum_years = range(current_year - 3, current_year + 1)
+        departments_by_id = {department.id: department for department in self.state.departments}
+
         cursor = self.db_manager.connection.cursor()
         try:
             for course in self.state.courses:
-                for year in range(1, 5):
-                    for semester in [1, 2]:
-                        curriculum_year = datetime.now() - timedelta(
-                            days=random.randint(365, 1825)
+                department = departments_by_id.get(course.department_id)
+                department_name = department.name if department else ""
+
+                for year in curriculum_years:
+                    curriculum_year = datetime(year, 1, 1)
+                    curriculum_name = self._build_curriculum_name(
+                        course.name,
+                        department_name,
+                        year,
+                    )
+
+                    if self.db_manager.db_type == "derby":
+                        query = """
+                            INSERT INTO APP.curriculum (name, cur_year, course)
+                            VALUES (?, ?, ?)
+                        """
+                        cursor.execute(
+                            query,
+                            (curriculum_name, self.format_datetime(curriculum_year), course.id),
                         )
-                        curriculum_year_str = self.format_datetime(curriculum_year)
+                    else:
+                        query = """
+                            INSERT INTO curriculum (name, cur_year, course)
+                            VALUES (%s, %s, %s)
+                        """
+                        cursor.execute(query, (curriculum_name, curriculum_year, course.id))
 
-                        if self.db_manager.db_type == "derby":
-                            query = """
-                                INSERT INTO APP.curriculum (semester, cur_year, course)
-                                VALUES (?, ?, ?)
-                            """
-                            cursor.execute(
-                                query, (f"Semester {semester}", curriculum_year_str, course.id)
-                            )
-                        else:
-                            query = """
-                                INSERT INTO curriculum (semester, cur_year, course)
-                                VALUES (%s, %s, %s)
-                            """
-                            cursor.execute(query, (f"Semester {semester}", curriculum_year, course.id))
+                    last_id = self.adapter.get_last_insert_id(cursor, "curriculum")
 
-                        last_id = self.adapter.get_last_insert_id(cursor, "curriculum")
-
-                        self.state.curriculums.append(
-                            Curriculum(
-                                id=last_id,
-                                semester=f"Semester {semester}",
-                                course_id=course.id,
-                                cur_year=curriculum_year,
-                            )
+                    self.state.curriculums.append(
+                        Curriculum(
+                            id=last_id,
+                            name=curriculum_name,
+                            course=course.id,
+                            cur_year=curriculum_year,
                         )
+                    )
 
             self.db_manager.commit()
         finally:
@@ -200,8 +263,8 @@ class AcademicSeeder(BaseSeeder):
                 self.state.subjects.append(
                     Subject(
                         id=last_id,
-                        name=subject_name,
-                        code=subject_code,
+                        subject_name=subject_name,
+                        subject_code=subject_code,
                         units=units,
                         department_id=department.id,
                         description=description,
@@ -250,8 +313,8 @@ class AcademicSeeder(BaseSeeder):
                     self.state.sections.append(
                         Section(
                             id=last_id,
-                            name=section_name,
-                            code=section_code,
+                            section_name=section_name,
+                            section_code=section_code,
                             subject_id=subject.id,
                             capacity=capacity,
                         )

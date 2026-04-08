@@ -22,12 +22,12 @@ class CourseSeeder(BaseSeeder):
 
     CREATE_TABLE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            course_name VARCHAR(255) NOT NULL,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            course_name VARCHAR(48),
             description CLOB,
-            department_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            department_id BIGINT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (department_id) REFERENCES APP.departments(id)
         )
     """
@@ -69,7 +69,7 @@ class CourseSeeder(BaseSeeder):
                     self.state.courses.append(
                         Course(
                             id=last_id,
-                            name=name,
+                            course_name=name,
                             department_id=dept_id,
                             description=description,
                         )

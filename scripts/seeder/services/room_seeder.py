@@ -30,9 +30,9 @@ class RoomSeeder(BaseSeeder):
 
     CREATE_TABLE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            room VARCHAR(50) NOT NULL,
-            capacity INTEGER,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            room VARCHAR(32) NOT NULL,
+            capacity INT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )

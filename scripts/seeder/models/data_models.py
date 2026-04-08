@@ -11,8 +11,19 @@ class Department:
     """Represents a university department."""
 
     id: int
-    name: str
+    department_name: str
     description: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    @property
+    def name(self) -> str:
+        """Backward-compatible alias for department_name."""
+        return self.department_name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.department_name = value
 
 
 @dataclass
@@ -20,9 +31,20 @@ class Course:
     """Represents an academic course/program."""
 
     id: int
-    name: str
+    course_name: str
     department_id: int
     description: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    @property
+    def name(self) -> str:
+        """Backward-compatible alias for course_name."""
+        return self.course_name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.course_name = value
 
 
 @dataclass
@@ -32,6 +54,8 @@ class Room:
     id: int
     room: str
     capacity: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -43,6 +67,8 @@ class User:
     role: str
     user_type: str
     password: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -58,6 +84,8 @@ class Student:
     middle_name: Optional[str] = None
     birthdate: Optional[datetime] = None
     student_status: str = "REGULAR"
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -69,6 +97,8 @@ class Faculty:
     first_name: str
     last_name: str
     department_id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -81,16 +111,29 @@ class Registrar:
     first_name: str
     last_name: str
     contact_number: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
 class Curriculum:
-    """Represents a curriculum entry linking course and semester."""
+    """Represents a curriculum entry linking course and academic year."""
 
     id: int
-    semester: str
-    course_id: int
+    name: str
+    course: int
     cur_year: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    @property
+    def course_id(self) -> int:
+        """Backward-compatible alias for course."""
+        return self.course
+
+    @course_id.setter
+    def course_id(self, value: int) -> None:
+        self.course = value
 
 
 @dataclass
@@ -98,12 +141,32 @@ class Subject:
     """Represents an academic subject/course."""
 
     id: int
-    name: str
-    code: str
-    units: int
+    subject_name: str
+    subject_code: str
+    units: float
     department_id: int
     description: Optional[str] = None
     curriculum_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    @property
+    def name(self) -> str:
+        """Backward-compatible alias for subject_name."""
+        return self.subject_name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.subject_name = value
+
+    @property
+    def code(self) -> str:
+        """Backward-compatible alias for subject_code."""
+        return self.subject_code
+
+    @code.setter
+    def code(self, value: str) -> None:
+        self.subject_code = value
 
 
 @dataclass
@@ -111,10 +174,30 @@ class Section:
     """Represents a class section for a subject."""
 
     id: int
-    name: str
-    code: str
+    section_name: str
+    section_code: str
     subject_id: int
     capacity: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    @property
+    def name(self) -> str:
+        """Backward-compatible alias for section_name."""
+        return self.section_name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.section_name = value
+
+    @property
+    def code(self) -> str:
+        """Backward-compatible alias for section_code."""
+        return self.section_code
+
+    @code.setter
+    def code(self, value: str) -> None:
+        self.section_code = value
 
 
 @dataclass
@@ -123,9 +206,23 @@ class EnrollmentPeriod:
 
     id: int
     school_year: str
-    semester: int
+    semester: str
     start_date: datetime
     end_date: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    @property
+    def semester_number(self) -> int:
+        """Map semester labels to a numeric representation used by seed logic."""
+        normalized = self.semester.strip().lower()
+        if normalized in {"first", "1", "semester 1"}:
+            return 1
+        if normalized in {"second", "2", "semester 2"}:
+            return 2
+        if normalized in {"summer", "3", "semester 3"}:
+            return 3
+        return 1
 
 
 @dataclass
@@ -140,6 +237,8 @@ class Schedule:
     end_time: str
     enrollment_period_id: int
     id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -153,6 +252,8 @@ class Enrollment:
     total_units: float
     submitted_at: datetime
     id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -165,6 +266,8 @@ class EnrollmentDetail:
     units: float
     status: str
     id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -174,6 +277,8 @@ class Semester:
     id: int
     curriculum_id: int
     semester: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -184,6 +289,8 @@ class SemesterSubject:
     semester_id: int
     subject_id: int
     year_level: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass
@@ -193,6 +300,8 @@ class StudentEnrolledSubject:
     student_id: str
     semester_subject_id: int
     status: str = "ENROLLED"
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 @dataclass

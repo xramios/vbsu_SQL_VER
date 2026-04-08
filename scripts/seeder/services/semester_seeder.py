@@ -22,9 +22,9 @@ class SemesterSeeder(BaseSeeder):
 
     SEMESTER_CREATE_SQL = """
         CREATE TABLE APP.semester (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            curriculum_id INTEGER,
-            semester VARCHAR(24),
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            curriculum_id BIGINT NOT NULL,
+            semester VARCHAR(24) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (curriculum_id) REFERENCES APP.curriculum(id)
@@ -33,10 +33,10 @@ class SemesterSeeder(BaseSeeder):
 
     SEMESTER_SUBJECTS_CREATE_SQL = """
         CREATE TABLE APP.semester_subjects (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            semester_id INTEGER,
-            subject_id INTEGER,
-            year_level INTEGER,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            semester_id BIGINT NOT NULL,
+            subject_id BIGINT NOT NULL,
+            year_level INT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (semester_id) REFERENCES APP.semester(id),
@@ -46,13 +46,14 @@ class SemesterSeeder(BaseSeeder):
 
     STUDENT_ENROLLED_SUBJECTS_CREATE_SQL = """
         CREATE TABLE APP.student_enrolled_subjects (
-            student_id VARCHAR(50),
-            semester_subject_id INTEGER,
-            status VARCHAR(20) DEFAULT 'ENROLLED',
+            student_id VARCHAR(32) NOT NULL,
+            semester_subject_id BIGINT NOT NULL,
+            status VARCHAR(20) CHECK (status IN ('ENROLLED', 'COMPLETED', 'DROPPED')) NOT NULL DEFAULT 'ENROLLED',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (student_id, semester_subject_id),
-            FOREIGN KEY (student_id) REFERENCES APP.students(student_id)
+            FOREIGN KEY (student_id) REFERENCES APP.students(student_id),
+            FOREIGN KEY (semester_subject_id) REFERENCES APP.semester_subjects(id)
         )
     """
 
@@ -218,8 +219,13 @@ class SemesterSeeder(BaseSeeder):
                         min(5, len(self.state.semester_subjects))
                     )
 
-                # Enroll student in 4-8 subjects
-                num_subjects = random.randint(4, min(8, len(student_semester_subjects)))
+                max_subjects = min(8, len(student_semester_subjects))
+                if max_subjects == 0:
+                    continue
+
+                # Prefer 4-8 subjects, but gracefully handle sparse curriculum assignments.
+                min_subjects = 4 if max_subjects >= 4 else 1
+                num_subjects = random.randint(min_subjects, max_subjects)
                 selected_semester_subjects = random.sample(student_semester_subjects, num_subjects)
 
                 for semester_subject in selected_semester_subjects:

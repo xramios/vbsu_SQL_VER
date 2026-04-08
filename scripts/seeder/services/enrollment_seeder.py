@@ -34,28 +34,28 @@ class EnrollmentSeeder(BaseSeeder):
 
     ENROLLMENT_PERIOD_CREATE_SQL = """
         CREATE TABLE APP.enrollment_period (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            school_year VARCHAR(50),
-            semester INTEGER,
-            start_date DATE,
-            end_date DATE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            school_year VARCHAR(24) NOT NULL,
+            semester VARCHAR(24) NOT NULL,
+            start_date TIMESTAMP NOT NULL,
+            end_date TIMESTAMP NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """
 
     SCHEDULES_CREATE_SQL = """
         CREATE TABLE APP.schedules (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            section_id INTEGER,
-            room_id INTEGER,
-            faculty_id INTEGER,
-            day VARCHAR(10),
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            section_id BIGINT,
+            room_id BIGINT,
+            faculty_id BIGINT,
+            day VARCHAR(3) CHECK (day IN ('MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN')),
             start_time TIME,
             end_time TIME,
-            enrollment_period_id INTEGER,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            enrollment_period_id BIGINT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (section_id) REFERENCES APP.sections(id),
             FOREIGN KEY (room_id) REFERENCES APP.rooms(id),
             FOREIGN KEY (faculty_id) REFERENCES APP.faculty(id),
@@ -65,15 +65,15 @@ class EnrollmentSeeder(BaseSeeder):
 
     ENROLLMENTS_CREATE_SQL = """
         CREATE TABLE APP.enrollments (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            student_id VARCHAR(50),
-            enrollment_period_id INTEGER,
-            status VARCHAR(50),
-            max_units DECIMAL(5,2),
-            total_units DECIMAL(5,2),
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            student_id VARCHAR(32),
+            enrollment_period_id BIGINT,
+            status VARCHAR(20) CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'CANCELLED')),
+            max_units FLOAT,
+            total_units FLOAT,
             submitted_at TIMESTAMP,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (student_id) REFERENCES APP.students(student_id),
             FOREIGN KEY (enrollment_period_id) REFERENCES APP.enrollment_period(id)
         )
@@ -81,14 +81,14 @@ class EnrollmentSeeder(BaseSeeder):
 
     ENROLLMENT_DETAILS_CREATE_SQL = """
         CREATE TABLE APP.enrollments_details (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            enrollment_id INTEGER,
-            section_id INTEGER,
-            subject_id INTEGER,
-            units DECIMAL(3,1),
-            status VARCHAR(50),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            enrollment_id BIGINT,
+            section_id BIGINT,
+            subject_id BIGINT,
+            units FLOAT,
+            status VARCHAR(20) CHECK (status IN ('SELECTED', 'DROPPED')),
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (enrollment_id) REFERENCES APP.enrollments(id),
             FOREIGN KEY (section_id) REFERENCES APP.sections(id),
             FOREIGN KEY (subject_id) REFERENCES APP.subjects(id)
@@ -97,13 +97,14 @@ class EnrollmentSeeder(BaseSeeder):
 
     STUDENT_ENROLLED_SUBJECTS_CREATE_SQL = """
         CREATE TABLE APP.student_enrolled_subjects (
-            student_id VARCHAR(50),
-            semester_subject_id INTEGER,
-            status VARCHAR(20) DEFAULT 'ENROLLED',
+            student_id VARCHAR(32) NOT NULL,
+            semester_subject_id BIGINT NOT NULL,
+            status VARCHAR(20) CHECK (status IN ('ENROLLED', 'COMPLETED', 'DROPPED')) NOT NULL DEFAULT 'ENROLLED',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (student_id, semester_subject_id),
-            FOREIGN KEY (student_id) REFERENCES APP.students(student_id)
+            FOREIGN KEY (student_id) REFERENCES APP.students(student_id),
+            FOREIGN KEY (semester_subject_id) REFERENCES APP.semester_subjects(id)
         )
     """
 
@@ -132,16 +133,16 @@ class EnrollmentSeeder(BaseSeeder):
         try:
             for i in range(count):
                 year = 2021 + i
-                for semester in [1, 2]:
-                    if semester == 1:
+                for semester_label, semester_num in [("First", 1), ("Second", 2)]:
+                    if semester_num == 1:
                         start_date = datetime(year - 1, 10, 1)
                         end_date = datetime(year - 1, 11, 30)
                     else:
                         start_date = datetime(year, 3, 1)
                         end_date = datetime(year, 4, 30)
 
-                    start_date_str = self.format_datetime(start_date)
-                    end_date_str = self.format_datetime(end_date)
+                    start_date_str = self.format_timestamp(start_date)
+                    end_date_str = self.format_timestamp(end_date)
 
                     if self.db_manager.db_type == "derby":
                         query = """
@@ -151,7 +152,7 @@ class EnrollmentSeeder(BaseSeeder):
                         """
                         cursor.execute(
                             query,
-                            (f"{year-1}-{year}", semester, start_date_str, end_date_str),
+                            (f"{year-1}-{year}", semester_label, start_date_str, end_date_str),
                         )
                     else:
                         query = """
@@ -160,7 +161,7 @@ class EnrollmentSeeder(BaseSeeder):
                             VALUES (%s, %s, %s, %s)
                         """
                         cursor.execute(
-                            query, (f"{year-1}-{year}", semester, start_date, end_date)
+                            query, (f"{year-1}-{year}", semester_label, start_date, end_date)
                         )
 
                     last_id = self.adapter.get_last_insert_id(cursor, "enrollment_period")
@@ -169,7 +170,7 @@ class EnrollmentSeeder(BaseSeeder):
                         EnrollmentPeriod(
                             id=last_id,
                             school_year=f"{year-1}-{year}",
-                            semester=semester,
+                            semester=semester_label,
                             start_date=start_date,
                             end_date=end_date,
                         )
@@ -276,7 +277,7 @@ class EnrollmentSeeder(BaseSeeder):
 
                 for _ in range(num_enrollments):
                     enrollment_period = random.choice(self.state.enrollment_periods)
-                    semester = enrollment_period.semester
+                    semester_num = enrollment_period.semester_number
                     status = random.choice(statuses)
 
                     max_units = random.uniform(15, 24)
@@ -330,7 +331,7 @@ class EnrollmentSeeder(BaseSeeder):
                             cursor,
                             enrollment_id,
                             student.student_id,
-                            semester,
+                            semester_num,
                             section_occupancy,
                         )
 

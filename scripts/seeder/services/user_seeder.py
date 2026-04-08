@@ -37,10 +37,10 @@ class UserSeeder(BaseSeeder):
 
     USERS_CREATE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            role VARCHAR(50) NOT NULL,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            email VARCHAR(255),
+            password CHAR(60),
+            role VARCHAR(20) CHECK (role IN ('STUDENT', 'REGISTRAR', 'FACULTY')),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -48,16 +48,15 @@ class UserSeeder(BaseSeeder):
 
     STUDENTS_CREATE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            student_id VARCHAR(50) NOT NULL UNIQUE,
-            user_id INTEGER NOT NULL,
-            first_name VARCHAR(255) NOT NULL,
-            last_name VARCHAR(255) NOT NULL,
-            middle_name VARCHAR(255),
-            birthdate DATE,
-            student_status VARCHAR(50),
-            course_id INTEGER,
-            year_level INTEGER,
+            student_id VARCHAR(32) PRIMARY KEY,
+            user_id BIGINT,
+            first_name VARCHAR(128) NOT NULL,
+            last_name VARCHAR(128) NOT NULL,
+            middle_name VARCHAR(48),
+            birthdate DATE NOT NULL,
+            student_status VARCHAR(20) DEFAULT 'REGULAR' CHECK (student_status IN ('REGULAR', 'IRREGULAR')),
+            course_id BIGINT,
+            year_level INT DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES APP.users(id),
@@ -67,11 +66,11 @@ class UserSeeder(BaseSeeder):
 
     FACULTY_CREATE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            first_name VARCHAR(255) NOT NULL,
-            last_name VARCHAR(255) NOT NULL,
-            department_id INTEGER,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id BIGINT,
+            first_name VARCHAR(128),
+            last_name VARCHAR(128),
+            department_id BIGINT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES APP.users(id),
@@ -81,8 +80,8 @@ class UserSeeder(BaseSeeder):
 
     REGISTRAR_CREATE_SQL = """
         CREATE TABLE TABLE_NAME (
-            id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            user_id INTEGER,
+            id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            user_id BIGINT,
             employee_id VARCHAR(20),
             first_name VARCHAR(128),
             last_name VARCHAR(128),
