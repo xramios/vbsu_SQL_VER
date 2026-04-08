@@ -6,6 +6,21 @@ package com.group5.paul_esys.screens.registrar.forms;
  */
 
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme;
+import com.group5.paul_esys.modules.courses.model.Course;
+import com.group5.paul_esys.modules.courses.services.CourseService;
+import com.group5.paul_esys.modules.curriculum.model.Curriculum;
+import com.group5.paul_esys.modules.curriculum.services.CurriculumService;
+import com.group5.paul_esys.modules.departments.model.Department;
+import com.group5.paul_esys.modules.departments.services.DepartmentService;
+import com.group5.paul_esys.modules.students.model.Student;
+import com.group5.paul_esys.modules.students.model.StudentStatus;
+import com.group5.paul_esys.modules.students.services.StudentService;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -15,15 +30,225 @@ public class StudentEnrollmentForm extends javax.swing.JFrame {
 
   private static final java.util.logging.Logger logger =
     java.util.logging.Logger.getLogger(StudentEnrollmentForm.class.getName());
+  private final StudentService studentService = StudentService.getInstance();
+  private final DepartmentService departmentService = DepartmentService.getInstance();
+  private final CourseService courseService = CourseService.getInstance();
+  private final CurriculumService curriculumService = CurriculumService.getInstance();
+  private final Map<String, Long> departmentIdByName = new LinkedHashMap<>();
+  private final Map<String, Long> courseIdByName = new LinkedHashMap<>();
+  private final Map<String, Long> curriculumIdByName = new LinkedHashMap<>();
+  private final Runnable onSavedCallback;
 
   /**
    * Creates new form Enrollment
    */
   public StudentEnrollmentForm() {
+    this(null);
+  }
+
+  public StudentEnrollmentForm(Runnable onSavedCallback) {
+    this.onSavedCallback = onSavedCallback;
     FlatMTGitHubIJTheme.setup();
     this.setUndecorated(true);
     initComponents();
+    setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     this.setLocationRelativeTo(null);
+    initializeForm();
+  }
+
+  private LocalDate toLocalDate(Date date) {
+    if (date instanceof java.sql.Date sqlDate) {
+      return sqlDate.toLocalDate();
+    }
+
+    return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+  }
+
+  private void initializeForm() {
+    txtEmail.setEditable(false);
+
+    cbxDepartment.addActionListener(evt -> {
+      loadCoursesBySelectedDepartment();
+      refreshRegisterButtonState();
+    });
+
+    cbxCurriculum.addActionListener(evt -> {
+      loadCurriculumsBySelectedCourse();
+      refreshRegisterButtonState();
+    });
+
+    cbxCurriculum1.addActionListener(evt -> refreshRegisterButtonState());
+    jComboBox1.addActionListener(evt -> refreshRegisterButtonState());
+
+    loadDepartments();
+    refreshRegisterButtonState();
+  }
+
+  private String buildCurriculumLabel(Curriculum curriculum) {
+    String curriculumName = curriculum.getName() == null ? "Curriculum" : curriculum.getName();
+    if (curriculum.getCurYear() == null) {
+      return curriculumName;
+    }
+
+    int year = toLocalDate(curriculum.getCurYear()).getYear();
+
+    return curriculumName + " (" + year + ")";
+  }
+
+  private void loadDepartments() {
+    cbxDepartment.removeAllItems();
+    departmentIdByName.clear();
+
+    for (Department department : departmentService.getAllDepartments()) {
+      cbxDepartment.addItem(department.getDepartmentName());
+      departmentIdByName.put(department.getDepartmentName(), department.getId());
+    }
+
+    if (cbxDepartment.getItemCount() > 0) {
+      cbxDepartment.setSelectedIndex(0);
+      loadCoursesBySelectedDepartment();
+    } else {
+      cbxCurriculum.removeAllItems();
+      cbxCurriculum1.removeAllItems();
+      courseIdByName.clear();
+      curriculumIdByName.clear();
+    }
+  }
+
+  private void loadCoursesBySelectedDepartment() {
+    cbxCurriculum.removeAllItems();
+    cbxCurriculum1.removeAllItems();
+    courseIdByName.clear();
+    curriculumIdByName.clear();
+
+    Object selectedDepartment = cbxDepartment.getSelectedItem();
+    if (selectedDepartment == null) {
+      return;
+    }
+
+    Long departmentId = departmentIdByName.get(selectedDepartment.toString());
+    if (departmentId == null) {
+      return;
+    }
+
+    for (Course course : courseService.getCoursesByDepartment(departmentId)) {
+      cbxCurriculum.addItem(course.getCourseName());
+      courseIdByName.put(course.getCourseName(), course.getId());
+    }
+
+    if (cbxCurriculum.getItemCount() > 0) {
+      cbxCurriculum.setSelectedIndex(0);
+      loadCurriculumsBySelectedCourse();
+    }
+  }
+
+  private void loadCurriculumsBySelectedCourse() {
+    cbxCurriculum1.removeAllItems();
+    curriculumIdByName.clear();
+
+    Object selectedCourse = cbxCurriculum.getSelectedItem();
+    if (selectedCourse == null) {
+      return;
+    }
+
+    Long courseId = courseIdByName.get(selectedCourse.toString());
+    if (courseId == null) {
+      return;
+    }
+
+    for (Curriculum curriculum : curriculumService.getCurriculumsByCourse(courseId)) {
+      String label = buildCurriculumLabel(curriculum);
+      cbxCurriculum1.addItem(label);
+      curriculumIdByName.put(label, curriculum.getId());
+    }
+  }
+
+  private void refreshRegisterButtonState() {
+    boolean hasFirstName = txtFirstName.getText() != null && !txtFirstName.getText().trim().isEmpty();
+    boolean hasLastName = txtLastName.getText() != null && !txtLastName.getText().trim().isEmpty();
+    boolean hasEmail = txtEmail.getText() != null && !txtEmail.getText().trim().isEmpty();
+    boolean hasCourse = cbxCurriculum.getSelectedItem() != null;
+
+    btnRegister.setEnabled(hasFirstName && hasLastName && hasEmail && hasCourse);
+  }
+
+  private String buildInitialPassword(String lastName, LocalDate birthDate) {
+    String safeLastName = lastName.trim().replaceAll("\\s+", "");
+    String year = String.valueOf(birthDate.getYear());
+    String month = String.format("%02d", birthDate.getMonthValue());
+    String day = String.format("%02d", birthDate.getDayOfMonth());
+    return safeLastName + year + month + day;
+  }
+
+  private void registerStudent() {
+    String firstName = txtFirstName.getText() == null ? "" : txtFirstName.getText().trim();
+    String middleName = txtMiddleName.getText() == null ? "" : txtMiddleName.getText().trim();
+    String lastName = txtLastName.getText() == null ? "" : txtLastName.getText().trim();
+    String email = txtEmail.getText() == null ? "" : txtEmail.getText().trim();
+
+    if (firstName.isEmpty() || lastName.isEmpty()) {
+      JOptionPane.showMessageDialog(
+        this,
+        "First name and last name are required.",
+        "Validation Error",
+        JOptionPane.WARNING_MESSAGE
+      );
+      return;
+    }
+
+    Object selectedCourse = cbxCurriculum.getSelectedItem();
+    if (selectedCourse == null || !courseIdByName.containsKey(selectedCourse.toString())) {
+      JOptionPane.showMessageDialog(
+        this,
+        "Please select a program/course.",
+        "Validation Error",
+        JOptionPane.WARNING_MESSAGE
+      );
+      return;
+    }
+
+    LocalDate defaultBirthDate = LocalDate.now().minusYears(18);
+    String initialPassword = buildInitialPassword(lastName, defaultBirthDate);
+
+    Student student = new Student()
+      .setStudentId(studentService.generateStudentId())
+      .setFirstName(firstName)
+      .setMiddleName(middleName.isEmpty() ? null : middleName)
+      .setLastName(lastName)
+      .setBirthdate(java.sql.Date.valueOf(defaultBirthDate))
+      .setStudentStatus(StudentStatus.valueOf(jComboBox1.getSelectedItem().toString()))
+      .setCourseId(courseIdByName.get(selectedCourse.toString()))
+      .setYearLevel(1L);
+
+    boolean success = studentService
+      .registerStudent(email, initialPassword, student)
+      .isPresent();
+
+    if (!success) {
+      JOptionPane.showMessageDialog(
+        this,
+        "Failed to register student. Please try again.",
+        "Registration Failed",
+        JOptionPane.ERROR_MESSAGE
+      );
+      return;
+    }
+
+    JOptionPane.showMessageDialog(
+      this,
+      "Student registered successfully.\nStudent ID: "
+        + student.getStudentId()
+        + "\nInitial Password: "
+        + initialPassword,
+      "Success",
+      JOptionPane.INFORMATION_MESSAGE
+    );
+
+    if (onSavedCallback != null) {
+      onSavedCallback.run();
+    }
+
+    dispose();
   }
 
   /**
@@ -192,18 +417,19 @@ public class StudentEnrollmentForm extends javax.swing.JFrame {
 
   private void btnRegisterActionPerformed(java.awt.event.ActionEvent evt) {
 //GEN-FIRST:event_btnRegisterActionPerformed
-	  // The password of the user is their last name and birthday.
-	  
+	  registerStudent();
   }//GEN-LAST:event_btnRegisterActionPerformed
 
   private void txtFirstNameKeyReleased(java.awt.event.KeyEvent evt) {
 //GEN-FIRST:event_txtFirstNameKeyReleased
     buildStudentEmail();
+    refreshRegisterButtonState();
   }//GEN-LAST:event_txtFirstNameKeyReleased
 
   private void txtLastNameKeyReleased(java.awt.event.KeyEvent evt) {
 //GEN-FIRST:event_txtLastNameKeyReleased
     buildStudentEmail();
+    refreshRegisterButtonState();
   }//GEN-LAST:event_txtLastNameKeyReleased
 
   /**

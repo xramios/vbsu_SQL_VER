@@ -4,6 +4,20 @@
  */
 package com.group5.paul_esys.screens.registrar.forms;
 
+import com.group5.paul_esys.modules.courses.model.Course;
+import com.group5.paul_esys.modules.courses.services.CourseService;
+import com.group5.paul_esys.modules.students.model.Student;
+import com.group5.paul_esys.modules.students.model.StudentStatus;
+import com.group5.paul_esys.modules.students.services.StudentService;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author nytri
@@ -11,13 +25,213 @@ package com.group5.paul_esys.screens.registrar.forms;
 public class UpdateStudentForm extends javax.swing.JDialog {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(UpdateStudentForm.class.getName());
+        private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        private final StudentService studentService = StudentService.getInstance();
+        private final CourseService courseService = CourseService.getInstance();
+        private final Map<String, Long> courseIdByName = new LinkedHashMap<>();
+        private final Student editingStudent;
+        private final Runnable onSavedCallback;
 
     /**
      * Creates new form UpdateStudentForm
      */
     public UpdateStudentForm(java.awt.Frame parent, boolean modal) {
+                this(parent, modal, null, null);
+        }
+
+        public UpdateStudentForm(
+                java.awt.Frame parent,
+                boolean modal,
+                Student editingStudent,
+                Runnable onSavedCallback
+        ) {
         super(parent, modal);
+                this.editingStudent = editingStudent;
+                this.onSavedCallback = onSavedCallback;
+                this.setUndecorated(true);
         initComponents();
+                initializeForm();
+        }
+
+        private void initializeForm() {
+                setLocationRelativeTo(getParent());
+
+                jSpinner1.setModel(new javax.swing.SpinnerNumberModel(1, 1, 31, 1));
+                jSpinner2.setModel(new javax.swing.SpinnerNumberModel(LocalDate.now().getYear(), 1900, LocalDate.now().getYear(), 1));
+
+                jComboBox1.removeAllItems();
+                jComboBox1.addItem(StudentStatus.REGULAR.name());
+                jComboBox1.addItem(StudentStatus.IRREGULAR.name());
+
+                jComboBox4.removeAllItems();
+                for (int yearLevel = 1; yearLevel <= 6; yearLevel++) {
+                        jComboBox4.addItem(String.valueOf(yearLevel));
+                }
+
+                loadCourses();
+
+                jButton1.addActionListener(evt -> saveStudent());
+                jButton2.addActionListener(evt -> dispose());
+
+                if (editingStudent == null) {
+                        return;
+                }
+
+                String middleName = editingStudent.getMiddleName() == null ? "" : editingStudent.getMiddleName().trim();
+                String middleInitial = middleName.isEmpty() ? "" : " " + middleName.charAt(0) + ".";
+
+                windowBar1.setTitle("Update Student " + editingStudent.getStudentId());
+                lblStudentName.setText(
+                        editingStudent.getLastName() + ", " + editingStudent.getFirstName() + middleInitial
+                );
+
+                jTextField1.setText(editingStudent.getFirstName());
+                jTextField2.setText(editingStudent.getMiddleName() == null ? "" : editingStudent.getMiddleName());
+                jTextField3.setText(editingStudent.getLastName());
+
+                if (editingStudent.getBirthdate() != null) {
+                        LocalDate birthDate = toLocalDate(editingStudent.getBirthdate());
+
+                        jTextField4.setText(DATE_FORMATTER.format(birthDate));
+                        jSpinner1.setValue(birthDate.getDayOfMonth());
+                        jComboBox2.setSelectedIndex(birthDate.getMonthValue() - 1);
+                        jSpinner2.setValue(birthDate.getYear());
+                }
+
+                if (editingStudent.getStudentStatus() != null) {
+                        jComboBox1.setSelectedItem(editingStudent.getStudentStatus().name());
+                }
+
+                if (editingStudent.getCourseId() != null) {
+                        courseService
+                                .getCourseById(editingStudent.getCourseId())
+                                .ifPresent(course -> jComboBox3.setSelectedItem(course.getCourseName()));
+                }
+
+                if (editingStudent.getYearLevel() != null) {
+                        jComboBox4.setSelectedItem(String.valueOf(editingStudent.getYearLevel()));
+                }
+        }
+
+        private LocalDate toLocalDate(Date date) {
+                if (date instanceof java.sql.Date sqlDate) {
+                        return sqlDate.toLocalDate();
+                }
+
+                return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+
+        private void loadCourses() {
+                jComboBox3.removeAllItems();
+                courseIdByName.clear();
+
+                for (Course course : courseService.getAllCourses()) {
+                        jComboBox3.addItem(course.getCourseName());
+                        courseIdByName.put(course.getCourseName(), course.getId());
+                }
+        }
+
+        private LocalDate resolveBirthDate() {
+                String birthDateText = jTextField4.getText() == null ? "" : jTextField4.getText().trim();
+                if (!birthDateText.isEmpty()) {
+                        return LocalDate.parse(birthDateText, DATE_FORMATTER);
+                }
+
+                int day = (Integer) jSpinner1.getValue();
+                int month = jComboBox2.getSelectedIndex() + 1;
+                int year = (Integer) jSpinner2.getValue();
+                return LocalDate.of(year, month, day);
+        }
+
+        private void saveStudent() {
+                if (editingStudent == null) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "No student selected for update.",
+                                "Update Failed",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
+                }
+
+                String firstName = jTextField1.getText() == null ? "" : jTextField1.getText().trim();
+                String middleName = jTextField2.getText() == null ? "" : jTextField2.getText().trim();
+                String lastName = jTextField3.getText() == null ? "" : jTextField3.getText().trim();
+
+                if (firstName.isEmpty() || lastName.isEmpty()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "First name and last name are required.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                Object selectedCourse = jComboBox3.getSelectedItem();
+                if (selectedCourse == null || !courseIdByName.containsKey(selectedCourse.toString())) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Please select a course/program.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                LocalDate birthDate;
+                try {
+                        birthDate = resolveBirthDate();
+                } catch (DateTimeParseException ex) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Birth date must follow YYYY-MM-DD format.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                } catch (RuntimeException ex) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Birth date is invalid.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                editingStudent
+                        .setFirstName(firstName)
+                        .setMiddleName(middleName.isEmpty() ? null : middleName)
+                        .setLastName(lastName)
+                        .setBirthdate(java.sql.Date.valueOf(birthDate))
+                        .setStudentStatus(StudentStatus.valueOf(jComboBox1.getSelectedItem().toString()))
+                        .setCourseId(courseIdByName.get(selectedCourse.toString()))
+                        .setYearLevel(Long.parseLong(jComboBox4.getSelectedItem().toString()));
+
+                boolean success = studentService.update(editingStudent).isPresent();
+                if (!success) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Failed to update student. Please try again.",
+                                "Update Failed",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
+                }
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Student updated successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                if (onSavedCallback != null) {
+                        onSavedCallback.run();
+                }
+
+                dispose();
     }
 
     /**

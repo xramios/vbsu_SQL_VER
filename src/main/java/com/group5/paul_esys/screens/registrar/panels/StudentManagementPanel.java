@@ -4,12 +4,19 @@
  */
 package com.group5.paul_esys.screens.registrar.panels;
 
+import com.group5.paul_esys.modules.courses.model.Course;
+import com.group5.paul_esys.modules.courses.services.CourseService;
 import com.group5.paul_esys.modules.students.model.Student;
 import com.group5.paul_esys.modules.students.services.StudentService;
 import com.group5.paul_esys.screens.registrar.forms.StudentEnrollmentForm;
-import com.group5.paul_esys.utils.JavaTableUtil;
+import com.group5.paul_esys.screens.registrar.forms.UpdateStudentForm;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -18,15 +25,71 @@ import javax.swing.table.DefaultTableModel;
  */
 public final class StudentManagementPanel extends javax.swing.JPanel {
 
-	private List<Student> students = new ArrayList<>();
+        private final StudentService studentService = StudentService.getInstance();
+        private final CourseService courseService = CourseService.getInstance();
+        private List<Student> students = new ArrayList<>();
+        private final Map<Long, String> courseNameById = new LinkedHashMap<>();
 
-	/**
-	 * Creates new form StudentManagementPanel
-	 */
-	public StudentManagementPanel() {
-		initComponents();
-		this.initializeStudents();
-	}
+        /**
+         * Creates new form StudentManagementPanel
+         */
+        public StudentManagementPanel() {
+                initComponents();
+                cbxStatusFilter.removeAllItems();
+                cbxStatusFilter.addItem("ALL");
+                cbxStatusFilter.addItem("REGULAR");
+                cbxStatusFilter.addItem("IRREGULAR");
+                this.initializeStudents();
+        }
+
+        private void loadCourseNameLookup() {
+                courseNameById.clear();
+                for (Course course : courseService.getAllCourses()) {
+                        courseNameById.put(course.getId(), course.getCourseName());
+                }
+        }
+
+        private Student getSelectedStudent() {
+                int selectedRow = tableRegistrarStudents.getSelectedRow();
+                if (selectedRow < 0) {
+                        return null;
+                }
+
+                int modelRow = tableRegistrarStudents.convertRowIndexToModel(selectedRow);
+                String studentId = tableRegistrarStudents
+                        .getModel()
+                        .getValueAt(modelRow, 0)
+                        .toString();
+
+                return students
+                        .stream()
+                        .filter(student -> studentId.equals(student.getStudentId()))
+                        .findFirst()
+                        .orElse(null);
+        }
+
+        private void populateStudentDetails(Student student) {
+                if (student == null) {
+                        txtStudentFirstName.setText("");
+                        txtStudentMiddleName.setText("");
+                        txtStudentLastName.setText("");
+                        txtStudentCourse.setText("");
+                        txtStudentYearLevel.setText("");
+                        txtStudentEmailAddress.setText("");
+                        return;
+                }
+
+                txtStudentFirstName.setText(student.getFirstName());
+                txtStudentMiddleName.setText(student.getMiddleName() == null ? "" : student.getMiddleName());
+                txtStudentLastName.setText(student.getLastName());
+                txtStudentCourse.setText(courseNameById.getOrDefault(student.getCourseId(), "N/A"));
+                txtStudentYearLevel.setText(student.getYearLevel() == null ? "" : String.valueOf(student.getYearLevel()));
+                txtStudentEmailAddress.setText(
+                        student.getUserId() == null
+                                ? ""
+                                : studentService.getUserEmailByUserId(student.getUserId()).orElse("")
+                );
+        }
 
 	/**
 	 * This method is called from within the constructor to initialize the
@@ -388,60 +451,205 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
         }// </editor-fold>//GEN-END:initComponents
 
         private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
-		// TODO add your handling code here:
+                initializeStudents();
         }//GEN-LAST:event_btnRefreshActionPerformed
 
         private void btnUpdateStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateStudentActionPerformed
+                Student selectedStudent = getSelectedStudent();
+                if (selectedStudent == null) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Please select a student to update.",
+                                "Update Student",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
 
+                java.awt.Window window = SwingUtilities.getWindowAncestor(this);
+                java.awt.Frame parentFrame = window instanceof java.awt.Frame
+                        ? (java.awt.Frame) window
+                        : null;
+
+                UpdateStudentForm form = new UpdateStudentForm(
+                        parentFrame,
+                        true,
+                        selectedStudent,
+                        this::initializeStudents
+                );
+                form.setVisible(true);
         }//GEN-LAST:event_btnUpdateStudentActionPerformed
 
         private void btnDeleteStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteStudentActionPerformed
-		// TODO add your handling code here:
+                Student selectedStudent = getSelectedStudent();
+                if (selectedStudent == null) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Please select a student to delete.",
+                                "Delete Student",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                int decision = JOptionPane.showConfirmDialog(
+                        this,
+                        "Delete student " + selectedStudent.getStudentId() + "?",
+                        "Confirm Delete",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+                if (decision != JOptionPane.YES_OPTION) {
+                        return;
+                }
+
+                studentService.delete(selectedStudent.getStudentId());
+                initializeStudents();
         }//GEN-LAST:event_btnDeleteStudentActionPerformed
 
         private void btnAddStudentActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddStudentActionPerformed
-		StudentEnrollmentForm form = new StudentEnrollmentForm();
+                StudentEnrollmentForm form = new StudentEnrollmentForm(this::initializeStudents);
 		form.setVisible(true);
         }//GEN-LAST:event_btnAddStudentActionPerformed
 
         private void txtStudentsSearchKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtStudentsSearchKeyReleased
-		tableRegistrarStudents.setModel(
-		  JavaTableUtil.searchTable(tableRegistrarStudents, txtStudentsSearch.getText())
-		);
+                applyTableFilters();
         }//GEN-LAST:event_txtStudentsSearchKeyReleased
 
         private void cbxCourseFilterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbxCourseFilterItemStateChanged
-		// TODO add your handling code here:
+                applyTableFilters();
         }//GEN-LAST:event_cbxCourseFilterItemStateChanged
 
         private void cbxYearLevelFilterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbxYearLevelFilterItemStateChanged
-		// TODO add your handling code here:
+                applyTableFilters();
         }//GEN-LAST:event_cbxYearLevelFilterItemStateChanged
 
         private void cbxStatusFilterItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbxStatusFilterItemStateChanged
-		// TODO add your handling code here:
+                applyTableFilters();
         }//GEN-LAST:event_cbxStatusFilterItemStateChanged
 
         private void btnClearFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearFilterActionPerformed
-		// TODO add your handling code here:
+                txtStudentsSearch.setText("");
+                if (cbxCourseFilter.getItemCount() > 0) {
+                        cbxCourseFilter.setSelectedItem("ALL");
+                }
+                if (cbxYearLevelFilter.getItemCount() > 0) {
+                        cbxYearLevelFilter.setSelectedItem("ALL");
+                }
+                if (cbxStatusFilter.getItemCount() > 0) {
+                        cbxStatusFilter.setSelectedItem("ALL");
+                }
+
+                initializeStudents();
         }//GEN-LAST:event_btnClearFilterActionPerformed
 
         private void tableRegistrarStudentsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableRegistrarStudentsMouseClicked
-                // TODO add your handling code here:
+                populateStudentDetails(getSelectedStudent());
         }//GEN-LAST:event_tableRegistrarStudentsMouseClicked
 
-	public void initializeStudents() {
-		students = StudentService.getInstance().list();
+        private void applyTableFilters() {
+                String searchTerm = txtStudentsSearch.getText() == null
+                        ? ""
+                        : txtStudentsSearch.getText().trim().toLowerCase();
+                String selectedCourse = cbxCourseFilter.getSelectedItem() == null
+                        ? "ALL"
+                        : cbxCourseFilter.getSelectedItem().toString();
+                String selectedStatus = cbxStatusFilter.getSelectedItem() == null
+                        ? "ALL"
+                        : cbxStatusFilter.getSelectedItem().toString();
+                String selectedYearLevel = cbxYearLevelFilter.getSelectedItem() == null
+                        ? "ALL"
+                        : cbxYearLevelFilter.getSelectedItem().toString();
 
-		// Load the data to the jTable.
+                List<Student> filteredStudents = students
+                        .stream()
+                        .filter(student -> {
+                                String fullName = ((student.getFirstName() == null ? "" : student.getFirstName())
+                                        + " "
+                                        + (student.getLastName() == null ? "" : student.getLastName())).toLowerCase();
+                                String courseName = courseNameById.getOrDefault(student.getCourseId(), "N/A");
+                                String studentId = student.getStudentId() == null ? "" : student.getStudentId().toLowerCase();
+
+                                boolean matchesSearch = searchTerm.isEmpty()
+                                        || studentId.contains(searchTerm)
+                                        || fullName.contains(searchTerm);
+                                boolean matchesCourse = "ALL".equals(selectedCourse)
+                                        || courseName.equals(selectedCourse);
+                                boolean matchesStatus = "ALL".equals(selectedStatus)
+                                        || (student.getStudentStatus() != null
+                                                && student.getStudentStatus().name().equals(selectedStatus));
+                                boolean matchesYear = "ALL".equals(selectedYearLevel)
+                                        || String.valueOf(student.getYearLevel()).equals(selectedYearLevel);
+
+                                return matchesSearch && matchesCourse && matchesStatus && matchesYear;
+                        })
+                        .collect(Collectors.toList());
+
+                DefaultTableModel model = (DefaultTableModel) tableRegistrarStudents.getModel();
+                model.setRowCount(0);
+
+                for (Student student : filteredStudents) {
+                        String courseName = courseNameById.getOrDefault(student.getCourseId(), "N/A");
+                        String status = student.getStudentStatus() == null ? "N/A" : student.getStudentStatus().toString();
+                        model.addRow(
+                                new Object[]{
+                                        student.getStudentId(),
+                                        student.getFirstName(),
+                                        student.getLastName(),
+                                        courseName,
+                                        status
+                                }
+                        );
+                }
+
+                tableRegistrarStudents.setModel(model);
+                populateStudentDetails(null);
+        }
+
+	public void initializeStudents() {
+                loadCourseNameLookup();
+                students = studentService.list();
+
 		DefaultTableModel model = (DefaultTableModel) tableRegistrarStudents.getModel();
+                model.setRowCount(0);
+
+                cbxCourseFilter.removeAllItems();
+                cbxCourseFilter.addItem("ALL");
+
+                cbxYearLevelFilter.removeAllItems();
+                cbxYearLevelFilter.addItem("ALL");
+
+                List<String> distinctCourses = new ArrayList<>();
+                List<String> distinctYearLevels = new ArrayList<>();
 
 		students.forEach(student -> {
-			model.addRow(new Object[]{student.getStudentId(), student.getFirstName(), student.getLastName(), student.getCourseId(), student.getStudentStatus().toString()});
+                        String courseName = courseNameById.getOrDefault(student.getCourseId(), "N/A");
+                        String yearLevel = String.valueOf(student.getYearLevel());
+                        String status = student.getStudentStatus() == null ? "N/A" : student.getStudentStatus().toString();
+
+                        model.addRow(new Object[]{
+                                student.getStudentId(),
+                                student.getFirstName(),
+                                student.getLastName(),
+                                courseName,
+                                status
+                        });
+
+                        if (!distinctCourses.contains(courseName)) {
+                                distinctCourses.add(courseName);
+                        }
+
+                        if (!distinctYearLevels.contains(yearLevel)) {
+                                distinctYearLevels.add(yearLevel);
+                        }
 		});
 
-		// Set the model
+                distinctCourses.forEach(cbxCourseFilter::addItem);
+                distinctYearLevels.forEach(cbxYearLevelFilter::addItem);
+
 		tableRegistrarStudents.setModel(model);
+                populateStudentDetails(null);
 	}
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
