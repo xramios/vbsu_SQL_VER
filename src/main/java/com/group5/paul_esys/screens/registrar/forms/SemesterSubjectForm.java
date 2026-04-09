@@ -4,6 +4,20 @@
  */
 package com.group5.paul_esys.screens.registrar.forms;
 
+import com.group5.paul_esys.modules.semester.model.Semester;
+import com.group5.paul_esys.modules.semester.services.SemesterService;
+import com.group5.paul_esys.modules.semester_subjects.model.SemesterSubject;
+import com.group5.paul_esys.modules.semester_subjects.services.SemesterSubjectService;
+import com.group5.paul_esys.modules.subjects.model.Subject;
+import com.group5.paul_esys.modules.subjects.services.SubjectService;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author nytri
@@ -11,21 +25,254 @@ package com.group5.paul_esys.screens.registrar.forms;
 public class SemesterSubjectForm extends javax.swing.JDialog {
 	
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SemesterSubjectForm.class.getName());
+        private final SemesterService semesterService = SemesterService.getInstance();
+        private final SubjectService subjectService = SubjectService.getInstance();
+        private final SemesterSubjectService semesterSubjectService = SemesterSubjectService.getInstance();
+
+        private final Long fixedSemesterId;
+        private final Runnable onSavedCallback;
+
+        private final Map<String, Long> semesterIdByLabel = new LinkedHashMap<>();
+        private final Map<String, Long> subjectIdByLabel = new LinkedHashMap<>();
 
 	/**
 	 * Creates new form SemesterSubjectForm
 	 */
 	public SemesterSubjectForm(java.awt.Frame parent, boolean modal) {
+                this(parent, modal, null, null);
+        }
+
+        public SemesterSubjectForm(
+                java.awt.Frame parent,
+                boolean modal,
+                Long fixedSemesterId,
+                Runnable onSavedCallback
+        ) {
 		super(parent, modal);
+                this.fixedSemesterId = fixedSemesterId;
+                this.onSavedCallback = onSavedCallback;
+                this.setUndecorated(true);
 		initComponents();
+                this.setLocationRelativeTo(parent);
+                initializeForm();
 	}
+
+        private void initializeForm() {
+                jButton1.addActionListener(this::jButton1ActionPerformed);
+                jButton2.addActionListener(this::jButton2ActionPerformed);
+
+                jComboBox1.addItemListener(evt -> {
+                        if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
+                                onSemesterSelectionChanged();
+                        }
+                });
+
+                loadSemesters();
+
+                if (fixedSemesterId != null) {
+                        jComboBox1.setEnabled(false);
+                        selectSemesterById(fixedSemesterId);
+                }
+
+                onSemesterSelectionChanged();
+        }
+
+        private void loadSemesters() {
+                jComboBox1.removeAllItems();
+                semesterIdByLabel.clear();
+
+                List<Semester> semesters = new ArrayList<>();
+                if (fixedSemesterId != null) {
+                        semesterService.getSemesterById(fixedSemesterId).ifPresent(semesters::add);
+                } else {
+                        semesters.addAll(semesterService.getAllSemesters());
+                }
+
+                for (Semester semester : semesters) {
+                        String label = buildSemesterLabel(semester);
+                        semesterIdByLabel.put(label, semester.getId());
+                        jComboBox1.addItem(label);
+                }
+        }
+
+        private void selectSemesterById(Long semesterId) {
+                if (semesterId == null) {
+                        return;
+                }
+
+                for (Map.Entry<String, Long> entry : semesterIdByLabel.entrySet()) {
+                        if (semesterId.equals(entry.getValue())) {
+                                jComboBox1.setSelectedItem(entry.getKey());
+                                return;
+                        }
+                }
+        }
+
+        private String buildSemesterLabel(Semester semester) {
+                String semesterName = semester.getSemester() == null || semester.getSemester().trim().isEmpty()
+                        ? "Semester"
+                        : semester.getSemester().trim();
+                return semesterName + " - ID " + semester.getId();
+        }
+
+        private Long getSelectedSemesterId() {
+                Object selectedItem = jComboBox1.getSelectedItem();
+                if (selectedItem == null) {
+                        return null;
+                }
+
+                return semesterIdByLabel.get(selectedItem.toString());
+        }
+
+        private Long getSelectedSubjectId() {
+                Object selectedItem = jComboBox2.getSelectedItem();
+                if (selectedItem == null) {
+                        return null;
+                }
+
+                return subjectIdByLabel.get(selectedItem.toString());
+        }
+
+        private void onSemesterSelectionChanged() {
+                Long semesterId = getSelectedSemesterId();
+                updateTitleForSelection();
+                loadAvailableSubjects(semesterId);
+        }
+
+        private void updateTitleForSelection() {
+                Object selectedItem = jComboBox1.getSelectedItem();
+                if (selectedItem == null) {
+                        windowBar1.setTitle("Add Subject to Semester");
+                        return;
+                }
+
+                String label = selectedItem.toString();
+                int suffixIndex = label.indexOf(" - ID ");
+                String semesterName = suffixIndex > 0 ? label.substring(0, suffixIndex) : label;
+                windowBar1.setTitle("Add Subject to Semester " + semesterName);
+        }
+
+        private List<Subject> resolveSubjectsSource() {
+                return subjectService.getAllSubjects();
+        }
+
+        private void loadAvailableSubjects(Long semesterId) {
+                jComboBox2.removeAllItems();
+                subjectIdByLabel.clear();
+
+                if (semesterId == null) {
+                        return;
+                }
+
+                Set<Long> existingSubjectIds = new LinkedHashSet<>();
+                for (SemesterSubject semesterSubject : semesterSubjectService.getSemesterSubjectsBySemester(semesterId)) {
+                        existingSubjectIds.add(semesterSubject.getSubjectId());
+                }
+
+                for (Subject subject : resolveSubjectsSource()) {
+                        if (existingSubjectIds.contains(subject.getId())) {
+                                continue;
+                        }
+
+                        String label = buildSubjectLabel(subject);
+                        subjectIdByLabel.put(label, subject.getId());
+                        jComboBox2.addItem(label);
+                }
+        }
+
+        private String buildSubjectLabel(Subject subject) {
+                String code = subject.getSubjectCode() == null || subject.getSubjectCode().trim().isEmpty()
+                        ? "NO-CODE"
+                        : subject.getSubjectCode().trim();
+                String name = subject.getSubjectName() == null || subject.getSubjectName().trim().isEmpty()
+                        ? "Unnamed Subject"
+                        : subject.getSubjectName().trim();
+                return code + " - " + name;
+        }
+
+        private boolean isValidForm(Long semesterId, Long subjectId) {
+                if (semesterId == null) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Please select a semester.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return false;
+                }
+
+                if (subjectId == null) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "No available subject to add for this semester.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return false;
+                }
+
+                return true;
+        }
+
+        private void saveSemesterSubject() {
+                Long semesterId = getSelectedSemesterId();
+                Long subjectId = getSelectedSubjectId();
+
+                if (!isValidForm(semesterId, subjectId)) {
+                        return;
+                }
+
+                if (semesterSubjectService.getBySemesterAndSubject(semesterId, subjectId).isPresent()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Selected subject is already linked to this semester.",
+                                "Duplicate Entry",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                SemesterSubject semesterSubject = new SemesterSubject()
+                        .setSemesterId(semesterId)
+                        .setSubjectId(subjectId);
+
+                if (!semesterSubjectService.createSemesterSubject(semesterSubject)) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Failed to add subject to semester. Please try again.",
+                                "Save Failed",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                        return;
+                }
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Subject added to semester successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                if (onSavedCallback != null) {
+                        onSavedCallback.run();
+                }
+
+                dispose();
+        }
+
+        private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+                saveSemesterSubject();
+        }
+
+        private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+                dispose();
+        }
 
 	/**
 	 * This method is called from within the constructor to initialize the
 	 * form. WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-	@SuppressWarnings("unchecked")
         // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
         private void initComponents() {
 

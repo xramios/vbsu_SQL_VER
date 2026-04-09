@@ -4,25 +4,154 @@
  */
 package com.group5.paul_esys.screens.registrar.cards;
 
+import com.group5.paul_esys.modules.curriculum.model.Curriculum;
+import com.group5.paul_esys.modules.semester.model.Semester;
+import com.group5.paul_esys.modules.semester.services.SemesterService;
+import com.group5.paul_esys.modules.subjects.model.Subject;
+import com.group5.paul_esys.modules.subjects.services.SubjectService;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 /**
  *
  * @author nytri
  */
 public class CurriculumCard extends javax.swing.JPanel {
 
+        private final SemesterService semesterService = SemesterService.getInstance();
+        private final SubjectService subjectService = SubjectService.getInstance();
+
+        private final Curriculum curriculum;
+        private final String courseName;
+        private boolean semestersLoaded;
+
 	/**
 	 * Creates new form CurriculumCard
 	 */
 	public CurriculumCard() {
+                this(null, null);
+        }
+
+        public CurriculumCard(Curriculum curriculum, String courseName) {
+                this.curriculum = curriculum;
+                this.courseName = courseName;
 		initComponents();
+                initializeCard();
 	}
+
+        private void initializeCard() {
+                if (curriculum == null) {
+                        txtCurriculumName.setText("");
+                        txtCurYear.setText("");
+                        cbxCourse.removeAllItems();
+                        cbxCourse.addItem("");
+                        showSemestersPlaceholder("No curriculum selected.");
+                        return;
+                }
+
+                txtCurriculumName.setText(safeText(curriculum.getName(), "N/A"));
+                txtCurYear.setText(formatYear(curriculum.getCurYear()));
+
+                cbxCourse.removeAllItems();
+                cbxCourse.addItem(safeText(courseName, "N/A"));
+
+                showSemestersPlaceholder("Semesters load when this curriculum tab is selected.");
+        }
+
+        public boolean isSemestersLoaded() {
+                return semestersLoaded;
+        }
+
+        public void ensureSemestersLoaded() {
+                if (semestersLoaded) {
+                        return;
+                }
+
+                loadSemesters();
+        }
+
+        public void reloadSemesters() {
+                semestersLoaded = false;
+                ensureSemestersLoaded();
+        }
+
+        private void loadSemesters() {
+                tabbedPaneSemesters.removeAll();
+
+                if (curriculum == null || curriculum.getId() == null) {
+                        showSemestersPlaceholder("No curriculum selected.");
+                        semestersLoaded = true;
+                        return;
+                }
+
+                List<Semester> semesters = semesterService.getSemestersByCurriculum(curriculum.getId());
+                if (semesters.isEmpty()) {
+                        showSemestersPlaceholder("No semesters found for this curriculum.");
+                        semestersLoaded = true;
+                        return;
+                }
+
+                Map<Long, Subject> subjectMap = loadSubjectMapForCurriculum(curriculum.getId());
+                for (Semester semester : semesters) {
+                        SemesterCard semesterCard = new SemesterCard(semester, subjectMap, null);
+                        tabbedPaneSemesters.addTab(buildSemesterTabTitle(semester), semesterCard);
+                }
+
+                semestersLoaded = true;
+        }
+
+        private Map<Long, Subject> loadSubjectMapForCurriculum(Long curriculumId) {
+                List<Subject> subjects = subjectService.getAllSubjects();
+
+                return subjects
+                        .stream()
+                        .collect(Collectors.toMap(Subject::getId, subject -> subject, (left, right) -> left, LinkedHashMap::new));
+        }
+
+        private String buildSemesterTabTitle(Semester semester) {
+                return safeText(semester.getSemester(), "Semester " + semester.getId());
+        }
+
+        private void showSemestersPlaceholder(String message) {
+                tabbedPaneSemesters.removeAll();
+                JPanel panel = new JPanel(new java.awt.GridBagLayout());
+                panel.setBackground(java.awt.Color.WHITE);
+                JLabel label = new JLabel(message);
+                label.setForeground(new java.awt.Color(120, 120, 120));
+                panel.add(label);
+                tabbedPaneSemesters.addTab("Semesters", panel);
+        }
+
+        private String safeText(String value, String fallback) {
+                if (value == null || value.trim().isEmpty()) {
+                        return fallback;
+                }
+                return value.trim();
+        }
+
+        private String formatYear(Date yearDate) {
+                if (yearDate == null) {
+                        return "N/A";
+                }
+
+                if (yearDate instanceof java.sql.Date sqlDate) {
+                        return String.valueOf(sqlDate.toLocalDate().getYear());
+                }
+
+                return String.valueOf(yearDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getYear());
+        }
 
 	/**
 	 * This method is called from within the constructor to initialize the
 	 * form. WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-	@SuppressWarnings("unchecked")
         // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
         private void initComponents() {
 
@@ -65,15 +194,15 @@ public class CurriculumCard extends javax.swing.JPanel {
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel1)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(txtCurriculumName, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(txtCurriculumName, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(jLabel2)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(txtCurYear, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(txtCurYear, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(jLabel3)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(cbxCourse, 0, 285, Short.MAX_VALUE)))
+                                                .addComponent(cbxCourse, 0, 471, Short.MAX_VALUE)))
                                 .addContainerGap())
                 );
                 layout.setVerticalGroup(

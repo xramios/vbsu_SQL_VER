@@ -4,8 +4,6 @@
  */
 package com.group5.paul_esys.screens.registrar.panels;
 
-import com.group5.paul_esys.modules.curriculum.model.Curriculum;
-import com.group5.paul_esys.modules.curriculum.services.CurriculumService;
 import com.group5.paul_esys.modules.departments.model.Department;
 import com.group5.paul_esys.modules.departments.services.DepartmentService;
 import com.group5.paul_esys.modules.subjects.model.Subject;
@@ -17,7 +15,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +35,8 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
 
         private final SubjectService subjectService = SubjectService.getInstance();
         private final DepartmentService departmentService = DepartmentService.getInstance();
-        private final CurriculumService curriculumService = CurriculumService.getInstance();
 
         private final Map<Long, String> departmentNameById = new LinkedHashMap<>();
-        private final Map<Long, String> curriculumNameById = new LinkedHashMap<>();
         private final Map<String, Long> departmentIdByName = new LinkedHashMap<>();
 
         private List<Subject> subjects = new ArrayList<>();
@@ -71,7 +66,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
         private void configureTableModel() {
                 DefaultTableModel model = new DefaultTableModel(
                         new Object[][]{},
-                        new String[]{"Name", "Code", "Units", "Description", "Curriculum", "Department"}
+                        new String[]{"Name", "Code", "Units", "Description", "Department"}
                 ) {
                         @Override
                         public boolean isCellEditable(int rowIndex, int columnIndex) {
@@ -152,28 +147,6 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 for (Department department : departmentService.getAllDepartments()) {
                         departmentNameById.put(department.getId(), safeText(department.getDepartmentName(), "N/A"));
                 }
-
-                curriculumNameById.clear();
-                for (Curriculum curriculum : curriculumService.getAllCurriculums()) {
-                        curriculumNameById.put(curriculum.getId(), buildCurriculumDisplayName(curriculum));
-                }
-        }
-
-        private String buildCurriculumDisplayName(Curriculum curriculum) {
-                String curriculumName = safeText(curriculum.getName(), "Curriculum");
-                if (curriculum.getCurYear() == null) {
-                        return curriculumName;
-                }
-
-                return curriculumName + " (" + extractYear(curriculum.getCurYear()) + ")";
-        }
-
-        private int extractYear(Date date) {
-                if (date instanceof java.sql.Date sqlDate) {
-                        return sqlDate.toLocalDate().getYear();
-                }
-
-                return date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate().getYear();
         }
 
         private void reloadDepartmentFilterOptions() {
@@ -252,7 +225,6 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                                         safeText(subject.getSubjectCode(), "N/A"),
                                         subject.getUnits() == null ? "N/A" : subject.getUnits(),
                                         buildDescriptionPreview(subject.getDescription()),
-                                        curriculumNameById.getOrDefault(subject.getCurriculumId(), "N/A"),
                                         departmentNameById.getOrDefault(subject.getDepartmentId(), "N/A")
                                 }
                         );
@@ -410,13 +382,13 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
 
                 tableSubjects.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][] {
-                                {null, null, null, null, null, null},
-                                {null, null, null, null, null, null},
-                                {null, null, null, null, null, null},
-                                {null, null, null, null, null, null}
+                                {null, null, null, null, null},
+                                {null, null, null, null, null},
+                                {null, null, null, null, null},
+                                {null, null, null, null, null}
                         },
                         new String [] {
-                                "Name", "Code", "Units", "Description", "Curriculum", "Department"
+                                "Name", "Code", "Units", "Description", "Department"
                         }
                 ));
                 jScrollPane1.setViewportView(tableSubjects);

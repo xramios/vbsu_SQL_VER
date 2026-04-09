@@ -4,14 +4,10 @@
  */
 package com.group5.paul_esys.screens.registrar.forms;
 
-import com.group5.paul_esys.modules.curriculum.services.CurriculumService;
 import com.group5.paul_esys.modules.departments.model.Department;
 import com.group5.paul_esys.modules.departments.services.DepartmentService;
 import com.group5.paul_esys.modules.subjects.model.Subject;
 import com.group5.paul_esys.modules.subjects.services.SubjectService;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +22,6 @@ public class SubjectForm extends javax.swing.JDialog {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SubjectForm.class.getName());
         private final SubjectService subjectService = SubjectService.getInstance();
         private final DepartmentService departmentService = DepartmentService.getInstance();
-        private final CurriculumService curriculumService = CurriculumService.getInstance();
 
         private final Map<String, Long> departmentIdByLabel = new LinkedHashMap<>();
         private final Map<Long, String> departmentLabelById = new LinkedHashMap<>();
@@ -81,15 +76,6 @@ public class SubjectForm extends javax.swing.JDialog {
                 if (departmentLabel != null) {
                         cbxDepartment.setSelectedItem(departmentLabel);
                 }
-        }
-
-        private int extractYear(Date date) {
-                if (date instanceof java.sql.Date sqlDate) {
-                        return sqlDate.toLocalDate().getYear();
-                }
-
-                LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                return localDate.getYear();
         }
 
         private void loadDepartments() {
