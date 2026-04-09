@@ -165,6 +165,9 @@ CREATE TABLE student_enrolled_subjects
 CREATE TABLE rooms
 (
     id         bigint      NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    building varchar(64) NOT NULL,
+    room_type varchar(32) NOT NULL CHECK (room_type IN ('LECTURE', 'LAB', 'SEMINAR', 'AUDITORIUM', 'OTHER')),
+    status varchar(32) NOT NULL CHECK (status IN ('AVAILABLE', 'UNAVAILABLE', 'MAINTENANCE')) DEFAULT 'AVAILABLE',
     room       varchar(32) NOT NULL,
     capacity   int         NOT NULL,
     created_at timestamp default current_timestamp,
