@@ -108,15 +108,17 @@ COURSE_DATA: List[Tuple[str, str, int]] = [
 # =============================================================================
 
 ROOM_TYPES: List[Tuple[str, int]] = [
-    ("Lecture Hall", 150),
-    ("Laboratory", 40),
-    ("Computer Lab", 35),
-    ("Discussion Room", 25),
-    ("Conference Room", 20),
-    ("Auditorium", 300),
-    ("Classroom", 50),
-    ("Seminar Room", 30),
+    ("LECTURE", 120),
+    ("LECTURE", 55),
+    ("LAB", 40),
+    ("LAB", 35),
+    ("SEMINAR", 30),
+    ("SEMINAR", 24),
+    ("AUDITORIUM", 300),
+    ("OTHER", 45),
 ]
+
+ROOM_STATUSES: List[str] = ["AVAILABLE", "UNAVAILABLE", "MAINTENANCE"]
 
 BUILDING_NAMES: List[str] = ["Engineering", "Business", "Arts", "Science", "Main"]
 

@@ -52,6 +52,9 @@ class Room:
     """Represents a physical classroom or facility."""
 
     id: int
+    building: str
+    room_type: str
+    status: str
     room: str
     capacity: int
     created_at: Optional[datetime] = None

@@ -13,6 +13,7 @@ from seeder.services.base_seeder import BaseSeeder
 from seeder.config.constants import (
     SEEDING_COUNTS,
     ROOM_TYPES,
+    ROOM_STATUSES,
     BUILDING_NAMES,
     BUILDING_FLOORS,
     MIN_ROOM_CAPACITY,
@@ -31,6 +32,9 @@ class RoomSeeder(BaseSeeder):
     CREATE_TABLE_SQL = """
         CREATE TABLE TABLE_NAME (
             id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            building VARCHAR(64) NOT NULL,
+            room_type VARCHAR(32) NOT NULL CHECK (room_type IN ('LECTURE', 'LAB', 'SEMINAR', 'AUDITORIUM', 'OTHER')),
+            status VARCHAR(32) NOT NULL CHECK (status IN ('AVAILABLE', 'UNAVAILABLE', 'MAINTENANCE')) DEFAULT 'AVAILABLE',
             room VARCHAR(32) NOT NULL,
             capacity INT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -69,14 +73,24 @@ class RoomSeeder(BaseSeeder):
                 capacity = max(
                     MIN_ROOM_CAPACITY, base_capacity + random.randint(*CAPACITY_VARIATION)
                 )
+                status = random.choices(ROOM_STATUSES, weights=[0.9, 0.07, 0.03])[0]
 
                 last_id = self.execute_insert(
-                    "rooms", ["room", "capacity"], [room_number, capacity],
+                    "rooms",
+                    ["building", "room_type", "status", "room", "capacity"],
+                    [building, room_type, status, room_number, capacity],
                     cursor=cursor
                 )
 
                 self.state.rooms.append(
-                    Room(id=last_id, room=room_number, capacity=capacity)
+                    Room(
+                        id=last_id,
+                        building=building,
+                        room_type=room_type,
+                        status=status,
+                        room=room_number,
+                        capacity=capacity,
+                    )
                 )
 
             self.db_manager.commit()
