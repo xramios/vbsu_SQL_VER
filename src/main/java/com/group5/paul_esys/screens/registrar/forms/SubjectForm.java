@@ -4,7 +4,6 @@
  */
 package com.group5.paul_esys.screens.registrar.forms;
 
-import com.group5.paul_esys.modules.curriculum.model.Curriculum;
 import com.group5.paul_esys.modules.curriculum.services.CurriculumService;
 import com.group5.paul_esys.modules.departments.model.Department;
 import com.group5.paul_esys.modules.departments.services.DepartmentService;
@@ -29,9 +28,7 @@ public class SubjectForm extends javax.swing.JDialog {
         private final DepartmentService departmentService = DepartmentService.getInstance();
         private final CurriculumService curriculumService = CurriculumService.getInstance();
 
-        private final Map<String, Long> curriculumIdByLabel = new LinkedHashMap<>();
         private final Map<String, Long> departmentIdByLabel = new LinkedHashMap<>();
-        private final Map<Long, String> curriculumLabelById = new LinkedHashMap<>();
         private final Map<Long, String> departmentLabelById = new LinkedHashMap<>();
 
         private final Subject editingSubject;
@@ -55,13 +52,12 @@ public class SubjectForm extends javax.swing.JDialog {
 	}
 
         private void initializeForm() {
-                jButton1.addActionListener(this::jButton1ActionPerformed);
-                jButton2.addActionListener(this::jButton2ActionPerformed);
+                btnSave.addActionListener(this::jButton1ActionPerformed);
+                btnCancel.addActionListener(this::jButton2ActionPerformed);
 
                 jLabel4.setText("Subject Code");
-                jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(1.0f), Float.valueOf(0.5f), Float.valueOf(25.0f), Float.valueOf(0.5f)));
+                spinnerUnit.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(1.0f), Float.valueOf(0.5f), Float.valueOf(25.0f), Float.valueOf(0.5f)));
 
-                loadCurriculums();
                 loadDepartments();
 
                 if (editingSubject == null) {
@@ -70,52 +66,22 @@ public class SubjectForm extends javax.swing.JDialog {
 
                 jLabel1.setText("Update Subject");
                 jLabel2.setText("Update existing subject");
-                jButton1.setText("Update");
+                btnSave.setText("Update");
 
-                jTextField1.setText(editingSubject.getSubjectName());
-                jTextField2.setText(editingSubject.getSubjectCode());
-                jTextArea1.setText(editingSubject.getDescription() == null ? "" : editingSubject.getDescription());
+                txtSubjectName.setText(editingSubject.getSubjectName());
+                txtSubjectCode.setText(editingSubject.getSubjectCode());
+                textAreaDescription.setText(editingSubject.getDescription() == null ? "" : editingSubject.getDescription());
 
                 if (editingSubject.getUnits() != null) {
-                        jSpinner1.setValue(editingSubject.getUnits());
+                        spinnerUnit.setValue(editingSubject.getUnits());
                 }
 
-                String curriculumLabel = curriculumLabelById.get(editingSubject.getCurriculumId());
-                if (curriculumLabel != null) {
-                        jComboBox1.setSelectedItem(curriculumLabel);
-                }
 
                 String departmentLabel = departmentLabelById.get(editingSubject.getDepartmentId());
                 if (departmentLabel != null) {
-                        jComboBox2.setSelectedItem(departmentLabel);
+                        cbxDepartment.setSelectedItem(departmentLabel);
                 }
         }
-
-        private void loadCurriculums() {
-                jComboBox1.removeAllItems();
-                curriculumIdByLabel.clear();
-                curriculumLabelById.clear();
-
-                for (Curriculum curriculum : curriculumService.getAllCurriculums()) {
-                        String label = buildCurriculumLabel(curriculum);
-                        jComboBox1.addItem(label);
-                        curriculumIdByLabel.put(label, curriculum.getId());
-                        curriculumLabelById.put(curriculum.getId(), label);
-                }
-        }
-
-        private String buildCurriculumLabel(Curriculum curriculum) {
-                String name = curriculum.getName() == null || curriculum.getName().trim().isEmpty()
-                        ? "Curriculum"
-                        : curriculum.getName().trim();
-
-                String yearLabel = "N/A";
-                if (curriculum.getCurYear() != null) {
-                        yearLabel = String.valueOf(extractYear(curriculum.getCurYear()));
-                }
-
-                return name + " (" + yearLabel + ") - ID " + curriculum.getId();
-	}
 
         private int extractYear(Date date) {
                 if (date instanceof java.sql.Date sqlDate) {
@@ -127,13 +93,13 @@ public class SubjectForm extends javax.swing.JDialog {
         }
 
         private void loadDepartments() {
-                jComboBox2.removeAllItems();
+                cbxDepartment.removeAllItems();
                 departmentIdByLabel.clear();
                 departmentLabelById.clear();
 
                 for (Department department : departmentService.getAllDepartments()) {
                         String label = buildDepartmentLabel(department);
-                        jComboBox2.addItem(label);
+                        cbxDepartment.addItem(label);
                         departmentIdByLabel.put(label, department.getId());
                         departmentLabelById.put(department.getId(), label);
                 }
@@ -147,7 +113,7 @@ public class SubjectForm extends javax.swing.JDialog {
 	}
 
         private boolean isValidForm() {
-                if (jTextField1.getText() == null || jTextField1.getText().trim().isEmpty()) {
+                if (txtSubjectName.getText() == null || txtSubjectName.getText().trim().isEmpty()) {
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Subject name is required.",
@@ -157,7 +123,7 @@ public class SubjectForm extends javax.swing.JDialog {
                         return false;
                 }
 
-                if (jTextField2.getText() == null || jTextField2.getText().trim().isEmpty()) {
+                if (txtSubjectCode.getText() == null || txtSubjectCode.getText().trim().isEmpty()) {
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Subject code is required.",
@@ -171,16 +137,6 @@ public class SubjectForm extends javax.swing.JDialog {
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Units must be greater than zero.",
-                                "Validation Error",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return false;
-                }
-
-                if (!isValidCurriculumSelection()) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Please select a curriculum.",
                                 "Validation Error",
                                 JOptionPane.WARNING_MESSAGE
                         );
@@ -215,7 +171,7 @@ public class SubjectForm extends javax.swing.JDialog {
         }
 
         private float readUnits() {
-                Object unitsValue = jSpinner1.getValue();
+                Object unitsValue = spinnerUnit.getValue();
                 if (unitsValue instanceof Number number) {
                         return number.floatValue();
                 }
@@ -227,20 +183,14 @@ public class SubjectForm extends javax.swing.JDialog {
                 }
         }
 
-        private boolean isValidCurriculumSelection() {
-                Object selectedCurriculum = jComboBox1.getSelectedItem();
-                return selectedCurriculum != null
-                        && curriculumIdByLabel.containsKey(selectedCurriculum.toString());
-        }
-
         private boolean isValidDepartmentSelection() {
-                Object selectedDepartment = jComboBox2.getSelectedItem();
+                Object selectedDepartment = cbxDepartment.getSelectedItem();
                 return selectedDepartment != null
                         && departmentIdByLabel.containsKey(selectedDepartment.toString());
         }
 
         private boolean isSubjectCodeAvailable() {
-                String subjectCode = jTextField2.getText().trim().toUpperCase();
+                String subjectCode = txtSubjectCode.getText().trim().toUpperCase();
                 Optional<Subject> existingSubject = subjectService.getSubjectByCode(subjectCode);
                 if (existingSubject.isEmpty()) {
                         return true;
@@ -254,16 +204,14 @@ public class SubjectForm extends javax.swing.JDialog {
                         return;
                 }
 
-                Long curriculumId = curriculumIdByLabel.get(jComboBox1.getSelectedItem().toString());
-                Long departmentId = departmentIdByLabel.get(jComboBox2.getSelectedItem().toString());
+                Long departmentId = departmentIdByLabel.get(cbxDepartment.getSelectedItem().toString());
 
                 Subject subject = editingSubject == null ? new Subject() : editingSubject;
                 subject
-                        .setSubjectName(jTextField1.getText().trim())
-                        .setSubjectCode(jTextField2.getText().trim().toUpperCase())
+                        .setSubjectName(txtSubjectName.getText().trim())
+                        .setSubjectCode(txtSubjectCode.getText().trim().toUpperCase())
                         .setUnits(readUnits())
-                        .setDescription(jTextArea1.getText().trim())
-                        .setCurriculumId(curriculumId)
+                        .setDescription(textAreaDescription.getText().trim())
                         .setDepartmentId(departmentId);
 
                 boolean success = editingSubject == null
@@ -317,20 +265,18 @@ public class SubjectForm extends javax.swing.JDialog {
                 jLabel1 = new javax.swing.JLabel();
                 jLabel2 = new javax.swing.JLabel();
                 jLabel3 = new javax.swing.JLabel();
-                jTextField1 = new javax.swing.JTextField();
-                jTextField2 = new javax.swing.JTextField();
+                txtSubjectName = new javax.swing.JTextField();
+                txtSubjectCode = new javax.swing.JTextField();
                 jLabel4 = new javax.swing.JLabel();
                 jLabel5 = new javax.swing.JLabel();
-                jLabel6 = new javax.swing.JLabel();
-                jSpinner1 = new javax.swing.JSpinner();
-                jComboBox1 = new javax.swing.JComboBox<>();
-                jComboBox2 = new javax.swing.JComboBox<>();
+                spinnerUnit = new javax.swing.JSpinner();
+                cbxDepartment = new javax.swing.JComboBox<>();
                 jLabel7 = new javax.swing.JLabel();
                 jLabel8 = new javax.swing.JLabel();
                 jScrollPane1 = new javax.swing.JScrollPane();
-                jTextArea1 = new javax.swing.JTextArea();
-                jButton1 = new javax.swing.JButton();
-                jButton2 = new javax.swing.JButton();
+                textAreaDescription = new javax.swing.JTextArea();
+                btnSave = new javax.swing.JButton();
+                btnCancel = new javax.swing.JButton();
 
                 setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
                 getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
@@ -351,77 +297,63 @@ public class SubjectForm extends javax.swing.JDialog {
 
                 jLabel3.setText("Subject Name");
 
-                jTextField1.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
+                txtSubjectName.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
 
-                jTextField2.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
+                txtSubjectCode.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
 
-                jLabel4.setText("Subject Name");
+                jLabel4.setText("Subject Code");
 
                 jLabel5.setText("Units");
 
-                jLabel6.setText("Curriculum");
+                spinnerUnit.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), Float.valueOf(25.0f), Float.valueOf(1.0f)));
+                spinnerUnit.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
 
-                jSpinner1.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), Float.valueOf(25.0f), Float.valueOf(1.0f)));
-                jSpinner1.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
-
-                jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-                jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+                cbxDepartment.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
                 jLabel7.setText("Department");
 
                 jLabel8.setText("Description");
 
-                jTextArea1.setColumns(20);
-                jTextArea1.setRows(5);
-                jScrollPane1.setViewportView(jTextArea1);
+                textAreaDescription.setColumns(20);
+                textAreaDescription.setRows(5);
+                jScrollPane1.setViewportView(textAreaDescription);
 
-                jButton1.setBackground(new java.awt.Color(119, 0, 0));
-                jButton1.setForeground(new java.awt.Color(255, 255, 255));
-                jButton1.setText("Save");
+                btnSave.setBackground(new java.awt.Color(119, 0, 0));
+                btnSave.setForeground(new java.awt.Color(255, 255, 255));
+                btnSave.setText("Save");
 
-                jButton2.setBackground(new java.awt.Color(119, 0, 0));
-                jButton2.setForeground(new java.awt.Color(255, 255, 255));
-                jButton2.setText("Cancel");
+                btnCancel.setBackground(new java.awt.Color(119, 0, 0));
+                btnCancel.setForeground(new java.awt.Color(255, 255, 255));
+                btnCancel.setText("Cancel");
 
                 javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
                 jPanel1.setLayout(jPanel1Layout);
                 jPanel1Layout.setHorizontalGroup(
                         jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addGroup(jPanel1Layout.createSequentialGroup()
-                                                        .addContainerGap()
-                                                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
-                                                        .addGap(42, 42, 42)
-                                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                                .addComponent(jLabel5)
-                                                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
-                                                                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addComponent(jTextField1)
-                                                                .addComponent(jTextField2)
-                                                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                                                .addComponent(jSpinner1)
-                                                                .addComponent(jLabel6))))
+                                .addGap(42, 42, 42)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jLabel8)
+                                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 319, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                .addComponent(jLabel5)
+                                                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                                                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(txtSubjectName)
+                                                .addComponent(txtSubjectCode)
+                                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(spinnerUnit)
+                                                .addComponent(jLabel7)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                                        .addGap(1, 1, 1)
+                                                        .addComponent(cbxDepartment, 0, 319, Short.MAX_VALUE)))
                                         .addGroup(jPanel1Layout.createSequentialGroup()
-                                                .addGap(43, 43, 43)
-                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                        .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING)
-                                                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                                                .addGap(1, 1, 1)
-                                                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                                                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                                                .addComponent(jLabel8)
-                                                                                .addComponent(jComboBox2, 0, 319, Short.MAX_VALUE)
-                                                                                .addComponent(jScrollPane1))
-                                                                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                                                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)))))))
-                                .addContainerGap(67, Short.MAX_VALUE))
+                                                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap(42, Short.MAX_VALUE))
                 );
                 jPanel1Layout.setVerticalGroup(
                         jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -433,31 +365,27 @@ public class SubjectForm extends javax.swing.JDialog {
                                 .addGap(18, 18, 18)
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtSubjectName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtSubjectCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel5)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(10, 10, 10)
-                                .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(spinnerUnit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel7)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(cbxDepartment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel8)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addContainerGap(39, Short.MAX_VALUE))
                 );
 
@@ -504,24 +432,22 @@ public class SubjectForm extends javax.swing.JDialog {
 	}
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
-        private javax.swing.JButton jButton1;
-        private javax.swing.JButton jButton2;
-        private javax.swing.JComboBox<String> jComboBox1;
-        private javax.swing.JComboBox<String> jComboBox2;
+        private javax.swing.JButton btnCancel;
+        private javax.swing.JButton btnSave;
+        private javax.swing.JComboBox<String> cbxDepartment;
         private javax.swing.JLabel jLabel1;
         private javax.swing.JLabel jLabel2;
         private javax.swing.JLabel jLabel3;
         private javax.swing.JLabel jLabel4;
         private javax.swing.JLabel jLabel5;
-        private javax.swing.JLabel jLabel6;
         private javax.swing.JLabel jLabel7;
         private javax.swing.JLabel jLabel8;
         private javax.swing.JPanel jPanel1;
         private javax.swing.JScrollPane jScrollPane1;
-        private javax.swing.JSpinner jSpinner1;
-        private javax.swing.JTextArea jTextArea1;
-        private javax.swing.JTextField jTextField1;
-        private javax.swing.JTextField jTextField2;
+        private javax.swing.JSpinner spinnerUnit;
+        private javax.swing.JTextArea textAreaDescription;
+        private javax.swing.JTextField txtSubjectCode;
+        private javax.swing.JTextField txtSubjectName;
         private com.group5.paul_esys.components.WindowBar windowBar1;
         // End of variables declaration//GEN-END:variables
 }

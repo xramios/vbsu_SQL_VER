@@ -164,6 +164,7 @@ public class RoomForm extends javax.swing.JFrame {
                 jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 20, 250, -1));
 
                 txtRoom.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                txtRoom.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
                 txtRoom.addActionListener(this::txtRoomActionPerformed);
                 jPanel1.add(txtRoom, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 350, 250, -1));
 
@@ -194,6 +195,7 @@ public class RoomForm extends javax.swing.JFrame {
                 jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 50, 250, -1));
 
                 txtRoom1.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                txtRoom1.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
                 txtRoom1.addActionListener(this::txtRoom1ActionPerformed);
                 jPanel1.add(txtRoom1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 120, 250, -1));
 
