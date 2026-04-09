@@ -1,6 +1,6 @@
-package com.group5.paul_esys.modules.enrollment.utils;
+package com.group5.paul_esys.modules.enrollment_period.utils;
 
-import com.group5.paul_esys.modules.enrollment.model.EnrollmentPeriod;
+import com.group5.paul_esys.modules.enrollment_period.model.EnrollmentPeriod;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

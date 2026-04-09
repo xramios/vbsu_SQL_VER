@@ -1,4 +1,4 @@
-package com.group5.paul_esys.modules.enrollment.model;
+package com.group5.paul_esys.modules.enrollment_period.model;
 
 import java.sql.Timestamp;
 import java.util.Date;

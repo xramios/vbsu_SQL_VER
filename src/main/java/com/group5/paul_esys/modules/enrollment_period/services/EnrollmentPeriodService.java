@@ -1,7 +1,7 @@
-package com.group5.paul_esys.modules.enrollment.services;
+package com.group5.paul_esys.modules.enrollment_period.services;
 
-import com.group5.paul_esys.modules.enrollment.model.EnrollmentPeriod;
-import com.group5.paul_esys.modules.enrollment.utils.EnrollmentPeriodUtils;
+import com.group5.paul_esys.modules.enrollment_period.model.EnrollmentPeriod;
+import com.group5.paul_esys.modules.enrollment_period.utils.EnrollmentPeriodUtils;
 import com.group5.paul_esys.modules.users.services.ConnectionService;
 
 import java.sql.Connection;
