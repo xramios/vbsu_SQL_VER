@@ -65,7 +65,7 @@ CREATE TABLE students
 /**
  * Catalog of all subjects/courses offered by the university.
  * Contains subject details including name, code, units, and description.
- * Linked to curriculum and department for academic organization.
+ * Linked to department for academic organization.
  */
 CREATE TABLE subjects
 (
@@ -74,7 +74,6 @@ CREATE TABLE subjects
     subject_code  varchar(32),
     units         float,
     description   clob,
-    curriculum_id bigint,
     department_id bigint,
     updated_at    timestamp default current_timestamp,
     created_at    timestamp default current_timestamp
@@ -332,9 +331,6 @@ ALTER TABLE students
 
 ALTER TABLE students
     ADD CONSTRAINT fk_students_curriculum FOREIGN KEY (curriculum_id) REFERENCES curriculum (id);
-
-ALTER TABLE subjects
-    ADD CONSTRAINT fk_subjects_curriculum FOREIGN KEY (curriculum_id) REFERENCES curriculum (id);
 
 ALTER TABLE subjects
     ADD CONSTRAINT fk_subjects_dept FOREIGN KEY (department_id) REFERENCES departments (id);
