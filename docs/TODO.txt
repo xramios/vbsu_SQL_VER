@@ -1,0 +1,11 @@
+Critical: enrollment creation flow can fail at runtime because required enrollment fields are not being set before insert.
+Evidence: StudentDashboard.java:892-897 only sets studentId, status, totalUnits, while EnrollmentService.java:98-105 always writes enrollmentPeriodId, maxUnits, submittedAt.
+
+Critical: enrollments table allows duplicate and incomplete records.
+Evidence: derby.sql:226-237 has nullable student_id, enrollment_period_id, status, max_units, total_units and no unique constraint for one enrollment per student per term.
+
+Critical: enrollment details can become inconsistent and duplicated.
+Evidence: derby.sql:244-254 allows nullable enrollment_id/section_id/subject_id and has no unique rule like one section per enrollment. Also subject_id can disagree with section_id because they are independent FKs in derby.sql:342-346.
+
+Critical: schedule conflict prevention is only UI-side and not transaction-safe.
+Evidence: conflict checks are only in StudentDashboard.java:856-890. There is no DB-level enforcement in derby.sql:207-219 and derby.sql:244-254, so concurrent enrollments can still overbook or create overlaps.

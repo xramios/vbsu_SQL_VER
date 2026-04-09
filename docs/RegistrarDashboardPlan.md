@@ -398,6 +398,41 @@ This document defines the frontend/UI work breakdown for the **Registrar Dashboa
 
 - [ ] 9.2.2 Define scheduling input controls
   - [ ] Use `JComboBox` for section, room, faculty, day, and enrollment period.
+
+---
+
+## 10. Semester Progress Automation UI
+
+### 10.1 Student Semester Progress View
+- [ ] 10.1.1 Design a semester progress panel
+  - [ ] Show the selected student, curriculum, and current semester status.
+  - [ ] Display semester progress as a timeline, stepper, or status table.
+  - [ ] Highlight the current semester and the next incomplete semester.
+  - [ ] Include a compact completion summary for completed, in-progress, and not-started semesters.
+
+- [ ] 10.1.2 Define semester progress table content
+  - [ ] List semester name, year level, required subject count, completed subject count, and status.
+  - [ ] Show the completion ratio for each semester.
+  - [ ] Render completed semesters with a success style and active semesters with a warning or info style.
+
+### 10.2 Progress Automation Triggers
+- [ ] 10.2.1 Reflect enrollment-driven status changes in the UI
+  - [ ] Mark a semester as in progress when the student begins enrollment for any subject in that semester.
+  - [ ] Update the semester row after subject enrollment actions are saved.
+  - [ ] Refresh the panel automatically after enrollment submission or approval.
+
+- [ ] 10.2.2 Reflect completion-driven status changes in the UI
+  - [ ] Mark a semester as completed when all required semester subjects are completed.
+  - [ ] Recompute the display after grades or completion status are updated.
+  - [ ] Show a clear badge or label when a semester becomes fully complete.
+
+### 10.3 Progress Validation and Feedback
+- [ ] 10.3.1 Add UI feedback for progress state transitions
+  - [ ] Show helper text explaining why a semester moved to in progress or completed.
+  - [ ] Warn when a student has dropped or incomplete subjects that prevent completion.
+  - [ ] Provide a refresh action for administrators to force recalculation from the latest records.
+
+**Estimated UI Complexity:** `Medium`
   - [ ] Use time input controls or formatted text fields for start and end time.
   - [ ] Place timing fields next to each other for easier comparison.
   - [ ] Include Save, Cancel, and Reset buttons.
