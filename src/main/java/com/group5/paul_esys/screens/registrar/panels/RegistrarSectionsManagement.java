@@ -654,29 +654,53 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                 jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(11, 52, 1150, 540));
 
                 jLabel3.setText("Search");
-                jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, -1, -1));
+                jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 20, -1, -1));
 
                 txtSearch.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
+                txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+                        public void keyReleased(java.awt.event.KeyEvent evt) {
+                                txtSearchKeyReleased(evt);
+                        }
+                });
                 jPanel1.add(txtSearch, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 10, 340, 36));
 
                 jLabel4.setText("Status");
                 jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 20, -1, -1));
 
                 cbxStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "OPEN", "CLOSED", "WAITLIST", "DISSOLVED" }));
+                cbxStatus.addItemListener(this::cbxStatusItemStateChanged);
                 jPanel1.add(cbxStatus, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 10, 280, 36));
 
                 btnAddSection.setBackground(new java.awt.Color(119, 0, 0));
                 btnAddSection.setForeground(new java.awt.Color(255, 255, 255));
                 btnAddSection.setText("Add Section");
+                btnAddSection.addActionListener(this::btnAddSectionActionPerformed);
                 jPanel1.add(btnAddSection, new org.netbeans.lib.awtextra.AbsoluteConstraints(950, 10, 100, 36));
 
                 btnClearFilter.setBackground(new java.awt.Color(119, 0, 0));
                 btnClearFilter.setForeground(new java.awt.Color(255, 255, 255));
                 btnClearFilter.setText("Clear Filter");
+                btnClearFilter.addActionListener(this::btnClearFilterActionPerformed);
                 jPanel1.add(btnClearFilter, new org.netbeans.lib.awtextra.AbsoluteConstraints(1057, 10, 100, 36));
 
                 add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(6, 77, 1170, 600));
         }// </editor-fold>//GEN-END:initComponents
+
+        private void btnAddSectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSectionActionPerformed
+                // TODO add your handling code here:
+        }//GEN-LAST:event_btnAddSectionActionPerformed
+
+        private void btnClearFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearFilterActionPerformed
+                // TODO add your handling code here:
+        }//GEN-LAST:event_btnClearFilterActionPerformed
+
+        private void txtSearchKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtSearchKeyReleased
+                // TODO add your handling code here:
+        }//GEN-LAST:event_txtSearchKeyReleased
+
+        private void cbxStatusItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbxStatusItemStateChanged
+                // TODO add your handling code here:
+        }//GEN-LAST:event_cbxStatusItemStateChanged
 
 
         // Variables declaration - do not modify//GEN-BEGIN:variables

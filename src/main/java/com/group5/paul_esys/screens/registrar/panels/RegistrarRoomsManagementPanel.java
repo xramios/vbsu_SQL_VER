@@ -529,7 +529,7 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
         }//GEN-LAST:event_menuItemDeleteActionPerformed
 
         private void btnAddRoomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddRoomActionPerformed
-		RoomForm form = new RoomForm();
+		RoomForm form = new RoomForm(null, this::initializeRooms);
 		form.setVisible(true);
         }//GEN-LAST:event_btnAddRoomActionPerformed
 
