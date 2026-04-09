@@ -64,6 +64,7 @@ public class SemesterCard extends javax.swing.JPanel {
                 }
 
                 lblSemesterName.setText(safeText(semester.getSemester(), "Semester"));
+                lblYear.setText("Year: " + safeText(semester.getYearLevel().toString(), "Year Level"));
                 reloadSemesterSubjects();
         }
 
@@ -270,9 +271,11 @@ public class SemesterCard extends javax.swing.JPanel {
                 lblSemesterName = new javax.swing.JLabel();
                 btnAddSubject = new javax.swing.JButton();
                 btnRemoveSubject = new javax.swing.JButton();
+                lblYear = new javax.swing.JLabel();
 
                 setBackground(new java.awt.Color(255, 255, 255));
                 setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
+                setMaximumSize(new java.awt.Dimension(652, 32767));
 
                 tableSubjects.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][] {
@@ -282,6 +285,9 @@ public class SemesterCard extends javax.swing.JPanel {
                                 "Name", "Code", "Units", "Description"
                         }
                 ));
+                tableSubjects.setShowGrid(true);
+                tableSubjects.setShowHorizontalLines(true);
+                tableSubjects.setShowVerticalLines(true);
                 jScrollPane1.setViewportView(tableSubjects);
 
                 lblSemesterName.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
@@ -291,6 +297,9 @@ public class SemesterCard extends javax.swing.JPanel {
 
                 btnRemoveSubject.setText("Remove Subject");
 
+                lblYear.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                lblYear.setText("Year: ");
+
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
                 this.setLayout(layout);
                 layout.setHorizontalGroup(
@@ -298,27 +307,33 @@ public class SemesterCard extends javax.swing.JPanel {
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 728, Short.MAX_VALUE)
+                                        .addComponent(jScrollPane1)
                                         .addGroup(layout.createSequentialGroup()
-                                                .addComponent(lblSemesterName)
-                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(lblSemesterName, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(lblYear, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 49, Short.MAX_VALUE)
                                                 .addComponent(btnRemoveSubject)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(btnAddSubject, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                                .addComponent(btnAddSubject, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addContainerGap())
                 );
                 layout.setVerticalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(lblSemesterName)
-                                        .addComponent(btnAddSubject)
-                                        .addComponent(btnRemoveSubject))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(btnAddSubject, javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                                .addComponent(lblYear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(btnRemoveSubject))
+                                        .addComponent(lblSemesterName))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 245, Short.MAX_VALUE)
-                                .addContainerGap())
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 395, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 );
+
+                jScrollPane1.getAccessibleContext().setAccessibleDescription("");
         }// </editor-fold>//GEN-END:initComponents
 
 
@@ -327,6 +342,7 @@ public class SemesterCard extends javax.swing.JPanel {
         private javax.swing.JButton btnRemoveSubject;
         private javax.swing.JScrollPane jScrollPane1;
         private javax.swing.JLabel lblSemesterName;
+        private javax.swing.JLabel lblYear;
         private javax.swing.JTable tableSubjects;
         // End of variables declaration//GEN-END:variables
 }
