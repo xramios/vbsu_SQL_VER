@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS students
 /**
  * Catalog of all subjects/courses offered by the university.
  * Contains subject details including name, code, units, and description.
- * Linked to curriculum and department for academic organization.
+ * Linked to department for academic organization.
  */
 CREATE TABLE IF NOT EXISTS subjects
 (
@@ -70,7 +70,6 @@ CREATE TABLE IF NOT EXISTS subjects
     subject_code  varchar(32),
     units         float,
     description   text,
-    curriculum_id bigint,
     department_id bigint,
     updated_at    timestamp default current_timestamp(),
     created_at    timestamp default current_timestamp()
@@ -284,9 +283,6 @@ ALTER TABLE students
 
 ALTER TABLE students
     ADD FOREIGN KEY (course_id) REFERENCES courses (id);
-
-ALTER TABLE subjects
-    ADD FOREIGN KEY (curriculum_id) REFERENCES curriculum (id);
 
 ALTER TABLE subjects
     ADD FOREIGN KEY (department_id) REFERENCES departments (id);

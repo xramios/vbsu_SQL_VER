@@ -56,9 +56,10 @@ CREATE TABLE students
     birthdate      date         NOT NULL,
     student_status varchar(20) DEFAULT 'REGULAR' CHECK (student_status IN ('REGULAR', 'IRREGULAR')),
     course_id      bigint,
-    year_level     int         default 1,
-    created_at     timestamp   default current_timestamp,
-    updated_at     timestamp   default current_timestamp,
+    curriculum_id  bigint,
+    year_level     int       default 1,
+    created_at     timestamp default current_timestamp,
+    updated_at     timestamp default current_timestamp
 );
 
 /**
@@ -120,6 +121,7 @@ CREATE TABLE semester
     id            bigint      NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     curriculum_id bigint      NOT NULL REFERENCES curriculum (id),
     semester      varchar(24) NOT NULL,
+    year_level int NOT NULL,
     created_at    timestamp default current_timestamp,
     updated_at    timestamp default current_timestamp
 );
@@ -134,7 +136,6 @@ CREATE TABLE semester_subjects
     id          bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     semester_id bigint NOT NULL REFERENCES semester (id),
     subject_id  bigint NOT NULL REFERENCES subjects (id),
-    year_level  int    NOT NULL, -- Ito yung year na dapat kunin ng student
     created_at  timestamp default current_timestamp,
     updated_at  timestamp default current_timestamp
 );
@@ -155,6 +156,24 @@ CREATE TABLE student_enrolled_subjects
     status              varchar(20) CHECK (status IN ('ENROLLED', 'COMPLETED', 'DROPPED')) NOT NULL DEFAULT 'ENROLLED',
     created_at          timestamp                                                                   default current_timestamp,
     updated_at          timestamp                                                                   default current_timestamp
+);
+
+/**
+ * Tracks semester-level progress for each student within a curriculum.
+ * One record represents a student's progress for a curriculum semester
+ * and is marked as NOT_STARTED, IN_PROGRESS, or COMPLETED.
+ */
+CREATE TABLE student_semester_progress
+(
+    id            bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    student_id    varchar(32) NOT NULL,
+    curriculum_id bigint      NOT NULL,
+    semester_id   bigint      NOT NULL,
+    status        varchar(20) CHECK (status IN ('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED')) NOT NULL DEFAULT 'NOT_STARTED',
+    started_at    timestamp,
+    completed_at  timestamp,
+    created_at    timestamp default current_timestamp,
+    updated_at    timestamp default current_timestamp
 );
 
 /**
@@ -303,11 +322,16 @@ CREATE TABLE departments
 
 CREATE UNIQUE INDEX student_enrolled_subjects_index_0 ON student_enrolled_subjects (student_id, semester_subject_id);
 
+CREATE UNIQUE INDEX student_semester_progress_index_0 ON student_semester_progress (student_id, semester_id);
+
 ALTER TABLE students
     ADD CONSTRAINT fk_students_user FOREIGN KEY (user_id) REFERENCES users (id);
 
 ALTER TABLE students
     ADD CONSTRAINT fk_students_course FOREIGN KEY (course_id) REFERENCES courses (id);
+
+ALTER TABLE students
+    ADD CONSTRAINT fk_students_curriculum FOREIGN KEY (curriculum_id) REFERENCES curriculum (id);
 
 ALTER TABLE subjects
     ADD CONSTRAINT fk_subjects_curriculum FOREIGN KEY (curriculum_id) REFERENCES curriculum (id);
@@ -353,6 +377,15 @@ ALTER TABLE student_enrolled_subjects
 
 ALTER TABLE student_enrolled_subjects
     ADD CONSTRAINT fk_ses_subject FOREIGN KEY (semester_subject_id) REFERENCES semester_subjects (id);
+
+ALTER TABLE student_semester_progress
+    ADD CONSTRAINT fk_ssp_student FOREIGN KEY (student_id) REFERENCES students (student_id);
+
+ALTER TABLE student_semester_progress
+    ADD CONSTRAINT fk_ssp_curriculum FOREIGN KEY (curriculum_id) REFERENCES curriculum (id);
+
+ALTER TABLE student_semester_progress
+    ADD CONSTRAINT fk_ssp_semester FOREIGN KEY (semester_id) REFERENCES semester (id);
 
 ALTER TABLE courses
     ADD CONSTRAINT fk_courses_dept FOREIGN KEY (department_id) REFERENCES departments (id);
