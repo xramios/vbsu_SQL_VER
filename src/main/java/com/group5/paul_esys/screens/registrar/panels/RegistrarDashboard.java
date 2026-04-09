@@ -23,7 +23,7 @@ import javax.swing.table.TableColumn;
  *
  * @author nytri
  */
-public class RegistrarDashboardPanel extends javax.swing.JPanel {
+public class RegistrarDashboard extends javax.swing.JPanel {
 
                 private static final String FILTER_ALL = "ALL";
                 private static final int COL_YEAR_LEVEL = 3;
@@ -37,7 +37,7 @@ public class RegistrarDashboardPanel extends javax.swing.JPanel {
 	/**
 	 * Creates new form RegistrarDashboardPanel
 	 */
-	public RegistrarDashboardPanel() {
+	public RegistrarDashboard() {
 		initComponents();
 		initializeDashboard();
 	}
@@ -192,14 +192,14 @@ public class RegistrarDashboardPanel extends javax.swing.JPanel {
                                 "Student ID", "First Name", "Last Name", "Year Level", "Status", "Select"
                         }
                 ) {
-                        Class<?>[] types = new Class<?> [] {
+                        Class[] types = new Class [] {
                                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.Boolean.class
                         };
                         boolean[] canEdit = new boolean [] {
                                 false, false, false, false, false, false
                         };
 
-                        public Class<?> getColumnClass(int columnIndex) {
+                        public Class getColumnClass(int columnIndex) {
                                 return types [columnIndex];
                         }
 

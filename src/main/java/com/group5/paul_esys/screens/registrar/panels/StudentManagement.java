@@ -23,7 +23,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author nytri
  */
-public final class StudentManagementPanel extends javax.swing.JPanel {
+public final class StudentManagement extends javax.swing.JPanel {
 
         private final StudentService studentService = StudentService.getInstance();
         private final CourseService courseService = CourseService.getInstance();
@@ -33,7 +33,7 @@ public final class StudentManagementPanel extends javax.swing.JPanel {
         /**
          * Creates new form StudentManagementPanel
          */
-        public StudentManagementPanel() {
+        public StudentManagement() {
                 initComponents();
                 tableRegistrarStudents.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
                 cbxStatusFilter.removeAllItems();
