@@ -15,6 +15,7 @@ A comprehensive Python script to seed a university enrollment system database wi
 ## Database Schema Coverage
 
 The seeder generates data for all tables:
+
 - `departments` - Academic departments
 - `courses` - Degree programs
 - `rooms` - Classroom and laboratory rooms
@@ -39,7 +40,7 @@ The seeder generates data for all tables:
 pip install -r requirements.txt
 ```
 
-2. Make sure you have a database server running with the database schema already created:
+1. Make sure you have a database server running with the database schema already created:
 
 - **MySQL**: MySQL 5.7+ or MySQL 8.0+
 - **Derby**: Java DB/Derby server running on port 1527 (default)
@@ -99,6 +100,7 @@ python database_seeder.py --db-type derby --no-clear
 ## Generated Data Statistics
 
 The seeder generates approximately:
+
 - **8 Academic Departments** (Engineering, Business, Arts, etc.)
 - **15 Degree Programs** (Various bachelor's and professional degrees)
 - **30 Rooms** (Lecture halls, labs, classrooms)
@@ -126,11 +128,13 @@ The seeder generates approximately:
 The seeder supports multiple database types:
 
 ### MySQL
+
 - MySQL 5.7+ or MySQL 8.0+
 - Database schema must already be created (using the provided SQL file)
 - User must have INSERT, DELETE, and SELECT privileges on the database
 
 ### Derby/Java DB
+
 - Derby database server running (network server mode)
 - Default port: 1527
 - Database will be created if it doesn't exist (create=true in connection string)
@@ -140,6 +144,7 @@ The seeder supports multiple database types:
 ## Error Handling
 
 The script includes comprehensive error handling:
+
 - Database connection errors
 - Foreign key constraint violations
 - Data generation errors
@@ -166,25 +171,30 @@ self.seed_subjects(count=150)
 ### Connection Issues
 
 **MySQL:**
+
 - Verify MySQL server is running
 - Check database credentials and permissions
 - Ensure database exists and schema is created
 
 **Derby:**
+
 - Ensure Derby network server is running on port 1527
 - Verify Java is installed and accessible
 - Check that Derby client JAR is in classpath
 - Ensure firewall allows connections to port 1527
 
 ### Foreign Key Errors
+
 - Ensure database schema is properly created with all constraints
 - Use `--no-clear` flag if you want to preserve existing data
 
 ### Memory Issues
+
 - For very large datasets, consider batching inserts
 - Monitor system memory usage during generation
 
 ### Derby-Specific Issues
+
 - JVM startup failures: Check Java installation
 - Classpath issues: Ensure Derby JARs are accessible
 - Connection timeouts: Verify Derby server is running
