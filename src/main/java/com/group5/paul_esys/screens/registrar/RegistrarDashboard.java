@@ -8,6 +8,7 @@ import com.group5.paul_esys.screens.registrar.panels.RegistrarDepartmentManageme
 import com.group5.paul_esys.screens.registrar.panels.RegistrarEnrollmentPeriodManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarOfferingsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarRoomsManagementPanel;
+import com.group5.paul_esys.screens.registrar.panels.RegistrarSchedulesManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSectionsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarStudentManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSubjectManagement;
@@ -48,9 +49,10 @@ public final class RegistrarDashboard extends javax.swing.JFrame {
 	tabbedPaneStudents.add("Students", new RegistrarStudentManagement());
     	tabbedPaneStudents.add("Subjects", new RegistrarSubjectManagement());
 	tabbedPaneStudents.add("Curriculums", new RegistrarCurriculumManagement());
-	tabbedPaneStudents.add("Rooms", new RegistrarRoomsManagementPanel());
+	tabbedPaneStudents.add("Rooms", new RegistrarRoomsManagementPanel());   
 	tabbedPaneStudents.add("Sections", new RegistrarSectionsManagement());
         tabbedPaneStudents.add("Offerings", new RegistrarOfferingsManagement());
+        tabbedPaneStudents.add("Schedules", new RegistrarSchedulesManagement());
 	tabbedPaneStudents.add("Enrollment Periods", new RegistrarEnrollmentPeriodManagement());
 	tabbedPaneStudents.add("Departments", new RegistrarDepartmentManagement());
     }
