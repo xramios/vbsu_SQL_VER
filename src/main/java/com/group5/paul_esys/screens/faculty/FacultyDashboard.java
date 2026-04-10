@@ -4,7 +4,9 @@
  */
 package com.group5.paul_esys.screens.faculty;
 
+import com.group5.paul_esys.screens.faculty.panels.FacultyClassList;
 import com.group5.paul_esys.screens.faculty.panels.FacultyDashboardPanel;
+import com.group5.paul_esys.screens.faculty.panels.FacultyMySchedule;
 
 /**
  *
@@ -20,6 +22,8 @@ public class FacultyDashboard extends javax.swing.JFrame {
 	public FacultyDashboard() {
 		initComponents();
 		tabbedPaneSideBar.add("Dashboard", new FacultyDashboardPanel());
+		tabbedPaneSideBar.add("Class List", new FacultyClassList());
+		tabbedPaneSideBar.add("My Schedule", new FacultyMySchedule());
 	}
 
 	/**

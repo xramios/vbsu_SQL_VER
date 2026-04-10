@@ -34,6 +34,7 @@ public class FacultyDashboardPanel extends javax.swing.JPanel {
                 jTable1 = new javax.swing.JTable();
                 jPanel2 = new javax.swing.JPanel();
                 jPanel3 = new javax.swing.JPanel();
+                jLabel4 = new javax.swing.JLabel();
 
                 jLabel1.setFont(new java.awt.Font("Poppins", 0, 24)); // NOI18N
                 jLabel1.setText("Faculty Dashboard");
@@ -42,6 +43,7 @@ public class FacultyDashboardPanel extends javax.swing.JPanel {
                 jLabel2.setForeground(new java.awt.Color(102, 102, 102));
                 jLabel2.setText("Welcome back! Professor XYZ");
 
+                jPanel1.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel1.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
                 jLabel3.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
@@ -98,6 +100,7 @@ public class FacultyDashboardPanel extends javax.swing.JPanel {
                                 .addContainerGap())
                 );
 
+                jPanel2.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel2.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
                 javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -111,17 +114,27 @@ public class FacultyDashboardPanel extends javax.swing.JPanel {
                         .addGap(0, 0, Short.MAX_VALUE)
                 );
 
+                jPanel3.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel3.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
+
+                jLabel4.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                jLabel4.setText("Quick Actions");
 
                 javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
                 jPanel3.setLayout(jPanel3Layout);
                 jPanel3Layout.setHorizontalGroup(
                         jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel4)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 );
                 jPanel3Layout.setVerticalGroup(
                         jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 345, Short.MAX_VALUE)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel4)
+                                .addContainerGap(317, Short.MAX_VALUE))
                 );
 
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -165,6 +178,7 @@ public class FacultyDashboardPanel extends javax.swing.JPanel {
         private javax.swing.JLabel jLabel1;
         private javax.swing.JLabel jLabel2;
         private javax.swing.JLabel jLabel3;
+        private javax.swing.JLabel jLabel4;
         private javax.swing.JPanel jPanel1;
         private javax.swing.JPanel jPanel2;
         private javax.swing.JPanel jPanel3;
