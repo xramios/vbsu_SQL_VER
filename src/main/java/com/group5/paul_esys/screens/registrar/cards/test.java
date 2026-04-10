@@ -29,6 +29,7 @@ public class test extends javax.swing.JPanel {
         // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
         private void initComponents() {
 
+                datePicker1 = new raven.datetime.DatePicker();
                 jScrollPane1 = new javax.swing.JScrollPane();
                 jPanel3 = new javax.swing.JPanel();
                 facultyMemberCard1 = new com.group5.paul_esys.screens.registrar.cards.FacultyMemberCard();
@@ -66,12 +67,14 @@ public class test extends javax.swing.JPanel {
                 layout.setHorizontalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                                .addGap(29, 29, 29)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 412, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(447, Short.MAX_VALUE)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addContainerGap(447, Short.MAX_VALUE)
+                                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGap(29, 29, 29)
+                                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 412, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(0, 0, Short.MAX_VALUE)))
                                 .addContainerGap())
                 );
                 layout.setVerticalGroup(
@@ -87,6 +90,7 @@ public class test extends javax.swing.JPanel {
 
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
+        private raven.datetime.DatePicker datePicker1;
         private com.group5.paul_esys.screens.registrar.cards.FacultyMemberCard facultyMemberCard1;
         private com.group5.paul_esys.screens.registrar.cards.FacultyMemberCard facultyMemberCard2;
         private com.group5.paul_esys.screens.registrar.cards.FacultyMemberCard facultyMemberCard3;

@@ -13,6 +13,9 @@ public class FacultyUtils {
         rs.getLong("user_id"),
         rs.getString("first_name"),
         rs.getString("last_name"),
+        rs.getString("middle_name"),
+        rs.getString("contact_number"),
+        rs.getDate("birthdate"),
         rs.getLong("department_id"),
         rs.getTimestamp("updated_at"),
         rs.getTimestamp("created_at")

@@ -1,6 +1,7 @@
 package com.group5.paul_esys.modules.faculty.model;
 
 import java.sql.Timestamp;
+import java.util.Date;
 
 public class Faculty {
 
@@ -8,6 +9,9 @@ public class Faculty {
   private Long userId;
   private String firstName;
   private String lastName;
+  private String middleName;
+  private String contactNumber;
+  private Date birthdate;
   private Long departmentId;
   private Timestamp updatedAt;
   private Timestamp createdAt;
@@ -15,11 +19,25 @@ public class Faculty {
   public Faculty() {
   }
 
-  public Faculty(Long id, Long userId, String firstName, String lastName, Long departmentId, Timestamp updatedAt, Timestamp createdAt) {
+  public Faculty(
+      Long id,
+      Long userId,
+      String firstName,
+      String lastName,
+      String middleName,
+      String contactNumber,
+      Date birthdate,
+      Long departmentId,
+      Timestamp updatedAt,
+      Timestamp createdAt
+  ) {
     this.id = id;
     this.userId = userId;
     this.firstName = firstName;
     this.lastName = lastName;
+    this.middleName = middleName;
+    this.contactNumber = contactNumber;
+    this.birthdate = birthdate;
     this.departmentId = departmentId;
     this.updatedAt = updatedAt;
     this.createdAt = createdAt;
@@ -58,6 +76,33 @@ public class Faculty {
 
   public Faculty setLastName(String lastName) {
     this.lastName = lastName;
+    return this;
+  }
+
+  public String getMiddleName() {
+    return middleName;
+  }
+
+  public Faculty setMiddleName(String middleName) {
+    this.middleName = middleName;
+    return this;
+  }
+
+  public String getContactNumber() {
+    return contactNumber;
+  }
+
+  public Faculty setContactNumber(String contactNumber) {
+    this.contactNumber = contactNumber;
+    return this;
+  }
+
+  public Date getBirthdate() {
+    return birthdate;
+  }
+
+  public Faculty setBirthdate(Date birthdate) {
+    this.birthdate = birthdate;
     return this;
   }
 
