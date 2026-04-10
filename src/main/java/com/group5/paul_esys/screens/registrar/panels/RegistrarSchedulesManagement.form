@@ -121,7 +121,7 @@
                       <Group type="102" attributes="0">
                           <Component id="panelList" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="panelSummary" min="-2" pref="380" max="-2" attributes="0"/>
+                          <Component id="panelSummary" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -136,7 +136,7 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Component id="panelList" max="32767" attributes="0"/>
-                      <Component id="panelSummary" max="32767" attributes="0"/>
+                      <Component id="panelSummary" pref="519" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="lblTableSummary" min="-2" max="-2" attributes="0"/>
@@ -160,7 +160,7 @@
                   <Group type="102" attributes="0">
                       <Component id="lblSearch" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="txtSearch" min="-2" pref="260" max="-2" attributes="0"/>
+                      <Component id="txtSearch" min="-2" pref="230" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="lblDayFilter" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -177,7 +177,7 @@
                       <Component id="btnNewSchedule" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnEditSchedule" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
                       <Component id="btnDeleteSchedule" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
@@ -268,6 +268,12 @@
             </Component>
             <Component class="javax.swing.JButton" name="btnClearFilter">
               <Properties>
+                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="0" red="77" type="rgb"/>
+                </Property>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Clear Filter"/>
               </Properties>
               <Events>
@@ -276,6 +282,12 @@
             </Component>
             <Component class="javax.swing.JButton" name="btnRefresh">
               <Properties>
+                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="0" red="77" type="rgb"/>
+                </Property>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Refresh"/>
               </Properties>
               <Events>
@@ -284,6 +296,12 @@
             </Component>
             <Component class="javax.swing.JButton" name="btnNewSchedule">
               <Properties>
+                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="0" red="77" type="rgb"/>
+                </Property>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="New Schedule"/>
               </Properties>
               <Events>
@@ -292,6 +310,12 @@
             </Component>
             <Component class="javax.swing.JButton" name="btnEditSchedule">
               <Properties>
+                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="0" red="77" type="rgb"/>
+                </Property>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Edit Schedule"/>
               </Properties>
               <Events>
@@ -405,12 +429,15 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="1" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="lblSummaryTitle" min="-2" max="-2" attributes="0"/>
-                          <Component id="summaryRows" pref="360" max="32767" attributes="0"/>
-                          <Component id="panelConflictWarning" max="32767" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Component id="jScrollPane1" max="32767" attributes="0"/>
+                          <Component id="summaryRows" alignment="0" pref="362" max="32767" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="lblSummaryTitle" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                          </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -422,10 +449,10 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="lblSummaryTitle" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="summaryRows" min="-2" pref="245" max="-2" attributes="0"/>
+                      <Component id="summaryRows" min="-2" pref="337" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="panelConflictWarning" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <Component id="jScrollPane1" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -446,9 +473,8 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.DesignGridLayout">
                 <Property name="columns" type="int" value="2"/>
-                <Property name="hgap" type="int" value="10"/>
                 <Property name="rows" type="int" value="8"/>
-                <Property name="vgap" type="int" value="6"/>
+                <Property name="verticalGap" type="int" value="8"/>
               </Layout>
               <SubComponents>
                 <Component class="javax.swing.JLabel" name="lblSection">
@@ -456,8 +482,9 @@
                     <Property name="text" type="java.lang.String" value="Section"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueSection">
+                <Component class="javax.swing.JTextField" name="lblValueSection">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -466,8 +493,9 @@
                     <Property name="text" type="java.lang.String" value="Subject"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueSubject">
+                <Component class="javax.swing.JTextField" name="lblValueSubject">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -476,8 +504,9 @@
                     <Property name="text" type="java.lang.String" value="Enrollment Period"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValuePeriod">
+                <Component class="javax.swing.JTextField" name="lblValuePeriod">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -486,8 +515,9 @@
                     <Property name="text" type="java.lang.String" value="Day"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueDay">
+                <Component class="javax.swing.JTextField" name="lblValueDay">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -496,8 +526,9 @@
                     <Property name="text" type="java.lang.String" value="Time"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueTime">
+                <Component class="javax.swing.JTextField" name="lblValueTime">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -506,8 +537,9 @@
                     <Property name="text" type="java.lang.String" value="Room"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueRoom">
+                <Component class="javax.swing.JTextField" name="lblValueRoom">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -516,8 +548,9 @@
                     <Property name="text" type="java.lang.String" value="Faculty"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueFaculty">
+                <Component class="javax.swing.JTextField" name="lblValueFaculty">
                   <Properties>
+                    <Property name="enabled" type="boolean" value="false"/>
                     <Property name="text" type="java.lang.String" value="N/A"/>
                   </Properties>
                 </Component>
@@ -526,52 +559,25 @@
                     <Property name="text" type="java.lang.String" value="Conflict"/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JLabel" name="lblValueConflict">
+                <Component class="javax.swing.JTextField" name="lblValueConflict">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="NONE"/>
+                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                 </Component>
               </SubComponents>
             </Container>
-            <Container class="javax.swing.JPanel" name="panelConflictWarning">
-              <Properties>
-                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="e4" green="f4" red="ff" type="rgb"/>
-                </Property>
-                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                  <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-                    <LineBorder/>
-                  </Border>
-                </Property>
-              </Properties>
+            <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+              <AuxValues>
+                <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+              </AuxValues>
 
-              <Layout>
-                <DimensionLayout dim="0">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="lblConflictWarning" max="32767" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                </DimensionLayout>
-                <DimensionLayout dim="1">
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="lblConflictWarning" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                </DimensionLayout>
-              </Layout>
+              <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="javax.swing.JLabel" name="lblConflictWarning">
+                <Component class="javax.swing.JTextArea" name="textAreaConflictWarning">
                   <Properties>
-                    <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="0" green="46" red="8c" type="rgb"/>
-                    </Property>
-                    <Property name="text" type="java.lang.String" value="No conflict detected."/>
+                    <Property name="columns" type="int" value="20"/>
+                    <Property name="rows" type="int" value="5"/>
                   </Properties>
                 </Component>
               </SubComponents>

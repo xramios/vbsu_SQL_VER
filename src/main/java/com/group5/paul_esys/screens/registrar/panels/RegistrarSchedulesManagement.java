@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -67,6 +68,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     };
 
     tableSchedules.setModel(tableModel);
+    tableSchedules.getSelectionModel().addListSelectionListener(this::tableSchedulesSelectionValueChanged);
     tableSchedules.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     tableSchedules.setRowHeight(28);
     tableSchedules.setAutoCreateRowSorter(false);
@@ -103,6 +105,24 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     cbxDay.setFont(new java.awt.Font("Poppins", 0, 12));
     cbxEnrollmentPeriod.setFont(new java.awt.Font("Poppins", 0, 12));
 
+    configureSummaryValueField(lblValueSection);
+    configureSummaryValueField(lblValueSubject);
+    configureSummaryValueField(lblValuePeriod);
+    configureSummaryValueField(lblValueDay);
+    configureSummaryValueField(lblValueTime);
+    configureSummaryValueField(lblValueRoom);
+    configureSummaryValueField(lblValueFaculty);
+    configureSummaryValueField(lblValueConflict);
+
+    textAreaConflictWarning.setFont(new java.awt.Font("Poppins", 0, 12));
+    textAreaConflictWarning.setEditable(false);
+    textAreaConflictWarning.setFocusable(false);
+    textAreaConflictWarning.setLineWrap(true);
+    textAreaConflictWarning.setWrapStyleWord(true);
+    textAreaConflictWarning.setOpaque(false);
+    textAreaConflictWarning.setBorder(null);
+    textAreaConflictWarning.setForeground(new Color(140, 70, 0));
+
     btnNewSchedule.setBackground(new Color(119, 0, 0));
     btnNewSchedule.setForeground(Color.WHITE);
     btnEditSchedule.setBackground(new Color(119, 0, 0));
@@ -114,8 +134,14 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     btnClearFilter.setBackground(new Color(245, 245, 245));
 
     lblTableSummary.setFont(new java.awt.Font("Poppins", 0, 12));
-    lblConflictWarning.setFont(new java.awt.Font("Poppins", 0, 12));
-    panelConflictWarning.setVisible(false);
+    textAreaConflictWarning.setVisible(false);
+  }
+
+  private void configureSummaryValueField(JTextField field) {
+    field.setEditable(false);
+    field.setEnabled(false);
+    field.setFont(new java.awt.Font("Poppins", 0, 12));
+    field.setDisabledTextColor(new Color(38, 38, 38));
   }
 
   private void configureConflictRenderer() {
@@ -325,7 +351,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     ScheduleManagementRow selected = getSelectedSchedule();
     if (selected == null) {
       setSummaryValues("N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "NONE");
-      panelConflictWarning.setVisible(false);
+      textAreaConflictWarning.setVisible(false);
       return;
     }
 
@@ -341,10 +367,10 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     );
 
     if (selected.hasConflict()) {
-      lblConflictWarning.setText(buildConflictMessage(selected));
-      panelConflictWarning.setVisible(true);
+      textAreaConflictWarning.setText(buildConflictMessage(selected));
+      textAreaConflictWarning.setVisible(true);
     } else {
-      panelConflictWarning.setVisible(false);
+      textAreaConflictWarning.setVisible(false);
     }
   }
 
@@ -585,23 +611,23 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 lblSummaryTitle = new javax.swing.JLabel();
                 summaryRows = new javax.swing.JPanel();
                 lblSection = new javax.swing.JLabel();
-                lblValueSection = new javax.swing.JLabel();
+                lblValueSection = new javax.swing.JTextField();
                 lblSubject = new javax.swing.JLabel();
-                lblValueSubject = new javax.swing.JLabel();
+                lblValueSubject = new javax.swing.JTextField();
                 lblEnrollmentPeriod = new javax.swing.JLabel();
-                lblValuePeriod = new javax.swing.JLabel();
+                lblValuePeriod = new javax.swing.JTextField();
                 lblDay = new javax.swing.JLabel();
-                lblValueDay = new javax.swing.JLabel();
+                lblValueDay = new javax.swing.JTextField();
                 lblTime = new javax.swing.JLabel();
-                lblValueTime = new javax.swing.JLabel();
+                lblValueTime = new javax.swing.JTextField();
                 lblRoom = new javax.swing.JLabel();
-                lblValueRoom = new javax.swing.JLabel();
+                lblValueRoom = new javax.swing.JTextField();
                 lblFaculty = new javax.swing.JLabel();
-                lblValueFaculty = new javax.swing.JLabel();
+                lblValueFaculty = new javax.swing.JTextField();
                 lblConflict = new javax.swing.JLabel();
-                lblValueConflict = new javax.swing.JLabel();
-                panelConflictWarning = new javax.swing.JPanel();
-                lblConflictWarning = new javax.swing.JLabel();
+                lblValueConflict = new javax.swing.JTextField();
+                jScrollPane1 = new javax.swing.JScrollPane();
+                textAreaConflictWarning = new javax.swing.JTextArea();
                 lblTableSummary = new javax.swing.JLabel();
 
                 menuItemEditSchedule.setText("Edit Schedule");
@@ -625,6 +651,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 jPanel1.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel1.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
+                panelFilters.setMinimumSize(new java.awt.Dimension(0, 38));
                 panelFilters.setOpaque(false);
 
                 lblSearch.setText("Search");
@@ -649,15 +676,23 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 cbxEnrollmentPeriod.setPreferredSize(new java.awt.Dimension(250, 34));
                 cbxEnrollmentPeriod.addItemListener(this::cbxEnrollmentPeriodItemStateChanged);
 
+                btnClearFilter.setBackground(new java.awt.Color(119, 0, 0));
+                btnClearFilter.setForeground(new java.awt.Color(255, 255, 255));
                 btnClearFilter.setText("Clear Filter");
                 btnClearFilter.addActionListener(this::btnClearFilterActionPerformed);
 
+                btnRefresh.setBackground(new java.awt.Color(119, 0, 0));
+                btnRefresh.setForeground(new java.awt.Color(255, 255, 255));
                 btnRefresh.setText("Refresh");
                 btnRefresh.addActionListener(this::btnRefreshActionPerformed);
 
+                btnNewSchedule.setBackground(new java.awt.Color(119, 0, 0));
+                btnNewSchedule.setForeground(new java.awt.Color(255, 255, 255));
                 btnNewSchedule.setText("New Schedule");
                 btnNewSchedule.addActionListener(this::btnNewScheduleActionPerformed);
 
+                btnEditSchedule.setBackground(new java.awt.Color(119, 0, 0));
+                btnEditSchedule.setForeground(new java.awt.Color(255, 255, 255));
                 btnEditSchedule.setText("Edit Schedule");
                 btnEditSchedule.addActionListener(this::btnEditScheduleActionPerformed);
 
@@ -671,7 +706,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                         .addGroup(panelFiltersLayout.createSequentialGroup()
                                 .addComponent(lblSearch)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblDayFilter)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -688,7 +723,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 .addComponent(btnNewSchedule)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnEditSchedule)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGap(36, 36, 36)
                                 .addComponent(btnDeleteSchedule)
                                 .addGap(0, 0, Short.MAX_VALUE))
                 );
@@ -709,10 +744,13 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 );
 
                 panelList.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
+                panelList.setMinimumSize(new java.awt.Dimension(0, 0));
                 panelList.setOpaque(false);
 
                 jLabel3.setFont(new java.awt.Font("Poppins", 0, 18)); // NOI18N
                 jLabel3.setText("Schedule List");
+
+                scrollSchedules.setMinimumSize(new java.awt.Dimension(0, 0));
 
                 tableSchedules.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][] {
@@ -725,14 +763,14 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 "Subject Code", "Subject Name", "Section", "Day", "Time", "Room", "Faculty", "Enrollment Period", "Conflict"
                         }
                 ) {
-                        Class<?>[] types = new Class<?> [] {
+                        Class[] types = new Class [] {
                                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
                         };
                         boolean[] canEdit = new boolean [] {
                                 false, false, false, false, false, false, false, false, false
                         };
 
-                        public Class<?> getColumnClass(int columnIndex) {
+                        public Class getColumnClass(int columnIndex) {
                                 return types [columnIndex];
                         }
 
@@ -752,7 +790,6 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 tableSchedulesMouseReleased(evt);
                         }
                 });
-                      tableSchedules.getSelectionModel().addListSelectionListener(this::tableSchedulesSelectionValueChanged);
                 scrollSchedules.setViewportView(tableSchedules);
 
                 javax.swing.GroupLayout panelListLayout = new javax.swing.GroupLayout(panelList);
@@ -760,7 +797,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 panelListLayout.setHorizontalGroup(
                         panelListLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jLabel3)
-                        .addComponent(scrollSchedules)
+                        .addComponent(scrollSchedules, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 );
                 panelListLayout.setVerticalGroup(
                         panelListLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -772,52 +809,61 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
 
                 panelSummary.setBackground(new java.awt.Color(255, 255, 255));
                 panelSummary.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
+                panelSummary.setMinimumSize(new java.awt.Dimension(380, 0));
+                panelSummary.setPreferredSize(new java.awt.Dimension(380, 0));
 
                 lblSummaryTitle.setFont(new java.awt.Font("Poppins", 0, 16)); // NOI18N
                 lblSummaryTitle.setText("Selected Schedule Summary");
 
                 summaryRows.setOpaque(false);
-                summaryRows.setLayout(new java.awt.GridLayout(8, 2));
+                summaryRows.setLayout(new java.awt.GridLayout(8, 2, 0, 8));
 
                 lblSection.setText("Section");
                 summaryRows.add(lblSection);
 
+                lblValueSection.setEnabled(false);
                 lblValueSection.setText("N/A");
                 summaryRows.add(lblValueSection);
 
                 lblSubject.setText("Subject");
                 summaryRows.add(lblSubject);
 
+                lblValueSubject.setEnabled(false);
                 lblValueSubject.setText("N/A");
                 summaryRows.add(lblValueSubject);
 
                 lblEnrollmentPeriod.setText("Enrollment Period");
                 summaryRows.add(lblEnrollmentPeriod);
 
+                lblValuePeriod.setEnabled(false);
                 lblValuePeriod.setText("N/A");
                 summaryRows.add(lblValuePeriod);
 
                 lblDay.setText("Day");
                 summaryRows.add(lblDay);
 
+                lblValueDay.setEnabled(false);
                 lblValueDay.setText("N/A");
                 summaryRows.add(lblValueDay);
 
                 lblTime.setText("Time");
                 summaryRows.add(lblTime);
 
+                lblValueTime.setEnabled(false);
                 lblValueTime.setText("N/A");
                 summaryRows.add(lblValueTime);
 
                 lblRoom.setText("Room");
                 summaryRows.add(lblRoom);
 
+                lblValueRoom.setEnabled(false);
                 lblValueRoom.setText("N/A");
                 summaryRows.add(lblValueRoom);
 
                 lblFaculty.setText("Faculty");
                 summaryRows.add(lblFaculty);
 
+                lblValueFaculty.setEnabled(false);
                 lblValueFaculty.setText("N/A");
                 summaryRows.add(lblValueFaculty);
 
@@ -825,41 +871,25 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 summaryRows.add(lblConflict);
 
                 lblValueConflict.setText("NONE");
+                lblValueConflict.setEnabled(false);
                 summaryRows.add(lblValueConflict);
 
-                panelConflictWarning.setBackground(new java.awt.Color(255, 244, 228));
-                panelConflictWarning.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-
-                lblConflictWarning.setForeground(new java.awt.Color(140, 70, 0));
-                lblConflictWarning.setText("No conflict detected.");
-
-                javax.swing.GroupLayout panelConflictWarningLayout = new javax.swing.GroupLayout(panelConflictWarning);
-                panelConflictWarning.setLayout(panelConflictWarningLayout);
-                panelConflictWarningLayout.setHorizontalGroup(
-                        panelConflictWarningLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(panelConflictWarningLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(lblConflictWarning, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addContainerGap())
-                );
-                panelConflictWarningLayout.setVerticalGroup(
-                        panelConflictWarningLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(panelConflictWarningLayout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(lblConflictWarning)
-                                .addContainerGap())
-                );
+                textAreaConflictWarning.setColumns(20);
+                textAreaConflictWarning.setRows(5);
+                jScrollPane1.setViewportView(textAreaConflictWarning);
 
                 javax.swing.GroupLayout panelSummaryLayout = new javax.swing.GroupLayout(panelSummary);
                 panelSummary.setLayout(panelSummaryLayout);
                 panelSummaryLayout.setHorizontalGroup(
                         panelSummaryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(panelSummaryLayout.createSequentialGroup()
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelSummaryLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(panelSummaryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(lblSummaryTitle)
-                                        .addComponent(summaryRows, javax.swing.GroupLayout.DEFAULT_SIZE, 322, Short.MAX_VALUE)
-                                        .addComponent(panelConflictWarning, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addGroup(panelSummaryLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jScrollPane1)
+                                        .addComponent(summaryRows, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 362, Short.MAX_VALUE)
+                                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, panelSummaryLayout.createSequentialGroup()
+                                                .addComponent(lblSummaryTitle)
+                                                .addGap(0, 0, Short.MAX_VALUE)))
                                 .addContainerGap())
                 );
                 panelSummaryLayout.setVerticalGroup(
@@ -868,10 +898,10 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 .addContainerGap()
                                 .addComponent(lblSummaryTitle)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(summaryRows, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(summaryRows, javax.swing.GroupLayout.PREFERRED_SIZE, 337, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(panelConflictWarning, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                .addComponent(jScrollPane1)
+                                .addContainerGap())
                 );
 
                 lblTableSummary.setForeground(new java.awt.Color(95, 95, 95));
@@ -900,7 +930,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(panelList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(panelSummary, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                        .addComponent(panelSummary, javax.swing.GroupLayout.DEFAULT_SIZE, 519, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblTableSummary)
                                 .addContainerGap())
@@ -1010,8 +1040,8 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
         private javax.swing.JLabel jLabel2;
         private javax.swing.JLabel jLabel3;
         private javax.swing.JPanel jPanel1;
+        private javax.swing.JScrollPane jScrollPane1;
         private javax.swing.JLabel lblConflict;
-        private javax.swing.JLabel lblConflictWarning;
         private javax.swing.JLabel lblDay;
         private javax.swing.JLabel lblDayFilter;
         private javax.swing.JLabel lblEnrollmentPeriod;
@@ -1024,17 +1054,16 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
         private javax.swing.JLabel lblSummaryTitle;
         private javax.swing.JLabel lblTableSummary;
         private javax.swing.JLabel lblTime;
-        private javax.swing.JLabel lblValueConflict;
-        private javax.swing.JLabel lblValueDay;
-        private javax.swing.JLabel lblValueFaculty;
-        private javax.swing.JLabel lblValuePeriod;
-        private javax.swing.JLabel lblValueRoom;
-        private javax.swing.JLabel lblValueSection;
-        private javax.swing.JLabel lblValueSubject;
-        private javax.swing.JLabel lblValueTime;
+        private javax.swing.JTextField lblValueConflict;
+        private javax.swing.JTextField lblValueDay;
+        private javax.swing.JTextField lblValueFaculty;
+        private javax.swing.JTextField lblValuePeriod;
+        private javax.swing.JTextField lblValueRoom;
+        private javax.swing.JTextField lblValueSection;
+        private javax.swing.JTextField lblValueSubject;
+        private javax.swing.JTextField lblValueTime;
         private javax.swing.JMenuItem menuItemDeleteSchedule;
         private javax.swing.JMenuItem menuItemEditSchedule;
-        private javax.swing.JPanel panelConflictWarning;
         private javax.swing.JPanel panelFilters;
         private javax.swing.JPanel panelList;
         private javax.swing.JPanel panelSummary;
@@ -1042,6 +1071,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
         private javax.swing.JScrollPane scrollSchedules;
         private javax.swing.JPanel summaryRows;
         private javax.swing.JTable tableSchedules;
+        private javax.swing.JTextArea textAreaConflictWarning;
         private javax.swing.JTextField txtSearch;
         // End of variables declaration//GEN-END:variables
 }
