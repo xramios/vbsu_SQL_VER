@@ -353,6 +353,45 @@ CREATE UNIQUE INDEX student_enrolled_subjects_index_0 ON student_enrolled_subjec
 
 CREATE UNIQUE INDEX student_semester_progress_index_0 ON student_semester_progress (student_id, semester_id);
 
+CREATE INDEX idx_enrollments_details_status ON enrollments_details (status);
+CREATE INDEX idx_enrollments_details_offering ON enrollments_details (offering_id, status);
+CREATE INDEX idx_enrollments_details_enrollment ON enrollments_details (enrollment_id, status);
+
+CREATE INDEX idx_enrollments_student ON enrollments (student_id);
+CREATE INDEX idx_enrollments_period ON enrollments (enrollment_period_id);
+CREATE INDEX idx_enrollments_student_period ON enrollments (student_id, enrollment_period_id, created_at);
+CREATE INDEX idx_enrollments_status ON enrollments (status);
+
+CREATE INDEX idx_schedules_faculty ON schedules (faculty_id);
+CREATE INDEX idx_schedules_room ON schedules (room_id);
+CREATE INDEX idx_schedules_offering ON schedules (offering_id);
+CREATE INDEX idx_schedules_day_time ON schedules (day, start_time, end_time);
+CREATE INDEX idx_schedules_faculty_day ON schedules (faculty_id, day, start_time, end_time);
+CREATE INDEX idx_schedules_room_day ON schedules (room_id, day, start_time, end_time);
+
+CREATE INDEX idx_offerings_period ON offerings (enrollment_period_id);
+CREATE INDEX idx_offerings_subject ON offerings (subject_id);
+CREATE INDEX idx_offerings_section ON offerings (section_id);
+CREATE INDEX idx_offerings_period_subject ON offerings (enrollment_period_id, subject_id);
+CREATE INDEX idx_offerings_period_section ON offerings (enrollment_period_id, section_id);
+
+CREATE INDEX idx_student_enrolled_subjects_student ON student_enrolled_subjects (student_id);
+CREATE INDEX idx_student_enrolled_subjects_status ON student_enrolled_subjects (status);
+CREATE INDEX idx_student_enrolled_subjects_semester ON student_enrolled_subjects (semester_subject_id);
+
+CREATE INDEX idx_semester_subjects_semester ON semester_subjects (semester_id);
+CREATE INDEX idx_semester_subjects_subject ON semester_subjects (subject_id);
+
+CREATE INDEX idx_semester_curriculum ON semester (curriculum_id);
+
+CREATE INDEX idx_curriculum_course ON curriculum (course);
+CREATE INDEX idx_curriculum_year ON curriculum (cur_year DESC, created_at DESC);
+
+CREATE INDEX idx_enrollments_details_covering ON enrollments_details (enrollment_id, status, offering_id, units, created_at, id);
+CREATE INDEX idx_schedules_covering ON schedules (offering_id, day, start_time, end_time, room_id, faculty_id);
+CREATE INDEX idx_offerings_covering ON offerings (id, subject_id, section_id, enrollment_period_id, capacity, semester_subject_id);
+CREATE INDEX idx_student_enrolled_subjects_covering ON student_enrolled_subjects (student_id, semester_subject_id, offering_id, enrollment_id, status);
+
 ALTER TABLE students
     ADD CONSTRAINT fk_students_user FOREIGN KEY (user_id) REFERENCES users (id);
 

@@ -33,6 +33,7 @@ public final class RegistrarStudentManagement extends javax.swing.JPanel {
         private final Map<Long, String> courseNameById = new LinkedHashMap<>();
 
         private transient SwingWorker<?, ?> currentWorker;
+        private volatile boolean initializing = false;
 
         /**
          * Creates new form StudentManagementPanel
@@ -713,6 +714,7 @@ public final class RegistrarStudentManagement extends javax.swing.JPanel {
         }
 
         private void applyTableFilters() {
+                if (initializing) return;
                 String searchTerm = txtStudentsSearch.getText() == null
                         ? ""
                         : txtStudentsSearch.getText().trim().toLowerCase();
@@ -767,7 +769,6 @@ public final class RegistrarStudentManagement extends javax.swing.JPanel {
                         );
                 }
 
-                tableRegistrarStudents.setModel(model);
                 populateStudentDetails(null);
         }
 
@@ -796,45 +797,49 @@ public final class RegistrarStudentManagement extends javax.swing.JPanel {
                                         courseNameById.clear();
                                         courseNameById.putAll(result.courseLookup);
 
-                                        DefaultTableModel model = (DefaultTableModel) tableRegistrarStudents.getModel();
-                                        model.setRowCount(0);
+                                        initializing = true;
+                                        try {
+                                                DefaultTableModel model = (DefaultTableModel) tableRegistrarStudents.getModel();
+                                                model.setRowCount(0);
 
-                                        cbxCourseFilter.removeAllItems();
-                                        cbxCourseFilter.addItem("ALL");
+                                                cbxCourseFilter.removeAllItems();
+                                                cbxCourseFilter.addItem("ALL");
 
-                                        cbxYearLevelFilter.removeAllItems();
-                                        cbxYearLevelFilter.addItem("ALL");
+                                                cbxYearLevelFilter.removeAllItems();
+                                                cbxYearLevelFilter.addItem("ALL");
 
-                                        List<String> distinctCourses = new ArrayList<>();
-                                        List<String> distinctYearLevels = new ArrayList<>();
+                                                List<String> distinctCourses = new ArrayList<>();
+                                                List<String> distinctYearLevels = new ArrayList<>();
 
-                                        for (Student student : students) {
-                                                String courseName = courseNameById.getOrDefault(student.getCourseId(), "N/A");
-                                                String yearLevel = String.valueOf(student.getYearLevel());
-                                                String status = student.getStudentStatus() == null ? "N/A" : student.getStudentStatus().toString();
+                                                for (Student student : students) {
+                                                        String courseName = courseNameById.getOrDefault(student.getCourseId(), "N/A");
+                                                        String yearLevel = String.valueOf(student.getYearLevel());
+                                                        String status = student.getStudentStatus() == null ? "N/A" : student.getStudentStatus().toString();
 
-                                                model.addRow(new Object[]{
-                                                        student.getStudentId(),
-                                                        student.getFirstName(),
-                                                        student.getLastName(),
-                                                        courseName,
-                                                        status
-                                                });
+                                                        model.addRow(new Object[]{
+                                                                student.getStudentId(),
+                                                                student.getFirstName(),
+                                                                student.getLastName(),
+                                                                courseName,
+                                                                status
+                                                        });
 
-                                                if (!distinctCourses.contains(courseName)) {
-                                                        distinctCourses.add(courseName);
+                                                        if (!distinctCourses.contains(courseName)) {
+                                                                distinctCourses.add(courseName);
+                                                        }
+
+                                                        if (!distinctYearLevels.contains(yearLevel)) {
+                                                                distinctYearLevels.add(yearLevel);
+                                                        }
                                                 }
 
-                                                if (!distinctYearLevels.contains(yearLevel)) {
-                                                        distinctYearLevels.add(yearLevel);
-                                                }
+                                                distinctCourses.forEach(cbxCourseFilter::addItem);
+                                                distinctYearLevels.forEach(cbxYearLevelFilter::addItem);
+
+                                                populateStudentDetails(null);
+                                        } finally {
+                                                initializing = false;
                                         }
-
-                                        distinctCourses.forEach(cbxCourseFilter::addItem);
-                                        distinctYearLevels.forEach(cbxYearLevelFilter::addItem);
-
-                                        tableRegistrarStudents.setModel(model);
-                                        populateStudentDetails(null);
                                 } catch (Exception e) {
                                         if (!isCancelled()) {
                                                 JOptionPane.showMessageDialog(

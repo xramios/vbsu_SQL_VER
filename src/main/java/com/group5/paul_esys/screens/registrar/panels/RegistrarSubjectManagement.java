@@ -42,6 +42,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
 
         private List<Subject> subjects = new ArrayList<>();
         private List<Subject> filteredSubjects = new ArrayList<>();
+        private List<Department> cachedDepartments = new ArrayList<>();
 
         private transient SwingWorker<?, ?> currentWorker;
 
@@ -167,15 +168,26 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 executeAsync(new SwingWorker<SubjectLoadResult, Void>() {
                         @Override
                         protected SubjectLoadResult doInBackground() {
+                                if (isCancelled()) return null;
+
+                                List<SubjectService.SubjectWithDepartment> subjectsWithDepts =
+                                        subjectService.getAllSubjectsWithDepartments();
+
+                                if (isCancelled()) return null;
+
+                                List<Department> departments = departmentService.getAllDepartments();
                                 Map<Long, String> lookup = new LinkedHashMap<>();
-                                for (Department department : departmentService.getAllDepartments()) {
+                                for (Department department : departments) {
                                         if (isCancelled()) return null;
                                         lookup.put(department.getId(), safeText(department.getDepartmentName(), "N/A"));
                                 }
 
-                                if (isCancelled()) return null;
-                                List<Subject> loadedSubjects = subjectService.getAllSubjects();
-                                return new SubjectLoadResult(loadedSubjects, lookup);
+                                List<Subject> loadedSubjects = new ArrayList<>();
+                                for (SubjectService.SubjectWithDepartment swd : subjectsWithDepts) {
+                                        loadedSubjects.add(swd.getSubject());
+                                }
+
+                                return new SubjectLoadResult(loadedSubjects, lookup, departments);
                         }
 
                         @Override
@@ -185,6 +197,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                                         if (result == null || isCancelled()) return;
 
                                         subjects = result.subjects;
+                                        cachedDepartments = result.departments;
                                         departmentNameById.clear();
                                         departmentNameById.putAll(result.departmentLookup);
                                         reloadDepartmentFilterOptions();
@@ -203,7 +216,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 });
         }
 
-        private record SubjectLoadResult(List<Subject> subjects, Map<Long, String> departmentLookup) {}
+        private record SubjectLoadResult(List<Subject> subjects, Map<Long, String> departmentLookup, List<Department> departments) {}
 
         private void reloadDepartmentFilterOptions() {
                 Object selectedDepartment = cbxDepartment.getSelectedItem();
@@ -215,7 +228,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 cbxDepartment.addItem(FILTER_ALL);
                 departmentIdByName.clear();
 
-                for (Department department : departmentService.getAllDepartments()) {
+                for (Department department : cachedDepartments) {
                         String departmentName = safeText(department.getDepartmentName(), "Department " + department.getId());
                         cbxDepartment.addItem(departmentName);
                         departmentIdByName.put(departmentName, department.getId());

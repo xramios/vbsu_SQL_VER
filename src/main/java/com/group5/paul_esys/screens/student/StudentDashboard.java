@@ -7,6 +7,8 @@ package com.group5.paul_esys.screens.student;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme;
 import com.group5.paul_esys.modules.courses.model.Course;
 import com.group5.paul_esys.modules.courses.services.CourseService;
+import com.group5.paul_esys.modules.curriculum.model.Curriculum;
+import com.group5.paul_esys.modules.curriculum.services.CurriculumService;
 import com.group5.paul_esys.modules.enrollment_period.model.EnrollmentPeriod;
 import com.group5.paul_esys.modules.enrollment_period.services.EnrollmentPeriodService;
 import com.group5.paul_esys.modules.enrollments.model.Enrollment;
@@ -58,12 +60,12 @@ public class StudentDashboard extends javax.swing.JFrame {
         private static final int CATALOG_COL_UNITS = 3;
         private static final int CATALOG_COL_OFFERING_ID = 7;
         private static final int CATALOG_COL_SUBJECT_ID = 8;
-        private static final float MAX_ENROLLMENT_UNITS = 24.0f;
 
 	private Student currentStudent;
         private final DefaultListModel<String> selectedSubjectsModel = new DefaultListModel<>();
         private boolean hasActiveEnrollmentPeriod;
         private int activeBackgroundTasks;
+        private float maxEnrollmentUnits = 24.0f;
 
         private record StudentOverviewSnapshot(
           String courseName,
@@ -79,7 +81,8 @@ public class StudentDashboard extends javax.swing.JFrame {
           boolean activeEnrollmentPeriod,
           String announcementText,
           String catalogLabel,
-          List<Object[]> rows
+          List<Object[]> rows,
+          float maxUnits
         ) {
         }
 
@@ -504,7 +507,7 @@ public class StudentDashboard extends javax.swing.JFrame {
                         totalUnits += units;
                 }
 
-                jLabel17.setText(formatUnits(totalUnits) + " / " + formatUnits(MAX_ENROLLMENT_UNITS) + " units");
+                jLabel17.setText(formatUnits(totalUnits) + " / " + formatUnits(maxEnrollmentUnits) + " units");
         }
 
 	private void loadSubjectCatalogAsync(String keyword) {
@@ -527,7 +530,8 @@ public class StudentDashboard extends javax.swing.JFrame {
                           activePeriod,
                           "",
                           "Subject Catalog - No enrollment period configured",
-                          List.of()
+                          List.of(),
+                          24.0f
                         );
                 }
 
@@ -540,7 +544,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 
                 List<Offering> offerings = OfferingService.getInstance().getOfferingsByEnrollmentPeriod(enrollmentPeriod.getId());
                 if (offerings.isEmpty()) {
-                        return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, List.of());
+                        return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, List.of(), 24.0f);
                 }
 
                 Set<Long> allowedSemesterSubjectIds = StudentEnrollmentEligibilityService.getInstance().getEligibleSemesterSubjectIds(
@@ -553,7 +557,8 @@ public class StudentDashboard extends javax.swing.JFrame {
                           activePeriod,
                           announcement,
                           "Subject Catalog - " + periodLabel + " (No eligible subjects for current semester progress)",
-                          List.of()
+                          List.of(),
+                          24.0f
                         );
                 }
 
@@ -600,13 +605,38 @@ public class StudentDashboard extends javax.swing.JFrame {
                         rows.add(buildSubjectCatalogRow(subject, section, offering, isSelected));
                 }
 
-                return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, rows);
+                return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, rows, calculateMaxEnrollmentUnits(enrollmentPeriod));
+        }
+
+        private float calculateMaxEnrollmentUnits(EnrollmentPeriod enrollmentPeriod) {
+                try {
+                        Optional<Course> course = CourseService.getInstance().getCourseById(currentStudent.getCourseId());
+                        if (course.isEmpty()) {
+                                return 24.0f;
+                        }
+
+                        List<Curriculum> curriculums = CurriculumService.getInstance().getCurriculumsByCourse(course.get().getId());
+                        if (curriculums.isEmpty()) {
+                                return 24.0f;
+                        }
+
+                        Curriculum latestCurriculum = curriculums.get(0);
+                        float totalUnits = CurriculumService.getInstance().getTotalUnitsForSemester(
+                                latestCurriculum.getId(),
+                                enrollmentPeriod.getSemester()
+                        );
+
+                        return totalUnits > 0 ? totalUnits : 24.0f;
+                } catch (Exception e) {
+                        return 24.0f;
+                }
         }
 
         private void applySubjectCatalogSnapshot(SubjectCatalogSnapshot snapshot) {
                 hasActiveEnrollmentPeriod = snapshot.activeEnrollmentPeriod();
                 labelAnnouncement.setText(snapshot.announcementText());
                 jLabel14.setText(snapshot.catalogLabel());
+                maxEnrollmentUnits = snapshot.maxUnits();
 
                 DefaultTableModel model = (DefaultTableModel) tblSubjectCatalog.getModel();
                 model.setRowCount(0);
@@ -1892,7 +1922,7 @@ public class StudentDashboard extends javax.swing.JFrame {
                 }
 
                 activeEnrollment.setStatus(targetStatus);
-                activeEnrollment.setMaxUnits(MAX_ENROLLMENT_UNITS);
+                activeEnrollment.setMaxUnits(maxEnrollmentUnits);
                 activeEnrollment.setTotalUnits(sumSelectedUnits(activeEnrollment.getId()));
                 if (targetStatus == EnrollmentStatus.SUBMITTED) {
                         if (activeEnrollment.getSubmittedAt() == null) {
@@ -1954,7 +1984,7 @@ public class StudentDashboard extends javax.swing.JFrame {
                 enrollment.setStudentId(currentStudent.getStudentId());
                 enrollment.setEnrollmentPeriodId(enrollmentPeriodId);
                 enrollment.setStatus(initialStatus);
-                enrollment.setMaxUnits(MAX_ENROLLMENT_UNITS);
+                enrollment.setMaxUnits(maxEnrollmentUnits);
                 enrollment.setTotalUnits(0.0f);
                 if (initialStatus == EnrollmentStatus.SUBMITTED) {
                         enrollment.setSubmittedAt(new Date());

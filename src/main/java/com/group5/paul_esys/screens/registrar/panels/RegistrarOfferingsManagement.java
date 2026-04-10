@@ -55,74 +55,61 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
   }
 
   private void reloadFilterOptions() {
-    reloadEnrollmentPeriodOptions();
-    reloadSemesterOptions();
     clearPreview();
+    reloadFilterOptionsAsync();
   }
 
-  private void reloadEnrollmentPeriodOptions() {
+  private void reloadFilterOptionsAsync() {
     cbxEnrollmentPeriod.removeAllItems();
     enrollmentPeriodIdByLabel.clear();
     cbxEnrollmentPeriod.setEnabled(false);
+    cbxSemester.removeAllItems();
+    cbxSemester.setEnabled(false);
 
-    new SwingWorker<List<EnrollmentPeriod>, Void>() {
+    new SwingWorker<FilterOptionsResult, Void>() {
       @Override
-      protected List<EnrollmentPeriod> doInBackground() {
-        return enrollmentPeriodService.getAllEnrollmentPeriods();
+      protected FilterOptionsResult doInBackground() throws Exception {
+        var periodsFuture = java.util.concurrent.Executors.newSingleThreadExecutor()
+            .submit(() -> enrollmentPeriodService.getAllEnrollmentPeriods());
+        var semestersFuture = java.util.concurrent.Executors.newSingleThreadExecutor()
+            .submit(() -> offeringGenerationService.getDistinctSemesterNames());
+
+        return new FilterOptionsResult(periodsFuture.get(), semestersFuture.get());
       }
 
       @Override
       protected void done() {
         try {
-          List<EnrollmentPeriod> periods = get();
-          for (EnrollmentPeriod period : periods) {
+          FilterOptionsResult result = get();
+
+          for (EnrollmentPeriod period : result.periods) {
             String label = buildEnrollmentPeriodLabel(period);
             cbxEnrollmentPeriod.addItem(label);
             enrollmentPeriodIdByLabel.put(label, period.getId());
           }
-        } catch (InterruptedException | ExecutionException e) {
-          JOptionPane.showMessageDialog(
-              RegistrarOfferingsManagement.this,
-              "Failed to load enrollment periods: " + e.getMessage(),
-              "Error",
-              JOptionPane.ERROR_MESSAGE
-          );
-        } finally {
-          cbxEnrollmentPeriod.setEnabled(true);
-        }
-      }
-    }.execute();
-  }
 
-  private void reloadSemesterOptions() {
-    cbxSemester.removeAllItems();
-    cbxSemester.setEnabled(false);
-
-    new SwingWorker<List<String>, Void>() {
-      @Override
-      protected List<String> doInBackground() {
-        return offeringGenerationService.getDistinctSemesterNames();
-      }
-
-      @Override
-      protected void done() {
-        try {
-          List<String> semesterNames = get();
-          for (String semesterName : semesterNames) {
+          for (String semesterName : result.semesterNames) {
             cbxSemester.addItem(semesterName);
           }
         } catch (InterruptedException | ExecutionException e) {
           JOptionPane.showMessageDialog(
               RegistrarOfferingsManagement.this,
-              "Failed to load semesters: " + e.getMessage(),
+              "Failed to load filter options: " + e.getMessage(),
               "Error",
               JOptionPane.ERROR_MESSAGE
           );
         } finally {
+          cbxEnrollmentPeriod.setEnabled(true);
           cbxSemester.setEnabled(true);
         }
       }
     }.execute();
+  }
+
+  private record FilterOptionsResult(
+      List<EnrollmentPeriod> periods,
+      List<String> semesterNames
+  ) {
   }
 
   private String buildEnrollmentPeriodLabel(EnrollmentPeriod period) {

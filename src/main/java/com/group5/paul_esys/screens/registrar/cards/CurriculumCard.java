@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 
 /**
  *
@@ -73,16 +74,17 @@ public class CurriculumCard extends javax.swing.JPanel {
                         return;
                 }
 
-                loadSemesters();
+                loadSemestersAsync();
         }
 
         public void reloadSemesters() {
                 semestersLoaded = false;
-                ensureSemestersLoaded();
+                loadSemestersAsync();
         }
 
-        private void loadSemesters() {
+        private void loadSemestersAsync() {
                 tabbedPaneSemesters.removeAll();
+                showSemestersPlaceholder("Loading semesters...");
 
                 if (curriculum == null || curriculum.getId() == null) {
                         showSemestersPlaceholder("No curriculum selected.");
@@ -90,20 +92,45 @@ public class CurriculumCard extends javax.swing.JPanel {
                         return;
                 }
 
-                List<Semester> semesters = semesterService.getSemestersByCurriculum(curriculum.getId());
+                new SwingWorker<SemesterLoadResult, Void>() {
+                        @Override
+                        protected SemesterLoadResult doInBackground() throws Exception {
+                                List<Semester> semesters = semesterService.getSemestersByCurriculum(curriculum.getId());
+                                Map<Long, Subject> subjectMap = loadSubjectMapForCurriculum(curriculum.getId());
+                                return new SemesterLoadResult(semesters, subjectMap);
+                        }
+
+                        @Override
+                        protected void done() {
+                                try {
+                                        SemesterLoadResult result = get();
+                                        populateSemesterTabs(result.semesters(), result.subjectMap());
+                                } catch (Exception ex) {
+                                        showSemestersPlaceholder("Error loading semesters: " + ex.getMessage());
+                                        semestersLoaded = true;
+                                }
+                        }
+                }.execute();
+        }
+
+        private void populateSemesterTabs(List<Semester> semesters, Map<Long, Subject> subjectMap) {
+                tabbedPaneSemesters.removeAll();
+
                 if (semesters.isEmpty()) {
                         showSemestersPlaceholder("No semesters found for this curriculum.");
                         semestersLoaded = true;
                         return;
                 }
 
-                Map<Long, Subject> subjectMap = loadSubjectMapForCurriculum(curriculum.getId());
                 for (Semester semester : semesters) {
                         SemesterCard semesterCard = new SemesterCard(semester, subjectMap, null);
                         tabbedPaneSemesters.addTab(buildSemesterTabTitle(semester), semesterCard);
                 }
 
                 semestersLoaded = true;
+        }
+
+        private record SemesterLoadResult(List<Semester> semesters, Map<Long, Subject> subjectMap) {
         }
 
         private Map<Long, Subject> loadSubjectMapForCurriculum(Long curriculumId) {

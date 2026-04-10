@@ -26,9 +26,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import java.util.concurrent.ExecutionException;
 
 /**
  *
@@ -55,6 +57,10 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
         private List<Faculty> facultyMembers = new ArrayList<>();
         private List<Faculty> filteredFacultyMembers = new ArrayList<>();
         private final Map<Long, String> facultyEmailByFacultyId = new LinkedHashMap<>();
+
+        private SwingWorker<?, ?> loadWorker;
+        private SwingWorker<?, ?> tableWorker;
+        private SwingWorker<?, ?> deleteWorker;
 
 	/**
 	 * Creates new form DepartmentManagement
@@ -131,7 +137,6 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                 facultyCardsContainer.repaint();
 
                 loadDepartments();
-                applyFilters();
         }
 
         private void switchToFacultyView(Department department) {
@@ -152,8 +157,32 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
         }
 
         private void loadDepartments() {
-                departments = new ArrayList<>(departmentService.getAllDepartments());
-                departments.sort(Comparator.comparing(department -> safeText(department.getDepartmentName(), "").toLowerCase()));
+                if (loadWorker != null && !loadWorker.isDone()) {
+                        loadWorker.cancel(true);
+                }
+
+                loadWorker = new SwingWorker<List<Department>, Void>() {
+                        @Override
+                        protected List<Department> doInBackground() {
+                                return new ArrayList<>(departmentService.getAllDepartments());
+                        }
+
+                        @Override
+                        protected void done() {
+                                if (isCancelled()) {
+                                        return;
+                                }
+                                try {
+                                        departments = get();
+                                        departments.sort(Comparator.comparing(department -> safeText(department.getDepartmentName(), "").toLowerCase()));
+                                        applyFilters();
+                                } catch (InterruptedException | ExecutionException e) {
+                                        Thread.currentThread().interrupt();
+                                        showError("Failed to load departments: " + e.getMessage());
+                                }
+                        }
+                };
+                loadWorker.execute();
         }
 
         private void loadFacultyBySelectedDepartment() {
@@ -164,20 +193,59 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                         return;
                 }
 
-                facultyMembers = new ArrayList<>(facultyService.getFacultyByDepartment(selectedDepartment.getId()));
-                facultyMembers.sort(Comparator
-                        .comparing((Faculty faculty) -> safeText(faculty.getLastName(), "").toLowerCase())
-                        .thenComparing(faculty -> safeText(faculty.getFirstName(), "").toLowerCase()));
+                if (loadWorker != null && !loadWorker.isDone()) {
+                        loadWorker.cancel(true);
+                }
 
-                for (Faculty faculty : facultyMembers) {
-                        if (faculty.getId() == null) {
-                                continue;
+                final Long departmentId = selectedDepartment.getId();
+
+                loadWorker = new SwingWorker<FacultyLoadResult, Void>() {
+                        @Override
+                        protected FacultyLoadResult doInBackground() {
+                                List<Faculty> members = new ArrayList<>(facultyService.getFacultyByDepartment(departmentId));
+                                members.sort(Comparator
+                                        .comparing((Faculty faculty) -> safeText(faculty.getLastName(), "").toLowerCase())
+                                        .thenComparing(faculty -> safeText(faculty.getFirstName(), "").toLowerCase()));
+
+                                Map<Long, String> emails = new LinkedHashMap<>();
+                                for (Faculty faculty : members) {
+                                        if (faculty.getId() == null) {
+                                                continue;
+                                        }
+                                        String email = facultyService
+                                                .getUserEmailByUserId(faculty.getUserId())
+                                                .orElse("");
+                                        emails.put(faculty.getId(), email);
+                                }
+                                return new FacultyLoadResult(members, emails);
                         }
 
-                        String email = facultyService
-                                .getUserEmailByUserId(faculty.getUserId())
-                                .orElse("");
-                        facultyEmailByFacultyId.put(faculty.getId(), email);
+                        @Override
+                        protected void done() {
+                                if (isCancelled()) {
+                                        return;
+                                }
+                                try {
+                                        FacultyLoadResult result = get();
+                                        facultyMembers = result.members;
+                                        facultyEmailByFacultyId.putAll(result.emails);
+                                        applyFilters();
+                                } catch (InterruptedException | ExecutionException e) {
+                                        Thread.currentThread().interrupt();
+                                        showError("Failed to load faculty: " + e.getMessage());
+                                }
+                        }
+                };
+                loadWorker.execute();
+        }
+
+        private static class FacultyLoadResult {
+                final List<Faculty> members;
+                final Map<Long, String> emails;
+
+                FacultyLoadResult(List<Faculty> members, Map<Long, String> emails) {
+                        this.members = members;
+                        this.emails = emails;
                 }
         }
 
@@ -232,11 +300,36 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
         }
 
         private void populateDepartmentsTable(List<Department> departmentsToDisplay) {
-                Map<Long, Long> facultyCountByDepartment = facultyService
-                        .getAllFaculty()
-                        .stream()
-                        .collect(Collectors.groupingBy(Faculty::getDepartmentId, Collectors.counting()));
+                if (tableWorker != null && !tableWorker.isDone()) {
+                        tableWorker.cancel(true);
+                }
 
+                tableWorker = new SwingWorker<Map<Long, Long>, Void>() {
+                        @Override
+                        protected Map<Long, Long> doInBackground() {
+                                return facultyService.getAllFaculty()
+                                        .stream()
+                                        .collect(Collectors.groupingBy(Faculty::getDepartmentId, Collectors.counting()));
+                        }
+
+                        @Override
+                        protected void done() {
+                                if (isCancelled()) {
+                                        return;
+                                }
+                                try {
+                                        Map<Long, Long> facultyCountByDepartment = get();
+                                        updateDepartmentsTableModel(departmentsToDisplay, facultyCountByDepartment);
+                                } catch (InterruptedException | ExecutionException e) {
+                                        Thread.currentThread().interrupt();
+                                        showError("Failed to load faculty counts: " + e.getMessage());
+                                }
+                        }
+                };
+                tableWorker.execute();
+        }
+
+        private void updateDepartmentsTableModel(List<Department> departmentsToDisplay, Map<Long, Long> facultyCountByDepartment) {
                 DefaultTableModel model = new DefaultTableModel(
                         new Object[][]{},
                         new String[]{"Name", "Code", "Description", "Faculty Count"}
@@ -423,24 +516,43 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                         return;
                 }
 
-                boolean deleted = facultyService.deleteFaculty(faculty.getId());
-                if (!deleted) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Failed to delete faculty. Please try again.",
-                                "Delete Faculty",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                        return;
+                if (deleteWorker != null && !deleteWorker.isDone()) {
+                        deleteWorker.cancel(true);
                 }
 
-                refreshCurrentView();
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Faculty deleted successfully.",
-                        "Delete Faculty",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                final Long facultyId = faculty.getId();
+
+                deleteWorker = new SwingWorker<Boolean, Void>() {
+                        @Override
+                        protected Boolean doInBackground() {
+                                return facultyService.deleteFaculty(facultyId);
+                        }
+
+                        @Override
+                        protected void done() {
+                                if (isCancelled()) {
+                                        return;
+                                }
+                                try {
+                                        boolean deleted = get();
+                                        if (!deleted) {
+                                                showError("Failed to delete faculty. Please try again.");
+                                                return;
+                                        }
+                                        refreshCurrentView();
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarDepartmentManagement.this,
+                                                "Faculty deleted successfully.",
+                                                "Delete Faculty",
+                                                JOptionPane.INFORMATION_MESSAGE
+                                        );
+                                } catch (InterruptedException | ExecutionException e) {
+                                        Thread.currentThread().interrupt();
+                                        showError("Failed to delete faculty: " + e.getMessage());
+                                }
+                        }
+                };
+                deleteWorker.execute();
         }
 
         private void openDepartmentFormForCreate() {
@@ -465,16 +577,42 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
 
         private void refreshCurrentView() {
                 if (tableMode == TableMode.FACULTY && selectedDepartment != null) {
-                        selectedDepartment = departmentService
-                                .getDepartmentById(selectedDepartment.getId())
-                                .orElse(selectedDepartment);
-                        loadFacultyBySelectedDepartment();
-                        applyFilters();
+                        final Long deptId = selectedDepartment.getId();
+
+                        if (loadWorker != null && !loadWorker.isDone()) {
+                                loadWorker.cancel(true);
+                        }
+
+                        loadWorker = new SwingWorker<Department, Void>() {
+                                @Override
+                                protected Department doInBackground() {
+                                        return departmentService
+                                                .getDepartmentById(deptId)
+                                                .orElse(null);
+                                }
+
+                                @Override
+                                protected void done() {
+                                        if (isCancelled()) {
+                                                return;
+                                        }
+                                        try {
+                                                Department refreshed = get();
+                                                if (refreshed != null) {
+                                                        selectedDepartment = refreshed;
+                                                }
+                                                loadFacultyBySelectedDepartment();
+                                        } catch (InterruptedException | ExecutionException e) {
+                                                Thread.currentThread().interrupt();
+                                                showError("Failed to refresh view: " + e.getMessage());
+                                        }
+                                }
+                        };
+                        loadWorker.execute();
                         return;
                 }
 
                 loadDepartments();
-                applyFilters();
         }
 
         private String buildFacultyDisplayName(Faculty faculty) {
@@ -489,6 +627,17 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                         return fallback;
                 }
                 return value.trim();
+        }
+
+        private void showError(String message) {
+                SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(
+                                RegistrarDepartmentManagement.this,
+                                message,
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE
+                        );
+                });
         }
 
         private void btnAddDepartmentActionPerformed(java.awt.event.ActionEvent evt) {

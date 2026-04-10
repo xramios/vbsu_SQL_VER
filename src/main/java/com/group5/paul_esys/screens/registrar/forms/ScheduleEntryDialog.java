@@ -8,6 +8,7 @@ import com.group5.paul_esys.modules.registrar.model.ScheduleUpsertRequest;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -27,8 +29,19 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JFormattedTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.SwingConstants;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
+
+import raven.datetime.TimePicker;
 
 public class ScheduleEntryDialog extends JDialog {
 
@@ -40,13 +53,26 @@ public class ScheduleEntryDialog extends JDialog {
   private final ScheduleManagementRow editingSchedule;
 
   private final JComboBox<String> cbxEnrollmentPeriod = new JComboBox<>();
-  private final JComboBox<String> cbxOffering = new JComboBox<>();
+  private final JTextField txtOfferingSearch = new JTextField();
+  private final JTable tblOfferings = new JTable();
+  private final DefaultTableModel offeringTableModel = new DefaultTableModel(
+      new Object[][]{},
+      new String[]{"Section", "Subject Code", "Subject Name", "Prerequisite"}
+  ) {
+    @Override
+    public boolean isCellEditable(int row, int column) {
+      return false;
+    }
+  };
   private final JComboBox<String> cbxRoom = new JComboBox<>();
   private final JComboBox<String> cbxFaculty = new JComboBox<>();
   private final JComboBox<String> cbxDay = new JComboBox<>();
-  private final JTextField txtStartTime = new JTextField();
-  private final JTextField txtEndTime = new JTextField();
+  private final TimePicker startTimePicker = new TimePicker();
+  private final TimePicker endTimePicker = new TimePicker();
+  private final JFormattedTextField ftxtStartTime = new JFormattedTextField();
+  private final JFormattedTextField ftxtEndTime = new JFormattedTextField();
   private final JLabel lblError = new JLabel(" ");
+  private TableRowSorter<DefaultTableModel> offeringRowSorter;
 
   private final List<Long> enrollmentPeriodIds = new ArrayList<>();
   private final List<ScheduleOfferingOption> visibleOfferingOptions = new ArrayList<>();
@@ -104,30 +130,49 @@ public class ScheduleEntryDialog extends JDialog {
     formPanel.setOpaque(false);
 
     cbxEnrollmentPeriod.setFont(new java.awt.Font("Poppins", 0, 12));
-    cbxOffering.setFont(new java.awt.Font("Poppins", 0, 12));
     cbxRoom.setFont(new java.awt.Font("Poppins", 0, 12));
     cbxFaculty.setFont(new java.awt.Font("Poppins", 0, 12));
     cbxDay.setFont(new java.awt.Font("Poppins", 0, 12));
 
-    txtStartTime.setFont(new java.awt.Font("Poppins", 0, 12));
-    txtEndTime.setFont(new java.awt.Font("Poppins", 0, 12));
-    txtStartTime.setToolTipText("24-hour format, e.g. 08:30");
-    txtEndTime.setToolTipText("24-hour format, e.g. 10:00");
+    txtOfferingSearch.setFont(new java.awt.Font("Poppins", 0, 12));
+    txtOfferingSearch.setToolTipText("Search by section, subject code, title, or prerequisite");
+
+    configureOfferingTable();
+
+    ftxtStartTime.setFont(new java.awt.Font("Poppins", 0, 12));
+    ftxtEndTime.setFont(new java.awt.Font("Poppins", 0, 12));
+    ftxtStartTime.setToolTipText("24-hour format, e.g. 08:30");
+    ftxtEndTime.setToolTipText("24-hour format, e.g. 10:00");
+
+    startTimePicker.set24HourView(true);
+    endTimePicker.set24HourView(true);
+    startTimePicker.setEditor(ftxtStartTime);
+    endTimePicker.setEditor(ftxtEndTime);
+
+    JPanel offeringPanel = new JPanel(new BorderLayout(0, 6));
+    offeringPanel.setOpaque(false);
+    offeringPanel.setPreferredSize(new Dimension(0, 200));
+
+    JScrollPane offeringScrollPane = new JScrollPane(tblOfferings);
+    offeringScrollPane.setPreferredSize(new Dimension(560, 170));
+
+    offeringPanel.add(txtOfferingSearch, BorderLayout.NORTH);
+    offeringPanel.add(offeringScrollPane, BorderLayout.CENTER);
 
     int row = 0;
     addField(formPanel, "Enrollment Period", cbxEnrollmentPeriod, row, 0, 1);
     addField(formPanel, "Day", cbxDay, row, 1, 1);
 
     row++;
-    addField(formPanel, "Offering (Section + Subject)", cbxOffering, row, 0, 2);
+    addField(formPanel, "Offering (Section + Subject)", offeringPanel, row, 0, 2);
 
     row++;
     addField(formPanel, "Room", cbxRoom, row, 0, 1);
     addField(formPanel, "Faculty", cbxFaculty, row, 1, 1);
 
     row++;
-    addField(formPanel, "Start Time (HH:mm)", txtStartTime, row, 0, 1);
-    addField(formPanel, "End Time (HH:mm)", txtEndTime, row, 1, 1);
+    addField(formPanel, "Start Time (HH:mm)", ftxtStartTime, row, 0, 1);
+    addField(formPanel, "End Time (HH:mm)", ftxtEndTime, row, 1, 1);
 
     row++;
     lblError.setFont(new java.awt.Font("Poppins", 0, 12));
@@ -150,6 +195,22 @@ public class ScheduleEntryDialog extends JDialog {
     buttonPanel.add(btnSave);
 
     cbxEnrollmentPeriod.addActionListener(evt -> reloadOfferingOptions(getCurrentSelectedOfferingId()));
+    txtOfferingSearch.getDocument().addDocumentListener(new DocumentListener() {
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        applyOfferingSearchFilter();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        applyOfferingSearchFilter();
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+        applyOfferingSearchFilter();
+      }
+    });
 
     rootPanel.add(headerPanel, BorderLayout.NORTH);
     rootPanel.add(formPanel, BorderLayout.CENTER);
@@ -157,6 +218,21 @@ public class ScheduleEntryDialog extends JDialog {
 
     getContentPane().setLayout(new BorderLayout());
     getContentPane().add(rootPanel, BorderLayout.CENTER);
+  }
+
+  private void configureOfferingTable() {
+    tblOfferings.setModel(offeringTableModel);
+    tblOfferings.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    tblOfferings.setRowHeight(24);
+    tblOfferings.setFillsViewportHeight(true);
+
+    offeringRowSorter = new TableRowSorter<>(offeringTableModel);
+    tblOfferings.setRowSorter(offeringRowSorter);
+
+    int[] preferredWidths = {90, 120, 210, 220};
+    for (int column = 0; column < preferredWidths.length; column++) {
+      tblOfferings.getColumnModel().getColumn(column).setPreferredWidth(preferredWidths[column]);
+    }
   }
 
   private void initializeValues() {
@@ -224,9 +300,11 @@ public class ScheduleEntryDialog extends JDialog {
   }
 
   private void applyEditingDefaults() {
+    txtOfferingSearch.setText("");
+
     if (editingSchedule == null) {
-      txtStartTime.setText("");
-      txtEndTime.setText("");
+      startTimePicker.clearSelectedTime();
+      endTimePicker.clearSelectedTime();
       cbxDay.setSelectedIndex(0);
       cbxEnrollmentPeriod.setSelectedIndex(0);
       reloadOfferingOptions(null);
@@ -239,8 +317,17 @@ public class ScheduleEntryDialog extends JDialog {
     selectFaculty(editingSchedule.facultyId());
     selectDay(editingSchedule.day());
 
-    txtStartTime.setText(editingSchedule.startTime() == null ? "" : editingSchedule.startTime().format(TIME_FORMATTER));
-    txtEndTime.setText(editingSchedule.endTime() == null ? "" : editingSchedule.endTime().format(TIME_FORMATTER));
+    if (editingSchedule.startTime() == null) {
+      startTimePicker.clearSelectedTime();
+    } else {
+      startTimePicker.setSelectedTime(editingSchedule.startTime());
+    }
+
+    if (editingSchedule.endTime() == null) {
+      endTimePicker.clearSelectedTime();
+    } else {
+      endTimePicker.setSelectedTime(editingSchedule.endTime());
+    }
   }
 
   private void resetFormValues() {
@@ -263,31 +350,69 @@ public class ScheduleEntryDialog extends JDialog {
   private void reloadOfferingOptions(Long selectedOfferingId) {
     Long selectedEnrollmentPeriodId = getSelectedEnrollmentPeriodId();
 
-    cbxOffering.removeAllItems();
     visibleOfferingOptions.clear();
-    cbxOffering.addItem("Select offering");
+    offeringTableModel.setRowCount(0);
 
     for (ScheduleOfferingOption option : offeringOptions) {
       if (selectedEnrollmentPeriodId == null || selectedEnrollmentPeriodId.equals(option.enrollmentPeriodId())) {
         visibleOfferingOptions.add(option);
-        cbxOffering.addItem(option.label());
+        offeringTableModel.addRow(new Object[]{
+            option.sectionCode(),
+            option.subjectCode(),
+            option.subjectName(),
+            option.prerequisiteLabel()
+        });
       }
     }
 
+    applyOfferingSearchFilter();
+
     if (selectedOfferingId == null) {
-      cbxOffering.setSelectedIndex(0);
+      tblOfferings.clearSelection();
       return;
     }
 
-    for (int index = 0; index < visibleOfferingOptions.size(); index++) {
-      ScheduleOfferingOption option = visibleOfferingOptions.get(index);
-      if (selectedOfferingId.equals(option.offeringId())) {
-        cbxOffering.setSelectedIndex(index + 1);
-        return;
-      }
+    selectOfferingById(selectedOfferingId);
+  }
+
+  private void selectOfferingById(Long offeringId) {
+    if (offeringId == null) {
+      tblOfferings.clearSelection();
+      return;
     }
 
-    cbxOffering.setSelectedIndex(0);
+    for (int modelRow = 0; modelRow < visibleOfferingOptions.size(); modelRow++) {
+      ScheduleOfferingOption option = visibleOfferingOptions.get(modelRow);
+      if (!offeringId.equals(option.offeringId())) {
+        continue;
+      }
+
+      int viewRow = tblOfferings.convertRowIndexToView(modelRow);
+      if (viewRow < 0) {
+        tblOfferings.clearSelection();
+        return;
+      }
+
+      tblOfferings.setRowSelectionInterval(viewRow, viewRow);
+      tblOfferings.scrollRectToVisible(tblOfferings.getCellRect(viewRow, 0, true));
+      return;
+    }
+
+    tblOfferings.clearSelection();
+  }
+
+  private void applyOfferingSearchFilter() {
+    if (offeringRowSorter == null) {
+      return;
+    }
+
+    String keyword = txtOfferingSearch.getText() == null ? "" : txtOfferingSearch.getText().trim();
+    if (keyword.isEmpty()) {
+      offeringRowSorter.setRowFilter(null);
+      return;
+    }
+
+    offeringRowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(keyword)));
   }
 
   private void selectRoom(Long roomId) {
@@ -373,8 +498,8 @@ public class ScheduleEntryDialog extends JDialog {
       return;
     }
 
-    LocalTime startTime = parseTime(txtStartTime.getText());
-    LocalTime endTime = parseTime(txtEndTime.getText());
+    LocalTime startTime = getSelectedStartTime();
+    LocalTime endTime = getSelectedEndTime();
     if (startTime == null || endTime == null) {
       showError("Please use HH:mm format for start and end time.");
       return;
@@ -399,12 +524,12 @@ public class ScheduleEntryDialog extends JDialog {
   }
 
   private ScheduleOfferingOption getSelectedOfferingOption() {
-    int selectedIndex = cbxOffering.getSelectedIndex();
-    if (selectedIndex <= 0) {
+    int selectedViewRow = tblOfferings.getSelectedRow();
+    if (selectedViewRow < 0) {
       return null;
     }
 
-    int optionIndex = selectedIndex - 1;
+    int optionIndex = tblOfferings.convertRowIndexToModel(selectedViewRow);
     if (optionIndex < 0 || optionIndex >= visibleOfferingOptions.size()) {
       return null;
     }
@@ -442,6 +567,32 @@ public class ScheduleEntryDialog extends JDialog {
     }
 
     return DayOfWeek.valueOf(day);
+  }
+
+  private LocalTime getSelectedStartTime() {
+    LocalTime selected = startTimePicker.getSelectedTime();
+    if (selected != null) {
+      return selected;
+    }
+
+    LocalTime parsed = parseTime(ftxtStartTime.getText());
+    if (parsed != null) {
+      startTimePicker.setSelectedTime(parsed);
+    }
+    return parsed;
+  }
+
+  private LocalTime getSelectedEndTime() {
+    LocalTime selected = endTimePicker.getSelectedTime();
+    if (selected != null) {
+      return selected;
+    }
+
+    LocalTime parsed = parseTime(ftxtEndTime.getText());
+    if (parsed != null) {
+      endTimePicker.setSelectedTime(parsed);
+    }
+    return parsed;
   }
 
   private LocalTime parseTime(String value) {
