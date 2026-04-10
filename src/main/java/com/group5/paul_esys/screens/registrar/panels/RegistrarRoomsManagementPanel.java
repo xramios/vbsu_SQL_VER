@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -101,9 +102,28 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
         }
 
         private void initializeRooms() {
-                rooms = roomService.getAllRooms();
-                reloadFilterOptions();
-                applyFilters();
+                new SwingWorker<List<Room>, Void>() {
+                        @Override
+                        protected List<Room> doInBackground() throws Exception {
+                                return roomService.getAllRooms();
+                        }
+
+                        @Override
+                        protected void done() {
+                                try {
+                                        rooms = get();
+                                        reloadFilterOptions();
+                                        applyFilters();
+                                } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarRoomsManagementPanel.this,
+                                                "Error loading rooms: " + ex.getMessage(),
+                                                "Rooms Management",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                }
+                        }
+                }.execute();
         }
 
         private void reloadFilterOptions() {
@@ -268,24 +288,42 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
                         return;
                 }
 
-                boolean deleted = roomService.deleteRoom(selectedRoom.getId());
-                if (!deleted) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Failed to delete room. It may be referenced by schedule records.",
-                                "Delete Room",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                        return;
-                }
+                new SwingWorker<Boolean, Void>() {
+                        @Override
+                        protected Boolean doInBackground() throws Exception {
+                                return roomService.deleteRoom(selectedRoom.getId());
+                        }
 
-                initializeRooms();
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Room deleted successfully.",
-                        "Delete Room",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                        @Override
+                        protected void done() {
+                                try {
+                                        boolean deleted = get();
+                                        if (!deleted) {
+                                                JOptionPane.showMessageDialog(
+                                                        RegistrarRoomsManagementPanel.this,
+                                                        "Failed to delete room. It may be referenced by schedule records.",
+                                                        "Delete Room",
+                                                        JOptionPane.ERROR_MESSAGE
+                                                );
+                                                return;
+                                        }
+                                        initializeRooms();
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarRoomsManagementPanel.this,
+                                                "Room deleted successfully.",
+                                                "Delete Room",
+                                                JOptionPane.INFORMATION_MESSAGE
+                                        );
+                                } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarRoomsManagementPanel.this,
+                                                "Error deleting room: " + ex.getMessage(),
+                                                "Delete Room",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                }
+                        }
+                }.execute();
         }
 
         private String normalizeRoomType(String roomType) {

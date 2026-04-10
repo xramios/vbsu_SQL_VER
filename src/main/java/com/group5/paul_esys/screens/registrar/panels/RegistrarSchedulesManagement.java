@@ -24,6 +24,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -198,13 +199,31 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
   private void reloadSchedules() {
     Long selectedScheduleId = getSelectedScheduleId();
 
-    scheduleRows.clear();
-    scheduleRows.addAll(scheduleManagementService.getScheduleRows());
+    new SwingWorker<List<ScheduleManagementRow>, Void>() {
+      @Override
+      protected List<ScheduleManagementRow> doInBackground() throws Exception {
+        return scheduleManagementService.getScheduleRows();
+      }
 
-    reloadEnrollmentPeriodFilterOptions();
-    applyFilters();
-
-    selectScheduleById(selectedScheduleId);
+      @Override
+      protected void done() {
+        try {
+          List<ScheduleManagementRow> rows = get();
+          scheduleRows.clear();
+          scheduleRows.addAll(rows);
+          reloadEnrollmentPeriodFilterOptions();
+          applyFilters();
+          selectScheduleById(selectedScheduleId);
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(
+              RegistrarSchedulesManagement.this,
+              "Error loading schedules: " + ex.getMessage(),
+              "Schedules Management",
+              JOptionPane.ERROR_MESSAGE
+          );
+        }
+      }
+    }.execute();
   }
 
   private void reloadEnrollmentPeriodFilterOptions() {
@@ -216,20 +235,39 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     cbxEnrollmentPeriod.removeAllItems();
     cbxEnrollmentPeriod.addItem(FILTER_ALL);
 
-    for (ScheduleLookupOption option : scheduleManagementService.getEnrollmentPeriodOptions()) {
-      if (option.id() == null) {
-        continue;
+    new SwingWorker<List<ScheduleLookupOption>, Void>() {
+      @Override
+      protected List<ScheduleLookupOption> doInBackground() throws Exception {
+        return scheduleManagementService.getEnrollmentPeriodOptions();
       }
 
-      cbxEnrollmentPeriod.addItem(option.label());
-      enrollmentPeriodIdByLabel.put(option.label(), option.id());
-    }
+      @Override
+      protected void done() {
+        try {
+          List<ScheduleLookupOption> options = get();
+          for (ScheduleLookupOption option : options) {
+            if (option.id() == null) {
+              continue;
+            }
+            cbxEnrollmentPeriod.addItem(option.label());
+            enrollmentPeriodIdByLabel.put(option.label(), option.id());
+          }
 
-    if (FILTER_ALL.equals(selectedLabel) || enrollmentPeriodIdByLabel.containsKey(selectedLabel)) {
-      cbxEnrollmentPeriod.setSelectedItem(selectedLabel);
-    } else {
-      cbxEnrollmentPeriod.setSelectedItem(FILTER_ALL);
-    }
+          if (FILTER_ALL.equals(selectedLabel) || enrollmentPeriodIdByLabel.containsKey(selectedLabel)) {
+            cbxEnrollmentPeriod.setSelectedItem(selectedLabel);
+          } else {
+            cbxEnrollmentPeriod.setSelectedItem(FILTER_ALL);
+          }
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(
+              RegistrarSchedulesManagement.this,
+              "Error loading enrollment periods: " + ex.getMessage(),
+              "Schedules Management",
+              JOptionPane.ERROR_MESSAGE
+          );
+        }
+      }
+    }.execute();
   }
 
   private void applyFilters() {
@@ -499,18 +537,36 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
       return;
     }
 
-    ScheduleSaveResult result = scheduleManagementService.deleteSchedule(selected.scheduleId());
+    new SwingWorker<ScheduleSaveResult, Void>() {
+      @Override
+      protected ScheduleSaveResult doInBackground() throws Exception {
+        return scheduleManagementService.deleteSchedule(selected.scheduleId());
+      }
 
-    JOptionPane.showMessageDialog(
-        this,
-        result.message(),
-        "Delete Schedule",
-        result.successful() ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE
-    );
+      @Override
+      protected void done() {
+        try {
+          ScheduleSaveResult result = get();
+          JOptionPane.showMessageDialog(
+              RegistrarSchedulesManagement.this,
+              result.message(),
+              "Delete Schedule",
+              result.successful() ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE
+          );
 
-    if (result.successful()) {
-      reloadSchedules();
-    }
+          if (result.successful()) {
+            reloadSchedules();
+          }
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(
+              RegistrarSchedulesManagement.this,
+              "Error deleting schedule: " + ex.getMessage(),
+              "Delete Schedule",
+              JOptionPane.ERROR_MESSAGE
+          );
+        }
+      }
+    }.execute();
   }
 
   private void selectRowFromPointer(MouseEvent evt) {

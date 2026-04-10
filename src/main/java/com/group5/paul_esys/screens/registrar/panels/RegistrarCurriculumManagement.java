@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingWorker;
 
 /**
  *
@@ -55,48 +56,61 @@ public class RegistrarCurriculumManagement extends javax.swing.JPanel {
         }
 
         private void reloadCurriculumTabs() {
-                int selectedIndex = tabbedPaneCurriculums.getSelectedIndex();
-                if (selectedIndex < 0) {
-                        selectedIndex = 0;
-                }
-
-                isRefreshingTabs = true;
-                try {
-                        loadCourseLookup();
-                        tabbedPaneCurriculums.removeAll();
-                        curriculumCardsByTabIndex.clear();
-
-                        List<Curriculum> curriculums = curriculumService.getAllCurriculums();
-                        if (curriculums.isEmpty()) {
-                                showEmptyStateTab("No curriculums found. Click Add Curriculum to create one.");
-                                return;
+                new SwingWorker<List<Curriculum>, Void>() {
+                        @Override
+                        protected List<Curriculum> doInBackground() throws Exception {
+                                loadCourseLookup();
+                                return curriculumService.getAllCurriculums();
                         }
 
-                        for (Curriculum curriculum : curriculums) {
-                                CurriculumCard curriculumCard = new CurriculumCard(
-                                        curriculum,
-                                        courseNameById.get(curriculum.getCourse())
-                                );
+                        @Override
+                        protected void done() {
+                                int selectedIndex = tabbedPaneCurriculums.getSelectedIndex();
+                                if (selectedIndex < 0) {
+                                        selectedIndex = 0;
+                                }
 
-                                tabbedPaneCurriculums.addTab(buildCurriculumTabTitle(curriculum), curriculumCard);
-                                curriculumCardsByTabIndex.put(tabbedPaneCurriculums.getTabCount() - 1, curriculumCard);
-                        }
+                                isRefreshingTabs = true;
+                                try {
+                                        tabbedPaneCurriculums.removeAll();
+                                        curriculumCardsByTabIndex.clear();
 
-                        if (selectedIndex >= tabbedPaneCurriculums.getTabCount()) {
-                                selectedIndex = 0;
-                        }
+                                        List<Curriculum> curriculums = get();
+                                        if (curriculums.isEmpty()) {
+                                                showEmptyStateTab("No curriculums found. Click Add Curriculum to create one.");
+                                                return;
+                                        }
 
-                        if (tabbedPaneCurriculums.getTabCount() > 0) {
-                                tabbedPaneCurriculums.setSelectedIndex(selectedIndex);
+                                        for (Curriculum curriculum : curriculums) {
+                                                CurriculumCard curriculumCard = new CurriculumCard(
+                                                        curriculum,
+                                                        courseNameById.get(curriculum.getCourse())
+                                                );
+
+                                                tabbedPaneCurriculums.addTab(buildCurriculumTabTitle(curriculum), curriculumCard);
+                                                curriculumCardsByTabIndex.put(tabbedPaneCurriculums.getTabCount() - 1, curriculumCard);
+                                        }
+
+                                        if (selectedIndex >= tabbedPaneCurriculums.getTabCount()) {
+                                                selectedIndex = 0;
+                                        }
+
+                                        if (tabbedPaneCurriculums.getTabCount() > 0) {
+                                                tabbedPaneCurriculums.setSelectedIndex(selectedIndex);
+                                        }
+                                } catch (Exception ex) {
+                                        showEmptyStateTab("Error loading curriculums: " + ex.getMessage());
+                                } finally {
+                                        isRefreshingTabs = false;
+                                }
                         }
-                } finally {
-                        isRefreshingTabs = false;
-                }
+                }.execute();
         }
 
         private void loadCourseLookup() {
                 courseNameById.clear();
-                for (Course course : courseService.getAllCourses()) {
+                List<Course> courses = courseService.getAllCourses();
+                for (Course course : courses) {
                         courseNameById.put(course.getId(), course.getCourseName());
                 }
         }

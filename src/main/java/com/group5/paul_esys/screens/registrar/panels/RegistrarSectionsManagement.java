@@ -23,6 +23,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
@@ -195,17 +196,31 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
         }
 
         private void initializeSections() {
-                List<Section> latestSections = sectionService.getAllSections();
-                Map<Long, Integer> latestEnrolledCount = sectionService.getSelectedEnrollmentCountBySectionId();
-
-                applySectionSnapshot(latestSections, latestEnrolledCount, true);
+                new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                                List<Section> latestSections = sectionService.getAllSections();
+                                Map<Long, Integer> latestEnrolledCount = sectionService.getSelectedEnrollmentCountBySectionId();
+                                SwingUtilities.invokeLater(() ->
+                                        applySectionSnapshot(latestSections, latestEnrolledCount, true)
+                                );
+                                return null;
+                        }
+                }.execute();
         }
 
         private void refreshSectionsIfChanged() {
-                List<Section> latestSections = sectionService.getAllSections();
-                Map<Long, Integer> latestEnrolledCount = sectionService.getSelectedEnrollmentCountBySectionId();
-
-                applySectionSnapshot(latestSections, latestEnrolledCount, false);
+                new SwingWorker<Void, Void>() {
+                        @Override
+                        protected Void doInBackground() throws Exception {
+                                List<Section> latestSections = sectionService.getAllSections();
+                                Map<Long, Integer> latestEnrolledCount = sectionService.getSelectedEnrollmentCountBySectionId();
+                                SwingUtilities.invokeLater(() ->
+                                        applySectionSnapshot(latestSections, latestEnrolledCount, false)
+                                );
+                                return null;
+                        }
+                }.execute();
         }
 
         private void applySectionSnapshot(
@@ -419,24 +434,42 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                         return;
                 }
 
-                boolean deleted = sectionService.deleteSection(selectedSection.getId());
-                if (!deleted) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Failed to delete section. It may be referenced by schedules or enrollments.",
-                                "Delete Section",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                        return;
-                }
+                new SwingWorker<Boolean, Void>() {
+                        @Override
+                        protected Boolean doInBackground() throws Exception {
+                                return sectionService.deleteSection(selectedSection.getId());
+                        }
 
-                initializeSections();
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Section deleted successfully.",
-                        "Delete Section",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                        @Override
+                        protected void done() {
+                                try {
+                                        boolean deleted = get();
+                                        if (!deleted) {
+                                                JOptionPane.showMessageDialog(
+                                                        RegistrarSectionsManagement.this,
+                                                        "Failed to delete section. It may be referenced by schedules or enrollments.",
+                                                        "Delete Section",
+                                                        JOptionPane.ERROR_MESSAGE
+                                                );
+                                                return;
+                                        }
+                                        initializeSections();
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarSectionsManagement.this,
+                                                "Section deleted successfully.",
+                                                "Delete Section",
+                                                JOptionPane.INFORMATION_MESSAGE
+                                        );
+                                } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarSectionsManagement.this,
+                                                "Error deleting section: " + ex.getMessage(),
+                                                "Delete Section",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                }
+                        }
+                }.execute();
         }
 
         private void clearFilters() {

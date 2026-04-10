@@ -13,8 +13,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -92,8 +94,38 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
         }
 
         private void initializeEnrollmentPeriods() {
-                enrollmentPeriods = enrollmentPeriodService.getAllEnrollmentPeriods();
-                applyFilters();
+                setControlsEnabled(false);
+
+                new SwingWorker<List<EnrollmentPeriod>, Void>() {
+                        @Override
+                        protected List<EnrollmentPeriod> doInBackground() {
+                                return enrollmentPeriodService.getAllEnrollmentPeriods();
+                        }
+
+                        @Override
+                        protected void done() {
+                                try {
+                                        enrollmentPeriods = get();
+                                        applyFilters();
+                                } catch (InterruptedException | ExecutionException e) {
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarEnrollmentPeriodManagement.this,
+                                                "Failed to load enrollment periods: " + e.getMessage(),
+                                                "Error",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                } finally {
+                                        setControlsEnabled(true);
+                                }
+                        }
+                }.execute();
+        }
+
+        private void setControlsEnabled(boolean enabled) {
+                btnAddPeriod.setEnabled(enabled);
+                txtSearch.setEnabled(enabled);
+                cbxStatus.setEnabled(enabled);
+                tableEnrollmentPeriods.setEnabled(enabled);
         }
 
         private void applyFilters() {
@@ -216,24 +248,49 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
                         return;
                 }
 
-                boolean deleted = enrollmentPeriodService.deleteEnrollmentPeriod(selectedPeriod.getId());
-                if (!deleted) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Failed to delete enrollment period. It may be referenced by existing records.",
-                                "Delete Enrollment Period",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                        return;
-                }
+                setControlsEnabled(false);
 
-                initializeEnrollmentPeriods();
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Enrollment period deleted successfully.",
-                        "Delete Enrollment Period",
-                        JOptionPane.INFORMATION_MESSAGE
-                );
+                new SwingWorker<Boolean, Void>() {
+                        private final Long periodId = selectedPeriod.getId();
+
+                        @Override
+                        protected Boolean doInBackground() {
+                                return enrollmentPeriodService.deleteEnrollmentPeriod(periodId);
+                        }
+
+                        @Override
+                        protected void done() {
+                                try {
+                                        boolean deleted = get();
+                                        if (!deleted) {
+                                                JOptionPane.showMessageDialog(
+                                                        RegistrarEnrollmentPeriodManagement.this,
+                                                        "Failed to delete enrollment period. It may be referenced by existing records.",
+                                                        "Delete Enrollment Period",
+                                                        JOptionPane.ERROR_MESSAGE
+                                                );
+                                                setControlsEnabled(true);
+                                                return;
+                                        }
+
+                                        initializeEnrollmentPeriods();
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarEnrollmentPeriodManagement.this,
+                                                "Enrollment period deleted successfully.",
+                                                "Delete Enrollment Period",
+                                                JOptionPane.INFORMATION_MESSAGE
+                                        );
+                                } catch (InterruptedException | ExecutionException e) {
+                                        JOptionPane.showMessageDialog(
+                                                RegistrarEnrollmentPeriodManagement.this,
+                                                "Failed to delete enrollment period: " + e.getMessage(),
+                                                "Error",
+                                                JOptionPane.ERROR_MESSAGE
+                                        );
+                                        setControlsEnabled(true);
+                                }
+                        }
+                }.execute();
         }
 
 	/**

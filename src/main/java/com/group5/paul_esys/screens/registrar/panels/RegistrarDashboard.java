@@ -14,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
@@ -382,16 +383,59 @@ public class RegistrarDashboard extends javax.swing.JPanel {
         }
 
         private void reloadDashboardData() {
-                applications = enrollmentService.getEnrollmentApplications();
-                refreshSummaryCards();
-                reloadFilterOptions();
-                applyFilters();
+                new SwingWorker<List<EnrollmentApplication>, Void>() {
+                        @Override
+                        protected List<EnrollmentApplication> doInBackground() throws Exception {
+                                return enrollmentService.getEnrollmentApplications();
+                        }
+
+                        @Override
+                        protected void done() {
+                                try {
+                                        applications = get();
+                                        refreshSummaryCards();
+                                        reloadFilterOptions();
+                                        applyFilters();
+                                } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(
+                                            RegistrarDashboard.this,
+                                            "Error loading dashboard data: " + ex.getMessage(),
+                                            "Error",
+                                            JOptionPane.ERROR_MESSAGE
+                                        );
+                                }
+                        }
+                }.execute();
         }
 
         private void refreshSummaryCards() {
-                lblPendingActions.setText(String.valueOf(enrollmentService.countPendingActions()));
-                lblApplications.setText(String.valueOf(enrollmentService.countApplicationsToReview()));
-                lblTotalRegistered.setText(String.valueOf(enrollmentService.countTotalRegistered()));
+                new SwingWorker<SummaryCounts, Void>() {
+                        @Override
+                        protected SummaryCounts doInBackground() throws Exception {
+                                return new SummaryCounts(
+                                    enrollmentService.countPendingActions(),
+                                    enrollmentService.countApplicationsToReview(),
+                                    enrollmentService.countTotalRegistered()
+                                );
+                        }
+
+                        @Override
+                        protected void done() {
+                                try {
+                                        SummaryCounts counts = get();
+                                        lblPendingActions.setText(String.valueOf(counts.pendingActions));
+                                        lblApplications.setText(String.valueOf(counts.applicationsToReview));
+                                        lblTotalRegistered.setText(String.valueOf(counts.totalRegistered));
+                                } catch (Exception ex) {
+                                        lblPendingActions.setText("0");
+                                        lblApplications.setText("0");
+                                        lblTotalRegistered.setText("0");
+                                }
+                        }
+                }.execute();
+        }
+
+        private record SummaryCounts(long pendingActions, long applicationsToReview, long totalRegistered) {
         }
 
         private void reloadFilterOptions() {
@@ -559,25 +603,51 @@ public class RegistrarDashboard extends javax.swing.JPanel {
                         return;
                 }
 
-                int updatedCount = enrollmentService.updateApplicationsStatus(selectedIds, targetStatus);
-                if (updatedCount <= 0) {
-                        JOptionPane.showMessageDialog(
-                            this,
-                            "No applications were updated. They may have already been processed.",
-                            "No Changes",
-                            JOptionPane.WARNING_MESSAGE
-                        );
-                        reloadDashboardData();
-                        return;
-                }
+                btnApprove.setEnabled(false);
+                btnDecline.setEnabled(false);
 
-                JOptionPane.showMessageDialog(
-                    this,
-                    updatedCount + " application(s) updated successfully.",
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-                reloadDashboardData();
+                new SwingWorker<Integer, Void>() {
+                        @Override
+                        protected Integer doInBackground() throws Exception {
+                                return enrollmentService.updateApplicationsStatus(selectedIds, targetStatus);
+                        }
+
+                        @Override
+                        protected void done() {
+                                btnApprove.setEnabled(true);
+                                btnDecline.setEnabled(true);
+
+                                try {
+                                        int updatedCount = get();
+                                        if (updatedCount <= 0) {
+                                                JOptionPane.showMessageDialog(
+                                                    RegistrarDashboard.this,
+                                                    "No applications were updated. They may have already been processed.",
+                                                    "No Changes",
+                                                    JOptionPane.WARNING_MESSAGE
+                                                );
+                                                reloadDashboardData();
+                                                return;
+                                        }
+
+                                        JOptionPane.showMessageDialog(
+                                            RegistrarDashboard.this,
+                                            updatedCount + " application(s) updated successfully.",
+                                            "Success",
+                                            JOptionPane.INFORMATION_MESSAGE
+                                        );
+                                        reloadDashboardData();
+                                } catch (Exception ex) {
+                                        JOptionPane.showMessageDialog(
+                                            RegistrarDashboard.this,
+                                            "Error updating applications: " + ex.getMessage(),
+                                            "Error",
+                                            JOptionPane.ERROR_MESSAGE
+                                        );
+                                        reloadDashboardData();
+                                }
+                        }
+                }.execute();
         }
 
         private List<Long> getSelectedEnrollmentIds() {

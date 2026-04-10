@@ -210,8 +210,8 @@ class RealStaffSeeder:
             sequence += 1
 
     def _build_faculty_password(self, last_name: str, birthdate: date) -> str:
-        """Match FacultyForm password format: LastName_YYYY-MM-DD."""
-        return f"{last_name}_{birthdate.isoformat()}"
+        """Return static password for faculty accounts."""
+        return "12345678"
 
     def _build_contact_number(self) -> str:
         return (

@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -61,20 +63,66 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
   private void reloadEnrollmentPeriodOptions() {
     cbxEnrollmentPeriod.removeAllItems();
     enrollmentPeriodIdByLabel.clear();
+    cbxEnrollmentPeriod.setEnabled(false);
 
-    for (EnrollmentPeriod period : enrollmentPeriodService.getAllEnrollmentPeriods()) {
-      String label = buildEnrollmentPeriodLabel(period);
-      cbxEnrollmentPeriod.addItem(label);
-      enrollmentPeriodIdByLabel.put(label, period.getId());
-    }
+    new SwingWorker<List<EnrollmentPeriod>, Void>() {
+      @Override
+      protected List<EnrollmentPeriod> doInBackground() {
+        return enrollmentPeriodService.getAllEnrollmentPeriods();
+      }
+
+      @Override
+      protected void done() {
+        try {
+          List<EnrollmentPeriod> periods = get();
+          for (EnrollmentPeriod period : periods) {
+            String label = buildEnrollmentPeriodLabel(period);
+            cbxEnrollmentPeriod.addItem(label);
+            enrollmentPeriodIdByLabel.put(label, period.getId());
+          }
+        } catch (InterruptedException | ExecutionException e) {
+          JOptionPane.showMessageDialog(
+              RegistrarOfferingsManagement.this,
+              "Failed to load enrollment periods: " + e.getMessage(),
+              "Error",
+              JOptionPane.ERROR_MESSAGE
+          );
+        } finally {
+          cbxEnrollmentPeriod.setEnabled(true);
+        }
+      }
+    }.execute();
   }
 
   private void reloadSemesterOptions() {
     cbxSemester.removeAllItems();
+    cbxSemester.setEnabled(false);
 
-    for (String semesterName : offeringGenerationService.getDistinctSemesterNames()) {
-      cbxSemester.addItem(semesterName);
-    }
+    new SwingWorker<List<String>, Void>() {
+      @Override
+      protected List<String> doInBackground() {
+        return offeringGenerationService.getDistinctSemesterNames();
+      }
+
+      @Override
+      protected void done() {
+        try {
+          List<String> semesterNames = get();
+          for (String semesterName : semesterNames) {
+            cbxSemester.addItem(semesterName);
+          }
+        } catch (InterruptedException | ExecutionException e) {
+          JOptionPane.showMessageDialog(
+              RegistrarOfferingsManagement.this,
+              "Failed to load semesters: " + e.getMessage(),
+              "Error",
+              JOptionPane.ERROR_MESSAGE
+          );
+        } finally {
+          cbxSemester.setEnabled(true);
+        }
+      }
+    }.execute();
   }
 
   private String buildEnrollmentPeriodLabel(EnrollmentPeriod period) {
@@ -109,17 +157,47 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
       return;
     }
 
-    currentPlanRows.clear();
-    currentPlanRows.addAll(
-        offeringGenerationService.previewGenerationPlan(
+    setControlsEnabled(false);
+
+    new SwingWorker<List<OfferingGenerationPlanRow>, Void>() {
+      @Override
+      protected List<OfferingGenerationPlanRow> doInBackground() {
+        return offeringGenerationService.previewGenerationPlan(
             enrollmentPeriodId,
             semesterName,
             chkOnlyActiveSections.isSelected(),
             chkIncludeWaitlist.isSelected()
-        )
-    );
+        );
+      }
 
-    populatePreviewTable();
+      @Override
+      protected void done() {
+        try {
+          currentPlanRows.clear();
+          currentPlanRows.addAll(get());
+          populatePreviewTable();
+        } catch (InterruptedException | ExecutionException e) {
+          JOptionPane.showMessageDialog(
+              RegistrarOfferingsManagement.this,
+              "Failed to preview generation plan: " + e.getMessage(),
+              "Error",
+              JOptionPane.ERROR_MESSAGE
+          );
+        } finally {
+          setControlsEnabled(true);
+        }
+      }
+    }.execute();
+  }
+
+  private void setControlsEnabled(boolean enabled) {
+    btnPreview.setEnabled(enabled);
+    btnGenerate.setEnabled(enabled && getPotentialNewCount() > 0);
+    btnRefresh.setEnabled(enabled);
+    cbxEnrollmentPeriod.setEnabled(enabled);
+    cbxSemester.setEnabled(enabled);
+    chkOnlyActiveSections.setEnabled(enabled);
+    chkIncludeWaitlist.setEnabled(enabled && chkOnlyActiveSections.isSelected());
   }
 
   private void generateOfferings() {
@@ -158,33 +236,55 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
       return;
     }
 
-    OfferingGenerationResult result = offeringGenerationService.generateOfferings(
-        enrollmentPeriodId,
-        semesterName,
-        chkOnlyActiveSections.isSelected(),
-        chkIncludeWaitlist.isSelected()
-    );
+    setControlsEnabled(false);
 
-    if (!result.successful()) {
-      JOptionPane.showMessageDialog(
-          this,
-          result.message(),
-          "Generate Offerings",
-          JOptionPane.ERROR_MESSAGE
-      );
-      return;
-    }
+    new SwingWorker<OfferingGenerationResult, Void>() {
+      @Override
+      protected OfferingGenerationResult doInBackground() {
+        return offeringGenerationService.generateOfferings(
+            enrollmentPeriodId,
+            semesterName,
+            chkOnlyActiveSections.isSelected(),
+            chkIncludeWaitlist.isSelected()
+        );
+      }
 
-    JOptionPane.showMessageDialog(
-        this,
-        "Created: " + result.createdCount()
-            + "\nAlready existing: " + result.existingCount()
-            + "\nSkipped: " + result.skippedCount(),
-        "Generate Offerings",
-        JOptionPane.INFORMATION_MESSAGE
-    );
+      @Override
+      protected void done() {
+        try {
+          OfferingGenerationResult result = get();
 
-    previewGenerationPlan();
+          if (!result.successful()) {
+            JOptionPane.showMessageDialog(
+                RegistrarOfferingsManagement.this,
+                result.message(),
+                "Generate Offerings",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+          }
+
+          JOptionPane.showMessageDialog(
+              RegistrarOfferingsManagement.this,
+              "Created: " + result.createdCount()
+                  + "\nAlready existing: " + result.existingCount()
+                  + "\nSkipped: " + result.skippedCount(),
+              "Generate Offerings",
+              JOptionPane.INFORMATION_MESSAGE
+          );
+
+          previewGenerationPlan();
+        } catch (InterruptedException | ExecutionException e) {
+          JOptionPane.showMessageDialog(
+              RegistrarOfferingsManagement.this,
+              "Failed to generate offerings: " + e.getMessage(),
+              "Error",
+              JOptionPane.ERROR_MESSAGE
+          );
+          setControlsEnabled(true);
+        }
+      }
+    }.execute();
   }
 
   private Long getSelectedEnrollmentPeriodId() {
