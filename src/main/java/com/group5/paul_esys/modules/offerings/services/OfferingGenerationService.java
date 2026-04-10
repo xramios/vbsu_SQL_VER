@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -123,14 +124,9 @@ public class OfferingGenerationService {
     }
 
     String insertSql = """
-        INSERT INTO offerings (subject_id, section_id, enrollment_period_id, semester_subject_id, capacity)
-        SELECT ?, ?, ?, ?, ?
-        WHERE NOT EXISTS (
-          SELECT 1
-          FROM offerings
-          WHERE subject_id = ? AND section_id = ? AND enrollment_period_id = ?
-        )
-        """;
+      INSERT INTO offerings (subject_id, section_id, enrollment_period_id, semester_subject_id, capacity)
+      VALUES (?, ?, ?, ?, ?)
+      """;
 
     int createdCount = 0;
 
@@ -144,11 +140,17 @@ public class OfferingGenerationService {
           ps.setLong(1, row.subjectId());
           ps.setLong(2, row.sectionId());
           ps.setLong(3, enrollmentPeriodId);
-          ps.setObject(4, row.semesterSubjectId());
-          ps.setObject(5, row.sectionCapacity());
-          ps.setLong(6, row.subjectId());
-          ps.setLong(7, row.sectionId());
-          ps.setLong(8, enrollmentPeriodId);
+          if (row.semesterSubjectId() == null) {
+            ps.setNull(4, Types.BIGINT);
+          } else {
+            ps.setLong(4, row.semesterSubjectId());
+          }
+
+          if (row.sectionCapacity() == null) {
+            ps.setNull(5, Types.INTEGER);
+          } else {
+            ps.setInt(5, row.sectionCapacity());
+          }
 
           try {
             int affected = ps.executeUpdate();
@@ -166,7 +168,9 @@ public class OfferingGenerationService {
     } catch (SQLException e) {
       if (conn != null) {
         try {
-          conn.rollback();
+          if (!conn.isClosed()) {
+            conn.rollback();
+          }
         } catch (SQLException rollbackException) {
           logger.error("ERROR: " + rollbackException.getMessage(), rollbackException);
         }
