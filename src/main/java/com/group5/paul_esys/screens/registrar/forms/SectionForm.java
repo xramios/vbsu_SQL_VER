@@ -6,6 +6,7 @@ package com.group5.paul_esys.screens.registrar.forms;
 
 import com.group5.paul_esys.modules.sections.model.Section;
 import com.group5.paul_esys.modules.sections.services.SectionService;
+import java.awt.event.ActionListener;
 import java.util.List;
 import javax.swing.JOptionPane;
 
@@ -18,7 +19,7 @@ public class SectionForm extends javax.swing.JFrame {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SectionForm.class.getName());
         private static final String STATUS_OPEN = "OPEN";
         private static final List<String> STATUS_OPTIONS = List.of(
-                STATUS_OPEN,
+                "OPEN",
                 "CLOSED",
                 "WAITLIST",
                 "DISSOLVED"
@@ -156,6 +157,7 @@ public class SectionForm extends javax.swing.JFrame {
 
         private void saveSection() {
                 if (!isValidForm()) {
+                        logger.warning("Form validation failed. Section not saved.");
                         return;
                 }
 
@@ -220,99 +222,58 @@ public class SectionForm extends javax.swing.JFrame {
                 setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
                 getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
+                windowBar1.setName(""); // NOI18N
+                windowBar1.setPreferredSize(new java.awt.Dimension(354, 36));
                 windowBar1.setTitle("Section Form");
                 getContentPane().add(windowBar1);
 
                 jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+                jPanel1.setAlignmentX(0.5f);
+                jPanel1.setAlignmentY(0.5f);
+                jPanel1.setPreferredSize(new java.awt.Dimension(380, 400));
+                jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
                 jLabel1.setFont(new java.awt.Font("Poppins", 0, 18)); // NOI18N
                 jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
                 jLabel1.setText("Section Form");
+                jPanel1.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 30, 260, -1));
 
                 jLabel2.setForeground(new java.awt.Color(153, 153, 153));
                 jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
                 jLabel2.setText("Add/Update Section");
+                jPanel1.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 60, 260, -1));
 
                 jLabel3.setText("Section Name");
+                jPanel1.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 100, 260, -1));
+                jPanel1.add(txtSectionName, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 120, 260, -1));
+                jPanel1.add(txtSectionCode, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 170, 260, -1));
 
                 jLabel4.setText("Section Code");
+                jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 150, 260, -1));
 
                 jLabel5.setText("Capacity");
+                jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 200, 260, -1));
 
-                spinnerCapaity.setModel(new javax.swing.SpinnerNumberModel(40, 1, 500, 1));
+                spinnerCapaity.setModel(new javax.swing.SpinnerNumberModel(0, 0, 1000, 1));
+                jPanel1.add(spinnerCapaity, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, 260, -1));
 
                 jLabel6.setText("Status");
+                jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 260, 260, -1));
 
-                cbxStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "OPEN", "CLOSED", "WAITLIST", "DISSOLVED" }));
+                cbxStatus.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+                jPanel1.add(cbxStatus, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 280, 260, -1));
 
                 btnSave.setBackground(new java.awt.Color(119, 0, 0));
                 btnSave.setForeground(new java.awt.Color(255, 255, 255));
                 btnSave.setText("Save");
                 btnSave.addActionListener(this::btnSaveActionPerformed);
+                jPanel1.add(btnSave, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 320, -1, -1));
 
                 btnCancel.setBackground(new java.awt.Color(119, 0, 0));
                 btnCancel.setForeground(new java.awt.Color(255, 255, 255));
                 btnCancel.setText("Cancel");
                 btnCancel.addActionListener(this::btnCancelActionPerformed);
-
-                javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-                jPanel1.setLayout(jPanel1Layout);
-                jPanel1Layout.setHorizontalGroup(
-                        jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addContainerGap())
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(45, 45, 45)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(txtSectionCode, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)
-                                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(txtSectionName)
-                                        .addComponent(spinnerCapaity)
-                                        .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(cbxStatus, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                                .addContainerGap(97, Short.MAX_VALUE)
-                                .addComponent(btnCancel)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnSave)
-                                .addGap(97, 97, 97))
-                );
-                jPanel1Layout.setVerticalGroup(
-                        jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addGap(42, 42, 42)
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel2)
-                                .addGap(35, 35, 35)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtSectionName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtSectionCode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel5)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spinnerCapaity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cbxStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(34, 34, 34)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(btnSave)
-                                        .addComponent(btnCancel))
-                                .addContainerGap(43, Short.MAX_VALUE))
-                );
+                jPanel1.add(btnCancel, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 320, -1, -1));
 
                 getContentPane().add(jPanel1);
 
