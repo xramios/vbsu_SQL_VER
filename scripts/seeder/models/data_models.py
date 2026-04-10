@@ -110,6 +110,9 @@ class Faculty:
     first_name: str
     last_name: str
     department_id: int
+    middle_name: Optional[str] = None
+    contact_number: Optional[str] = None
+    birthdate: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

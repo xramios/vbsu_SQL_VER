@@ -70,6 +70,9 @@ class UserSeeder(BaseSeeder):
             user_id BIGINT,
             first_name VARCHAR(128),
             last_name VARCHAR(128),
+            middle_name VARCHAR(48),
+            contact_number VARCHAR(20),
+            birthdate DATE,
             department_id BIGINT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -300,12 +303,37 @@ class UserSeeder(BaseSeeder):
             ):
                 first_name = fake.first_name()
                 last_name = fake.last_name()
+                middle_name = (
+                    fake.first_name()
+                    if random.random() > STUDENT_DEMOGRAPHICS["middle_name_probability"]
+                    else None
+                )
+                contact_number = f"09{random.randint(10, 99)}-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
+                faculty_age = random.randint(24, 65)
+                birthdate = datetime.now() - timedelta(days=faculty_age * 365)
+                birthdate_str = self.format_datetime(birthdate)
                 department = random.choice(self.state.departments)
 
                 last_id = self.execute_insert(
                     "faculty",
-                    ["user_id", "first_name", "last_name", "department_id"],
-                    [user.id, first_name, last_name, department.id],
+                    [
+                        "user_id",
+                        "first_name",
+                        "last_name",
+                        "middle_name",
+                        "contact_number",
+                        "birthdate",
+                        "department_id",
+                    ],
+                    [
+                        user.id,
+                        first_name,
+                        last_name,
+                        middle_name,
+                        contact_number,
+                        birthdate_str,
+                        department.id,
+                    ],
                     cursor=cursor,
                 )
 
@@ -315,6 +343,9 @@ class UserSeeder(BaseSeeder):
                         user_id=user.id,
                         first_name=first_name,
                         last_name=last_name,
+                        middle_name=middle_name,
+                        contact_number=contact_number,
+                        birthdate=birthdate,
                         department_id=department.id,
                     )
                 )
