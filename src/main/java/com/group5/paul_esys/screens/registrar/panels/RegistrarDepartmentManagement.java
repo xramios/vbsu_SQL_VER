@@ -30,15 +30,15 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                 jLabel2 = new javax.swing.JLabel();
                 jPanel1 = new javax.swing.JPanel();
                 jScrollPane2 = new javax.swing.JScrollPane();
-                jTable1 = new javax.swing.JTable();
+                tableDepartments = new javax.swing.JTable();
                 jLabel3 = new javax.swing.JLabel();
                 txtSearch = new javax.swing.JTextField();
                 btnAddDepartment = new javax.swing.JButton();
                 btnAddFaculty = new javax.swing.JButton();
                 btnNavigateBack = new javax.swing.JButton();
                 jPanel2 = new javax.swing.JPanel();
-                jScrollPane1 = new javax.swing.JScrollPane();
-                jPanel3 = new javax.swing.JPanel();
+                scrollPanelFacultyMembers = new javax.swing.JScrollPane();
+                panelFaculties = new javax.swing.JPanel();
                 lblDepartmentName = new javax.swing.JLabel();
                 lblFacultytHeadName = new javax.swing.JLabel();
 
@@ -55,7 +55,7 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                 jPanel1.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel1.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
-                jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                tableDepartments.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][] {
 
                         },
@@ -78,7 +78,7 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                                 return canEdit [columnIndex];
                         }
                 });
-                jScrollPane2.setViewportView(jTable1);
+                jScrollPane2.setViewportView(tableDepartments);
 
                 jLabel3.setText("Search");
 
@@ -91,6 +91,7 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                 btnAddFaculty.setBackground(new java.awt.Color(119, 0, 0));
                 btnAddFaculty.setForeground(new java.awt.Color(255, 255, 255));
                 btnAddFaculty.setText("Add Faculty");
+                btnAddFaculty.addActionListener(this::btnAddFacultyActionPerformed);
 
                 btnNavigateBack.setBackground(new java.awt.Color(119, 0, 0));
                 btnNavigateBack.setForeground(new java.awt.Color(255, 255, 255));
@@ -135,28 +136,28 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                 jPanel2.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel2.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
-                jPanel3.setBackground(new java.awt.Color(255, 255, 255));
-                jPanel3.setBorder(new com.group5.paul_esys.ui.RoundShadowBorder());
+                panelFaculties.setBackground(new java.awt.Color(255, 255, 255));
+                panelFaculties.setBorder(new com.group5.paul_esys.ui.RoundShadowBorder());
 
                 lblDepartmentName.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
                 lblDepartmentName.setText("Department Name");
 
                 lblFacultytHeadName.setText("Faculty Head Name");
 
-                javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-                jPanel3.setLayout(jPanel3Layout);
-                jPanel3Layout.setHorizontalGroup(
-                        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel3Layout.createSequentialGroup()
+                javax.swing.GroupLayout panelFacultiesLayout = new javax.swing.GroupLayout(panelFaculties);
+                panelFaculties.setLayout(panelFacultiesLayout);
+                panelFacultiesLayout.setHorizontalGroup(
+                        panelFacultiesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(panelFacultiesLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(panelFacultiesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(lblFacultytHeadName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(lblDepartmentName, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE))
                                 .addContainerGap())
                 );
-                jPanel3Layout.setVerticalGroup(
-                        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(jPanel3Layout.createSequentialGroup()
+                panelFacultiesLayout.setVerticalGroup(
+                        panelFacultiesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(panelFacultiesLayout.createSequentialGroup()
                                 .addContainerGap()
                                 .addComponent(lblDepartmentName)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -171,17 +172,17 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane1))
+                                        .addComponent(panelFaculties, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(scrollPanelFacultyMembers))
                                 .addContainerGap())
                 );
                 jPanel2Layout.setVerticalGroup(
                         jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(panelFaculties, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1)
+                                .addComponent(scrollPanelFacultyMembers)
                                 .addContainerGap())
                 );
 
@@ -221,6 +222,10 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                 // TODO add your handling code here:
         }//GEN-LAST:event_btnNavigateBackActionPerformed
 
+        private void btnAddFacultyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFacultyActionPerformed
+                // TODO add your handling code here:
+        }//GEN-LAST:event_btnAddFacultyActionPerformed
+
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
         private javax.swing.JButton btnAddDepartment;
@@ -231,12 +236,12 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
         private javax.swing.JLabel jLabel3;
         private javax.swing.JPanel jPanel1;
         private javax.swing.JPanel jPanel2;
-        private javax.swing.JPanel jPanel3;
-        private javax.swing.JScrollPane jScrollPane1;
         private javax.swing.JScrollPane jScrollPane2;
-        private javax.swing.JTable jTable1;
         private javax.swing.JLabel lblDepartmentName;
         private javax.swing.JLabel lblFacultytHeadName;
+        private javax.swing.JPanel panelFaculties;
+        private javax.swing.JScrollPane scrollPanelFacultyMembers;
+        private javax.swing.JTable tableDepartments;
         private javax.swing.JTextField txtSearch;
         // End of variables declaration//GEN-END:variables
 }

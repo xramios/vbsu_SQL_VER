@@ -28,6 +28,7 @@ public class FacultyMemberCard extends javax.swing.JPanel {
 
                 lblFullName = new javax.swing.JLabel();
                 lblEmail = new javax.swing.JLabel();
+                btnUpdate = new javax.swing.JButton();
 
                 setBackground(new java.awt.Color(255, 255, 255));
 
@@ -38,6 +39,11 @@ public class FacultyMemberCard extends javax.swing.JPanel {
                 lblEmail.setForeground(new java.awt.Color(102, 102, 102));
                 lblEmail.setText("lastname.firstname@vbsu.edu.ph");
 
+                btnUpdate.setBackground(new java.awt.Color(119, 0, 0));
+                btnUpdate.setForeground(new java.awt.Color(255, 255, 255));
+                btnUpdate.setText("Update");
+                btnUpdate.addActionListener(this::btnUpdateActionPerformed);
+
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
                 this.setLayout(layout);
                 layout.setHorizontalGroup(
@@ -45,7 +51,10 @@ public class FacultyMemberCard extends javax.swing.JPanel {
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(lblFullName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addComponent(lblFullName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnUpdate))
                                         .addComponent(lblEmail, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE))
                                 .addContainerGap())
                 );
@@ -53,15 +62,22 @@ public class FacultyMemberCard extends javax.swing.JPanel {
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(lblFullName)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(lblFullName)
+                                        .addComponent(btnUpdate))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblEmail)
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 );
         }// </editor-fold>//GEN-END:initComponents
 
+        private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+                // TODO add your handling code here:
+        }//GEN-LAST:event_btnUpdateActionPerformed
+
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
+        private javax.swing.JButton btnUpdate;
         private javax.swing.JLabel lblEmail;
         private javax.swing.JLabel lblFullName;
         // End of variables declaration//GEN-END:variables

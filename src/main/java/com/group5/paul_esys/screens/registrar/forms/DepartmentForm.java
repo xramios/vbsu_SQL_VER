@@ -154,10 +154,10 @@ public class DepartmentForm extends javax.swing.JFrame {
 
                 jLabel4.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
                 jLabel4.setText("Description");
-                jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 180, -1, -1));
+                jPanel1.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 250, -1, -1));
 
                 jLabel5.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
-                jLabel5.setText("Department");
+                jLabel5.setText("Department Name");
                 jPanel1.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(80, 110, -1, -1));
 
                 jLabel6.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
@@ -260,8 +260,8 @@ public class DepartmentForm extends javax.swing.JFrame {
         private javax.swing.JPanel jPanel1;
         private javax.swing.JScrollPane jScrollPane1;
         private javax.swing.JTextArea txtAreaDescription;
-        private javax.swing.JTextField txtDepartmentCode;
         private javax.swing.JTextField txtDepart;
+        private javax.swing.JTextField txtDepartmentCode;
         private com.group5.paul_esys.components.WindowBar windowBar1;
         // End of variables declaration//GEN-END:variables
 }
