@@ -6,9 +6,7 @@ package com.group5.paul_esys.screens.registrar.panels;
 
 import com.group5.paul_esys.modules.sections.model.Section;
 import com.group5.paul_esys.modules.sections.services.SectionService;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import com.group5.paul_esys.screens.registrar.forms.SectionForm;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -21,15 +19,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -348,7 +340,8 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
         }
 
         private void openCreateSectionDialog() {
-                openSectionDialog(null);
+                SectionForm form = new SectionForm(null, this::initializeSections);
+                form.setVisible(true);
         }
 
         private void openUpdateSectionDialog() {
@@ -363,198 +356,8 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                         return;
                 }
 
-                openSectionDialog(selectedSection);
-        }
-
-        private void openSectionDialog(Section editingSection) {
-                boolean isEditing = editingSection != null;
-
-                JTextField fieldSectionCode = new JTextField(
-                        isEditing ? safeText(editingSection.getSectionCode(), "") : "",
-                        24
-                );
-                JTextField fieldSectionName = new JTextField(
-                        isEditing ? safeText(editingSection.getSectionName(), "") : "",
-                        24
-                );
-                JSpinner spinnerCapacity = new JSpinner(new SpinnerNumberModel(
-                        Math.max(1, normalizeCapacity(isEditing ? editingSection.getCapacity() : 40)),
-                        1,
-                        500,
-                        1
-                ));
-
-                JComboBox<String> comboStatus = new JComboBox<>(BASE_STATUS_OPTIONS.toArray(new String[0]));
-                comboStatus.setSelectedItem(isEditing ? normalizeStatus(editingSection.getStatus()) : STATUS_OPEN);
-
-                JPanel panel = buildSectionFormPanel(fieldSectionCode, fieldSectionName, spinnerCapacity, comboStatus);
-
-                while (true) {
-                        int option = JOptionPane.showConfirmDialog(
-                                this,
-                                panel,
-                                isEditing ? "Update Section" : "Create Section",
-                                JOptionPane.OK_CANCEL_OPTION,
-                                JOptionPane.PLAIN_MESSAGE
-                        );
-
-                        if (option != JOptionPane.OK_OPTION) {
-                                return;
-                        }
-
-                        SectionFormValue formValue = validateSectionForm(
-                                fieldSectionCode,
-                                fieldSectionName,
-                                spinnerCapacity,
-                                comboStatus,
-                                editingSection
-                        );
-
-                        if (formValue == null) {
-                                continue;
-                        }
-
-                        Section sectionToPersist = isEditing ? editingSection : new Section();
-                        sectionToPersist
-                                .setSectionCode(formValue.sectionCode)
-                                .setSectionName(formValue.sectionName)
-                                .setCapacity(formValue.capacity)
-                                .setStatus(formValue.status);
-
-                        boolean saved = isEditing
-                                ? sectionService.updateSection(sectionToPersist)
-                                : sectionService.createSection(sectionToPersist);
-
-                        if (!saved) {
-                                JOptionPane.showMessageDialog(
-                                        this,
-                                        "Unable to save section. Please verify values and try again.",
-                                        isEditing ? "Update Section" : "Create Section",
-                                        JOptionPane.ERROR_MESSAGE
-                                );
-                                return;
-                        }
-
-                        initializeSections();
-
-                        JOptionPane.showMessageDialog(
-                                this,
-                                isEditing ? "Section updated successfully." : "Section created successfully.",
-                                isEditing ? "Update Section" : "Create Section",
-                                JOptionPane.INFORMATION_MESSAGE
-                        );
-                        return;
-                }
-        }
-
-        private JPanel buildSectionFormPanel(
-                JTextField fieldSectionCode,
-                JTextField fieldSectionName,
-                JSpinner spinnerCapacity,
-                JComboBox<String> comboStatus
-        ) {
-                JPanel panel = new JPanel(new GridBagLayout());
-                GridBagConstraints gbc = new GridBagConstraints();
-                gbc.insets = new Insets(6, 6, 6, 6);
-                gbc.fill = GridBagConstraints.HORIZONTAL;
-
-                gbc.gridx = 0;
-                gbc.gridy = 0;
-                panel.add(new JLabel("Section Code"), gbc);
-
-                gbc.gridx = 1;
-                panel.add(fieldSectionCode, gbc);
-
-                gbc.gridx = 0;
-                gbc.gridy = 1;
-                panel.add(new JLabel("Section Name"), gbc);
-
-                gbc.gridx = 1;
-                panel.add(fieldSectionName, gbc);
-
-                gbc.gridx = 0;
-                gbc.gridy = 2;
-                panel.add(new JLabel("Capacity"), gbc);
-
-                gbc.gridx = 1;
-                panel.add(spinnerCapacity, gbc);
-
-                gbc.gridx = 0;
-                gbc.gridy = 3;
-                panel.add(new JLabel("Status"), gbc);
-
-                gbc.gridx = 1;
-                panel.add(comboStatus, gbc);
-
-                return panel;
-        }
-
-        private SectionFormValue validateSectionForm(
-                JTextField fieldSectionCode,
-                JTextField fieldSectionName,
-                JSpinner spinnerCapacity,
-                JComboBox<String> comboStatus,
-                Section editingSection
-        ) {
-                String sectionCode = safeText(fieldSectionCode.getText(), "");
-                String sectionName = safeText(fieldSectionName.getText(), "");
-                int capacity = ((Number) spinnerCapacity.getValue()).intValue();
-                String status = comboStatus.getSelectedItem() == null
-                        ? STATUS_OPEN
-                        : normalizeStatus(comboStatus.getSelectedItem().toString());
-
-                if (sectionCode.isEmpty()) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Section code is required.",
-                                "Section Validation",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return null;
-                }
-
-                if (sectionName.isEmpty()) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Section name is required.",
-                                "Section Validation",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return null;
-                }
-
-                if (capacity <= 0) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Capacity must be greater than zero.",
-                                "Section Validation",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return null;
-                }
-
-                Long editingId = editingSection == null ? null : editingSection.getId();
-                if (isSectionCodeInUse(sectionCode, editingId)) {
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "Section code already exists. Please use a different code.",
-                                "Section Validation",
-                                JOptionPane.WARNING_MESSAGE
-                        );
-                        return null;
-                }
-
-                return new SectionFormValue(sectionCode, sectionName, capacity, status);
-        }
-
-        private boolean isSectionCodeInUse(String sectionCode, Long sectionIdToIgnore) {
-                String normalizedSectionCode = sectionCode.trim();
-
-                return sections
-                        .stream()
-                        .filter(section -> sectionIdToIgnore == null || !sectionIdToIgnore.equals(section.getId()))
-                        .map(section -> safeText(section.getSectionCode(), ""))
-                        .anyMatch(existingCode -> existingCode.equalsIgnoreCase(normalizedSectionCode));
+                SectionForm form = new SectionForm(selectedSection, this::initializeSections);
+                form.setVisible(true);
         }
 
         private void deleteSelectedSection() {
@@ -641,21 +444,6 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                 }
 
                 return value.trim();
-        }
-
-        private static final class SectionFormValue {
-
-                private final String sectionCode;
-                private final String sectionName;
-                private final int capacity;
-                private final String status;
-
-                private SectionFormValue(String sectionCode, String sectionName, int capacity, String status) {
-                        this.sectionCode = sectionCode;
-                        this.sectionName = sectionName;
-                        this.capacity = capacity;
-                        this.status = status;
-                }
         }
 
 	/**

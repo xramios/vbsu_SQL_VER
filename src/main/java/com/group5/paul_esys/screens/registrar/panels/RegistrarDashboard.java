@@ -7,14 +7,12 @@ package com.group5.paul_esys.screens.registrar.panels;
 import com.group5.paul_esys.modules.enums.EnrollmentStatus;
 import com.group5.paul_esys.modules.registrar.model.EnrollmentApplication;
 import com.group5.paul_esys.modules.registrar.services.RegistrarEnrollmentService;
-
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -87,7 +85,6 @@ public class RegistrarDashboard extends javax.swing.JPanel {
                 label3.setText("Pending Actions");
 
                 lblPendingActions.setFont(new java.awt.Font("Poppins", 0, 18)); // NOI18N
-                lblPendingActions.setForeground(new java.awt.Color(0, 0, 0));
                 lblPendingActions.setText("0");
 
                 javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
@@ -121,7 +118,6 @@ public class RegistrarDashboard extends javax.swing.JPanel {
                 jLabel2.setText("Total Registered");
 
                 lblTotalRegistered.setFont(new java.awt.Font("Poppins", 0, 18)); // NOI18N
-                lblTotalRegistered.setForeground(new java.awt.Color(0, 0, 0));
                 lblTotalRegistered.setText("0");
 
                 javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
@@ -155,7 +151,6 @@ public class RegistrarDashboard extends javax.swing.JPanel {
                 jLabel18.setText("Applications To Review");
 
                 lblApplications.setFont(new java.awt.Font("Poppins", 0, 18)); // NOI18N
-                lblApplications.setForeground(new java.awt.Color(0, 0, 0));
                 lblApplications.setText("0");
 
                 javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
@@ -281,10 +276,10 @@ public class RegistrarDashboard extends javax.swing.JPanel {
                                                 .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                                         .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                         .addComponent(jLabel20))
-                                                .addGap(0, 0, Short.MAX_VALUE))
+                                                .addGap(0, 10, Short.MAX_VALUE))
                                         .addComponent(btnDecline, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 505, Short.MAX_VALUE)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE)
                                 .addContainerGap())
                 );
 
@@ -293,7 +288,7 @@ public class RegistrarDashboard extends javax.swing.JPanel {
                 panelDashboardLayout.setHorizontalGroup(
                         panelDashboardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(panelDashboardLayout.createSequentialGroup()
-                                .addContainerGap(14, Short.MAX_VALUE)
+                                .addContainerGap()
                                 .addGroup(panelDashboardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                         .addGroup(panelDashboardLayout.createSequentialGroup()
                                                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)

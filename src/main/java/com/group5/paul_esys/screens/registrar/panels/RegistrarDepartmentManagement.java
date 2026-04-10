@@ -26,19 +26,217 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
         // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
         private void initComponents() {
 
+                jLabel1 = new javax.swing.JLabel();
+                jLabel2 = new javax.swing.JLabel();
+                jPanel1 = new javax.swing.JPanel();
+                jScrollPane2 = new javax.swing.JScrollPane();
+                jTable1 = new javax.swing.JTable();
+                jLabel3 = new javax.swing.JLabel();
+                txtSearch = new javax.swing.JTextField();
+                btnAddDepartment = new javax.swing.JButton();
+                btnAddFaculty = new javax.swing.JButton();
+                btnNavigateBack = new javax.swing.JButton();
+                jPanel2 = new javax.swing.JPanel();
+                jScrollPane1 = new javax.swing.JScrollPane();
+                jPanel3 = new javax.swing.JPanel();
+                lblDepartmentName = new javax.swing.JLabel();
+                lblFacultytHeadName = new javax.swing.JLabel();
+
+                setBackground(new java.awt.Color(255, 255, 255));
+                setMaximumSize(new java.awt.Dimension(1181, 684));
+
+                jLabel1.setFont(new java.awt.Font("Poppins", 0, 24)); // NOI18N
+                jLabel1.setText("Department Management");
+
+                jLabel2.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                jLabel2.setForeground(new java.awt.Color(153, 153, 153));
+                jLabel2.setText("Manage academic department and their heads.");
+
+                jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+                jPanel1.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
+
+                jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                        new Object [][] {
+
+                        },
+                        new String [] {
+                                "Name", "Code", "Description", "Faculty Count"
+                        }
+                ) {
+                        Class[] types = new Class [] {
+                                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class
+                        };
+                        boolean[] canEdit = new boolean [] {
+                                false, false, false, false
+                        };
+
+                        public Class getColumnClass(int columnIndex) {
+                                return types [columnIndex];
+                        }
+
+                        public boolean isCellEditable(int rowIndex, int columnIndex) {
+                                return canEdit [columnIndex];
+                        }
+                });
+                jScrollPane2.setViewportView(jTable1);
+
+                jLabel3.setText("Search");
+
+                txtSearch.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
+
+                btnAddDepartment.setBackground(new java.awt.Color(119, 0, 0));
+                btnAddDepartment.setForeground(new java.awt.Color(255, 255, 255));
+                btnAddDepartment.setText("Add Department");
+
+                btnAddFaculty.setBackground(new java.awt.Color(119, 0, 0));
+                btnAddFaculty.setForeground(new java.awt.Color(255, 255, 255));
+                btnAddFaculty.setText("Add Faculty");
+
+                btnNavigateBack.setBackground(new java.awt.Color(119, 0, 0));
+                btnNavigateBack.setForeground(new java.awt.Color(255, 255, 255));
+                btnNavigateBack.setText("< Back");
+                btnNavigateBack.addActionListener(this::btnNavigateBackActionPerformed);
+
+                javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+                jPanel1.setLayout(jPanel1Layout);
+                jPanel1Layout.setHorizontalGroup(
+                        jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 713, Short.MAX_VALUE)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(btnNavigateBack)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jLabel3)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(txtSearch)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnAddFaculty)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnAddDepartment)))
+                                .addContainerGap())
+                );
+                jPanel1Layout.setVerticalGroup(
+                        jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel3)
+                                        .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btnAddDepartment)
+                                        .addComponent(btnAddFaculty)
+                                        .addComponent(btnNavigateBack))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane2)
+                                .addContainerGap())
+                );
+
+                jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+                jPanel2.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
+
+                jPanel3.setBackground(new java.awt.Color(255, 255, 255));
+                jPanel3.setBorder(new com.group5.paul_esys.ui.RoundShadowBorder());
+
+                lblDepartmentName.setFont(new java.awt.Font("Poppins", 0, 14)); // NOI18N
+                lblDepartmentName.setText("Department Name");
+
+                lblFacultytHeadName.setText("Faculty Head Name");
+
+                javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+                jPanel3.setLayout(jPanel3Layout);
+                jPanel3Layout.setHorizontalGroup(
+                        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(lblFacultytHeadName, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(lblDepartmentName, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE))
+                                .addContainerGap())
+                );
+                jPanel3Layout.setVerticalGroup(
+                        jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(lblDepartmentName)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblFacultytHeadName)
+                                .addContainerGap(24, Short.MAX_VALUE))
+                );
+
+                javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+                jPanel2.setLayout(jPanel2Layout);
+                jPanel2Layout.setHorizontalGroup(
+                        jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jScrollPane1))
+                                .addContainerGap())
+                );
+                jPanel2Layout.setVerticalGroup(
+                        jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane1)
+                                .addContainerGap())
+                );
+
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
                 this.setLayout(layout);
                 layout.setHorizontalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 400, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                        .addComponent(jLabel2)
+                                                        .addComponent(jLabel1))
+                                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 );
                 layout.setVerticalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGap(0, 300, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
                 );
         }// </editor-fold>//GEN-END:initComponents
 
+        private void btnNavigateBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNavigateBackActionPerformed
+                // TODO add your handling code here:
+        }//GEN-LAST:event_btnNavigateBackActionPerformed
+
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
+        private javax.swing.JButton btnAddDepartment;
+        private javax.swing.JButton btnAddFaculty;
+        private javax.swing.JButton btnNavigateBack;
+        private javax.swing.JLabel jLabel1;
+        private javax.swing.JLabel jLabel2;
+        private javax.swing.JLabel jLabel3;
+        private javax.swing.JPanel jPanel1;
+        private javax.swing.JPanel jPanel2;
+        private javax.swing.JPanel jPanel3;
+        private javax.swing.JScrollPane jScrollPane1;
+        private javax.swing.JScrollPane jScrollPane2;
+        private javax.swing.JTable jTable1;
+        private javax.swing.JLabel lblDepartmentName;
+        private javax.swing.JLabel lblFacultytHeadName;
+        private javax.swing.JTextField txtSearch;
         // End of variables declaration//GEN-END:variables
 }
