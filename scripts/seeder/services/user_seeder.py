@@ -7,7 +7,7 @@ Generates user accounts, student records, and faculty records.
 
 import random
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 import bcrypt
 from tqdm import tqdm
@@ -25,6 +25,7 @@ from seeder.config.constants import (
 )
 from seeder.models.data_models import Faculty, Registrar, Student, User
 from seeder.services.base_seeder import BaseSeeder
+from seeder.utils.curriculum_selector import select_student_curriculum
 from seeder.utils.faker_instance import fake
 
 if TYPE_CHECKING:
@@ -56,11 +57,13 @@ class UserSeeder(BaseSeeder):
             birthdate DATE NOT NULL,
             student_status VARCHAR(20) DEFAULT 'REGULAR' CHECK (student_status IN ('REGULAR', 'IRREGULAR')),
             course_id BIGINT,
+            curriculum_id BIGINT,
             year_level INT DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES APP.users(id),
-            FOREIGN KEY (course_id) REFERENCES APP.courses(id)
+            FOREIGN KEY (course_id) REFERENCES APP.courses(id),
+            FOREIGN KEY (curriculum_id) REFERENCES APP.curriculum(id)
         )
     """
 
@@ -178,15 +181,19 @@ class UserSeeder(BaseSeeder):
         print("Seeding students...")
 
         self.create_table_if_not_exists("students", self.STUDENTS_CREATE_SQL)
+        self._ensure_students_curriculum_schema()
 
         cursor = self.db_manager.connection.cursor()
         try:
             student_users = [u for u in self.state.users if u.user_type == "student"]
+            course_curriculums: dict[int, list[Any]] = {}
+            for curriculum in self.state.curriculums:
+                course_curriculums.setdefault(curriculum.course_id, []).append(curriculum)
 
             for user in tqdm(
                 student_users, desc="Creating student records", unit="student"
             ):
-                self._create_student_record(cursor, user)
+                self._create_student_record(cursor, user, course_curriculums)
 
             self.db_manager.commit()
         finally:
@@ -194,12 +201,68 @@ class UserSeeder(BaseSeeder):
 
         print(f"Created {len(self.state.students)} students")
 
-    def _create_student_record(self, cursor: any, user: User) -> None:
+    def _ensure_students_curriculum_schema(self) -> None:
+        """Ensure students schema has curriculum_id for backward compatibility."""
+        cursor = self.db_manager.connection.cursor()
+        try:
+            if self.db_manager.db_type == "derby":
+                add_column_sql = "ALTER TABLE APP.students ADD COLUMN curriculum_id BIGINT"
+                add_fk_sql = """
+                    ALTER TABLE APP.students
+                    ADD CONSTRAINT fk_students_curriculum
+                    FOREIGN KEY (curriculum_id) REFERENCES APP.curriculum(id)
+                """
+            else:
+                add_column_sql = "ALTER TABLE students ADD COLUMN curriculum_id BIGINT"
+                add_fk_sql = """
+                    ALTER TABLE students
+                    ADD CONSTRAINT fk_students_curriculum
+                    FOREIGN KEY (curriculum_id) REFERENCES curriculum(id)
+                """
+
+            self._execute_optional_schema_change(cursor, add_column_sql)
+            self._execute_optional_schema_change(cursor, add_fk_sql)
+            self.db_manager.commit()
+        finally:
+            cursor.close()
+
+    @staticmethod
+    def _is_ignorable_schema_error(error: Exception) -> bool:
+        """Return True for known idempotent schema-already-applied errors."""
+        message = str(error).lower()
+        return any(
+            marker in message
+            for marker in (
+                "already exists",
+                "duplicate column",
+                "duplicate key",
+                "x0y32",
+                "42s21",
+                "errno: 1060",
+                "errno: 1061",
+            )
+        )
+
+    def _execute_optional_schema_change(self, cursor: Any, sql: str) -> None:
+        """Apply a best-effort schema change without failing re-runs."""
+        try:
+            cursor.execute(sql)
+        except Exception as error:
+            if not self._is_ignorable_schema_error(error):
+                print(f"Students schema update warning: {error}")
+
+    def _create_student_record(
+        self,
+        cursor: Any,
+        user: User,
+        course_curriculums: dict[int, list[Any]],
+    ) -> None:
         """Create a single student record.
 
         Args:
             cursor: Database cursor
             user: User object for the student
+            course_curriculums: Curriculum entries grouped by course ID
         """
         year = random.randint(*STUDENT_DEMOGRAPHICS["year_range"])
         student_number = (
@@ -234,6 +297,12 @@ class UserSeeder(BaseSeeder):
             random.randint(*STUDENT_YEAR_LEVEL_RANGE),
             BACHELOR_MAX_YEAR if course.name.startswith("Bachelor") else 5,
         )
+        matched_curriculum = select_student_curriculum(
+            student_id=student_number,
+            course_id=course.id,
+            course_curriculums=course_curriculums,
+        )
+        curriculum_id = matched_curriculum.id if matched_curriculum else None
 
         columns = [
             "student_id",
@@ -244,6 +313,7 @@ class UserSeeder(BaseSeeder):
             "birthdate",
             "student_status",
             "course_id",
+            "curriculum_id",
             "year_level",
         ]
         values = [
@@ -255,6 +325,7 @@ class UserSeeder(BaseSeeder):
             birthdate_str,
             student_status,
             course.id,
+            curriculum_id,
             year_level,
         ]
 
@@ -268,6 +339,7 @@ class UserSeeder(BaseSeeder):
                 last_name=last_name,
                 course_id=course.id,
                 year_level=year_level,
+                curriculum_id=curriculum_id,
                 middle_name=middle_name,
                 birthdate=birthdate,
                 student_status=student_status,

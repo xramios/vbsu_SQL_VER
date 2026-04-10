@@ -32,6 +32,7 @@ from seeder.models.data_models import (
     StudentSemesterProgress,
 )
 from seeder.services.base_seeder import BaseSeeder
+from seeder.utils.curriculum_selector import select_student_curriculum
 from seeder.utils.faker_instance import fake
 
 if TYPE_CHECKING:
@@ -643,7 +644,11 @@ class EnrollmentSeeder(BaseSeeder):
             }
 
             for student in tqdm(self.state.students, desc="Creating semester progress", unit="student"):
-                student_curriculum = self._select_student_curriculum(student, course_curriculums)
+                student_curriculum = select_student_curriculum(
+                    student_id=student.student_id,
+                    course_id=student.course_id,
+                    course_curriculums=course_curriculums,
+                )
                 if student_curriculum is None:
                     continue
 
@@ -801,36 +806,6 @@ class EnrollmentSeeder(BaseSeeder):
 
         started_at = fake.date_time_between(start_date="-2y", end_date="now")
         return "IN_PROGRESS", started_at, None
-
-    def _select_student_curriculum(self, student: Any, course_curriculums: dict[int, list]) -> Any:
-        """Select the best curriculum for a student from their course curriculums."""
-        matching_curriculums = course_curriculums.get(student.course_id, [])
-        if not matching_curriculums:
-            return None
-
-        admission_year = self._extract_admission_year(student.student_id)
-        if admission_year is None:
-            return max(
-                matching_curriculums,
-                key=lambda curriculum: getattr(curriculum.cur_year, "year", 0),
-            )
-
-        return min(
-            matching_curriculums,
-            key=lambda curriculum: abs(
-                getattr(curriculum.cur_year, "year", admission_year) - admission_year
-            ),
-        )
-
-    @staticmethod
-    def _extract_admission_year(student_id: str) -> int | None:
-        """Extract admission year from student IDs like YYYY-#####."""
-        if not student_id or "-" not in student_id:
-            return None
-        year_part = student_id.split("-", maxsplit=1)[0]
-        if not year_part.isdigit():
-            return None
-        return int(year_part)
 
     def _create_enrollment_details(
         self,

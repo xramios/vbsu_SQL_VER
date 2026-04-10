@@ -94,6 +94,7 @@ class Student:
     last_name: str
     course_id: int
     year_level: int
+    curriculum_id: Optional[int] = None
     middle_name: Optional[str] = None
     birthdate: Optional[datetime] = None
     student_status: str = "REGULAR"
