@@ -11,6 +11,7 @@ from typing import Any
 from seeder.core.database import DatabaseManager
 
 from real_seeder.curriculum_seeder import CurriculumSeedSummary, RealCurriculumSeeder
+from real_seeder.room_seeder import RealRoomSeeder, RoomSeedSummary
 from real_seeder.staff_seeder import RealStaffSeeder, StaffSeedSummary
 from real_seeder.students_seeder import RealStudentsSeeder, StudentsSeedSummary
 
@@ -23,6 +24,7 @@ class BundleSeedSummary:
     curriculum: CurriculumSeedSummary
     students: StudentsSeedSummary
     staff: StaffSeedSummary
+    rooms: RoomSeedSummary
 
 
 class BsitNiten2023BundleSeeder:
@@ -57,6 +59,7 @@ class BsitNiten2023BundleSeeder:
         "subjects",
         "curriculum",
         "courses",
+        "rooms",
     )
 
     DERBY_TABLES_TO_DROP: tuple[str, ...] = (
@@ -127,11 +130,14 @@ class BsitNiten2023BundleSeeder:
             bcrypt_rounds=self.bcrypt_rounds,
         ).seed(faculty_count=faculty_count)
 
+        rooms_summary = RealRoomSeeder(self.db_manager).seed()
+
         return BundleSeedSummary(
             cleared_tables=cleared_tables,
             curriculum=curriculum_summary,
             students=students_summary,
             staff=staff_summary,
+            rooms=rooms_summary,
         )
 
     def _rebuild_derby_schema(self) -> tuple[str, ...]:

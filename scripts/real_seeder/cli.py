@@ -172,6 +172,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Registrar created: {summary.staff.registrar_created}")
         print(f"Registrar email: {summary.staff.registrar_email}")
         print("Registrar password: 12345678")
+        print(f"Rooms created: {summary.rooms.rooms_created}")
+        print(f"Rooms skipped (already exist): {summary.rooms.rooms_skipped}")
         return 0
 
     if args.target == "students":
