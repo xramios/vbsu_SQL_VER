@@ -30,6 +30,7 @@ import com.group5.paul_esys.modules.students.model.Student;
 import com.group5.paul_esys.modules.subjects.model.Subject;
 import com.group5.paul_esys.modules.subjects.services.SubjectService;
 import com.group5.paul_esys.modules.users.services.UserSession;
+import com.group5.paul_esys.screens.sign_in.SignIn;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -104,6 +105,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 
 		this.setUndecorated(true);
 		initComponents();
+		configureLogoutAction();
 		this.setLocationRelativeTo(null);
 		this.windowBar1.setTitle("Welcome " + fullName);
 		this.currentStudent = student;
@@ -111,6 +113,39 @@ public class StudentDashboard extends javax.swing.JFrame {
                 initStudentData(student);
                 reloadStudentDashboardData();
 	}
+
+        private void configureLogoutAction() {
+                JButton logoutButton = new JButton("Logout");
+                logoutButton.setFont(new Font("Poppins", Font.PLAIN, 13));
+                logoutButton.putClientProperty("JButton.buttonType", "roundRect");
+                logoutButton.putClientProperty("JComponent.minimumWidth", 120);
+                logoutButton.addActionListener(evt -> logoutCurrentUser());
+
+                JPanel trailingPanel = new JPanel(new BorderLayout());
+                trailingPanel.setOpaque(false);
+                trailingPanel.setBorder(BorderFactory.createEmptyBorder(10, 8, 12, 8));
+                trailingPanel.add(logoutButton, BorderLayout.SOUTH);
+
+                tabbedPane.putClientProperty("JTabbedPane.trailingComponent", trailingPanel);
+        }
+
+        private void logoutCurrentUser() {
+                int confirm = JOptionPane.showConfirmDialog(
+                  this,
+                  "Are you sure you want to logout?",
+                  "Confirm Logout",
+                  JOptionPane.YES_NO_OPTION,
+                  JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (confirm != JOptionPane.YES_OPTION) {
+                        return;
+                }
+
+                UserSession.getInstance().logout();
+                this.dispose();
+                SwingUtilities.invokeLater(() -> new SignIn().setVisible(true));
+        }
 
         private void initializeDashboardUi() {
                 configureSubjectCatalogTable();

@@ -3,6 +3,7 @@ package com.group5.paul_esys.screens.registrar;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme;
 import com.group5.paul_esys.modules.registrar.model.Registrar;
 import com.group5.paul_esys.modules.users.services.UserSession;
+import com.group5.paul_esys.screens.sign_in.SignIn;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarCurriculumManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarDepartmentManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarEnrollmentPeriodManagement;
@@ -12,6 +13,13 @@ import com.group5.paul_esys.screens.registrar.panels.RegistrarSchedulesManagemen
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSectionsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarStudentManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSubjectManagement;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -33,6 +41,7 @@ public final class RegistrarDashboard extends javax.swing.JFrame {
         FlatMTGitHubIJTheme.setup();
         this.setUndecorated(true);
         initComponents();
+        configureLogoutAction();
         this.setLocationRelativeTo(null);
 
 	// Set yung pangalan ng title
@@ -66,6 +75,39 @@ public final class RegistrarDashboard extends javax.swing.JFrame {
 		loadTab(selectedIndex);
 	    }
 	});
+    }
+
+    private void configureLogoutAction() {
+        JButton logoutButton = new JButton("Logout");
+        logoutButton.setFont(new Font("Poppins", Font.PLAIN, 13));
+        logoutButton.putClientProperty("JButton.buttonType", "roundRect");
+        logoutButton.putClientProperty("JComponent.minimumWidth", 120);
+        logoutButton.addActionListener(evt -> logoutCurrentUser());
+
+        JPanel trailingPanel = new JPanel(new BorderLayout());
+        trailingPanel.setOpaque(false);
+        trailingPanel.setBorder(BorderFactory.createEmptyBorder(10, 8, 12, 8));
+        trailingPanel.add(logoutButton, BorderLayout.SOUTH);
+
+        tabbedPaneStudents.putClientProperty("JTabbedPane.trailingComponent", trailingPanel);
+    }
+
+    private void logoutCurrentUser() {
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        UserSession.getInstance().logout();
+        this.dispose();
+        SwingUtilities.invokeLater(() -> new SignIn().setVisible(true));
     }
 
     private void loadTab(int tabIndex) {
