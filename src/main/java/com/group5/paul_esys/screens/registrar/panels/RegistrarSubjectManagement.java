@@ -8,6 +8,7 @@ import com.group5.paul_esys.modules.departments.model.Department;
 import com.group5.paul_esys.modules.departments.services.DepartmentService;
 import com.group5.paul_esys.modules.subjects.model.Subject;
 import com.group5.paul_esys.modules.subjects.services.SubjectService;
+import com.group5.paul_esys.screens.registrar.forms.ManagePrerequisiteForm;
 import com.group5.paul_esys.screens.registrar.forms.SubjectForm;
 import java.awt.Frame;
 import java.awt.Window;
@@ -82,6 +83,9 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
         private void initializeSubjectPanel() {
                 menuItemUpdateSubject.setText("Update Subject");
                 menuItemDeleteSubject.setText("Delete Subject");
+                menuItemManagePrerequisite.setText("Manage Prerequisite");
+
+                menuItemManagePrerequisite.addActionListener(this::menuItemManagePrerequisiteActionPerformed);
 
                 tableSubjects.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
                 tableSubjects.setComponentPopupMenu(jPopupMenu1);
@@ -425,6 +429,26 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 });
         }
 
+        private void openManagePrerequisiteForm() {
+                Subject selectedSubject = getSelectedSubject();
+                if (selectedSubject == null) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Please select a subject to manage prerequisite.",
+                                "Manage Prerequisite",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                ManagePrerequisiteForm form = new ManagePrerequisiteForm(selectedSubject);
+                Window parentWindow = SwingUtilities.getWindowAncestor(this);
+                if (parentWindow != null) {
+                        form.setLocationRelativeTo(parentWindow);
+                }
+                form.setVisible(true);
+        }
+
 	/**
 	 * This method is called from within the constructor to initialize the
 	 * form. WARNING: Do NOT modify this code. The content of this method is
@@ -436,6 +460,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 jPopupMenu1 = new javax.swing.JPopupMenu();
                 menuItemUpdateSubject = new javax.swing.JMenuItem();
                 menuItemDeleteSubject = new javax.swing.JMenuItem();
+                menuItemManagePrerequisite = new javax.swing.JMenuItem();
                 jPanel1 = new javax.swing.JPanel();
                 jLabel3 = new javax.swing.JLabel();
                 txtSearch = new javax.swing.JTextField();
@@ -456,6 +481,9 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 menuItemDeleteSubject.addActionListener(this::menuItemDeleteSubjectActionPerformed);
                 jPopupMenu1.add(menuItemDeleteSubject);
 
+                menuItemManagePrerequisite.setText("jMenuItem1");
+                jPopupMenu1.add(menuItemManagePrerequisite);
+
                 setBackground(new java.awt.Color(255, 255, 255));
                 setPreferredSize(new java.awt.Dimension(1181, 684));
 
@@ -470,13 +498,13 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
 
                 tableSubjects.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][] {
-                                {null, null, null, null, null},
-                                {null, null, null, null, null},
-                                {null, null, null, null, null},
-                                {null, null, null, null, null}
+                                {null, null, null, null, null, null},
+                                {null, null, null, null, null, null},
+                                {null, null, null, null, null, null},
+                                {null, null, null, null, null, null}
                         },
                         new String [] {
-                                "Name", "Code", "Units", "Description", "Department"
+                                "Name", "Code", "Units", "Description", "Curriculum", "Department"
                         }
                 ));
                 jScrollPane1.setViewportView(tableSubjects);
@@ -574,6 +602,10 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                 deleteSelectedSubject();
         }//GEN-LAST:event_menuItemDeleteSubjectActionPerformed
 
+        private void menuItemManagePrerequisiteActionPerformed(java.awt.event.ActionEvent evt) {
+                openManagePrerequisiteForm();
+        }
+
         private void btnClearFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClearFilterActionPerformed
                 txtSearch.setText("");
                 if (cbxDepartment.getItemCount() > 0) {
@@ -599,6 +631,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
         private javax.swing.JPopupMenu jPopupMenu1;
         private javax.swing.JScrollPane jScrollPane1;
         private javax.swing.JMenuItem menuItemDeleteSubject;
+        private javax.swing.JMenuItem menuItemManagePrerequisite;
         private javax.swing.JMenuItem menuItemUpdateSubject;
         private javax.swing.JTable tableSubjects;
         private javax.swing.JTextField txtSearch;
