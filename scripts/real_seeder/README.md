@@ -6,7 +6,7 @@ Seeds real data from CSV into selected tables.
 
 Supported targets:
 
-- `bundle` (clean reset + BSIT + NITEN2023 + students + faculty + registrar)
+- `bundle` (clean reset + BSIT + NITEN2023 + students + faculty + registrar + admin)
 - `curriculum`
 - `subjects`
 - `semester`
@@ -42,6 +42,7 @@ Then it seeds:
 - Students from `docs/students.csv`
 - Faculty: Faker-generated, assigned to `College of Engineering`
 - Registrar account: `registrar@vbsu.edu.ph` with password `12345678`
+- Admin account: `admin@vbsu.edu.ph` with password `12345678`
 
 Run from the `scripts` directory:
 
@@ -106,13 +107,14 @@ Credential rules for student import:
 - Plain password basis: `lastname_YYYY` (YYYY = birth year)
 - Stored password: bcrypt hash of the plain password basis
 
-Credential rules for bundle faculty/registrar seeding:
+Credential rules for bundle faculty/registrar/admin seeding:
 
 - Faculty count is dynamic via `--faculty-count` (default: `10`)
 - Faculty email pattern: `Faculty1@vbsu.edu.ph`, `Faculty2@vbsu.edu.ph`, and so on
 - Faculty plain password basis: `LastName_YYYY-MM-DD` (same format used by FacultyForm)
 - Faculty stored password: bcrypt hash of that plain basis
 - Registrar email/password: `registrar@vbsu.edu.ph` / `12345678` (stored as bcrypt hash)
+- Admin email/password: `admin@vbsu.edu.ph` / `12345678` (stored as bcrypt hash)
 
 ## Notes
 

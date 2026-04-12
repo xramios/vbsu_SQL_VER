@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Faculty and registrar seeder for the real-data bundle workflow."""
+"""Faculty, registrar, and admin seeder for the real-data bundle workflow."""
 
 from __future__ import annotations
 
@@ -16,21 +16,25 @@ from seeder.core.database import DatabaseManager
 
 @dataclass(frozen=True, slots=True)
 class StaffSeedSummary:
-    """Summary of faculty and registrar seeding actions."""
+    """Summary of faculty, registrar, and admin seeding actions."""
 
     faculty_created: int
     registrar_created: int
+    admin_created: int
     department_id: int
     registrar_email: str
+    admin_email: str
 
 
 class RealStaffSeeder:
-    """Seeds faculty and registrar accounts for bundle runs."""
+    """Seeds faculty, registrar, and admin accounts for bundle runs."""
 
     ENGINEERING_DEPARTMENT_NAME = "College of Engineering"
     ENGINEERING_DEPARTMENT_CODE = "COE"
     REGISTRAR_EMAIL = "registrar@vbsu.edu.ph"
     REGISTRAR_PASSWORD = "12345678"
+    ADMIN_EMAIL = "admin@vbsu.edu.ph"
+    ADMIN_PASSWORD = "12345678"
 
     def __init__(self, db_manager: DatabaseManager, bcrypt_rounds: int = 12) -> None:
         self.db_manager = db_manager
@@ -40,7 +44,7 @@ class RealStaffSeeder:
         self._fake = Faker("en_PH")
 
     def seed(self, faculty_count: int = 10) -> StaffSeedSummary:
-        """Seed faculty and registrar rows with matching user credentials."""
+        """Seed faculty, registrar, and admin rows with matching user credentials."""
         if faculty_count < 0:
             raise ValueError("faculty_count must be zero or greater")
 
@@ -59,13 +63,16 @@ class RealStaffSeeder:
                 used_emails=used_emails,
             )
             registrar_created = self._seed_registrar(cursor, used_emails)
+            admin_created = self._seed_admin(cursor, used_emails)
 
             self.db_manager.commit()
             return StaffSeedSummary(
                 faculty_created=faculty_created,
                 registrar_created=registrar_created,
+                admin_created=admin_created,
                 department_id=department_id,
                 registrar_email=self.REGISTRAR_EMAIL,
+                admin_email=self.ADMIN_EMAIL,
             )
         except Exception:
             rollback = getattr(self.db_manager.connection, "rollback", None)
@@ -155,6 +162,31 @@ class RealStaffSeeder:
             "registrar",
             ["user_id", "employee_id", "first_name", "last_name", "contact_number"],
             [user_id, "REG-0001", "System", "Registrar", self._build_contact_number()],
+            return_id=False,
+            cursor=cursor,
+        )
+        return 1
+
+    def _seed_admin(self, cursor: Any, used_emails: set[str]) -> int:
+        admin_email = self.ADMIN_EMAIL.lower()
+        hashed_password = self._hash_password(self.ADMIN_PASSWORD)
+
+        user_id = self.db_manager.execute_insert(
+            "users",
+            ["email", "password", "role"],
+            [admin_email, hashed_password, "ADMIN"],
+            return_id=True,
+            cursor=cursor,
+        )
+        if user_id is None:
+            raise RuntimeError(f"Failed to create admin user for {admin_email}")
+
+        used_emails.add(admin_email)
+
+        self.db_manager.execute_insert(
+            "admins",
+            ["user_id", "first_name", "last_name", "contact_number"],
+            [user_id, "System", "Admin", self._build_contact_number()],
             return_id=False,
             cursor=cursor,
         )

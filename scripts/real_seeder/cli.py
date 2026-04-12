@@ -172,6 +172,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Registrar created: {summary.staff.registrar_created}")
         print(f"Registrar email: {summary.staff.registrar_email}")
         print("Registrar password: 12345678")
+        print(f"Admin created: {summary.staff.admin_created}")
+        print(f"Admin email: {summary.staff.admin_email}")
+        print("Admin password: 12345678")
         print(f"Rooms created: {summary.rooms.rooms_created}")
         print(f"Rooms skipped (already exist): {summary.rooms.rooms_skipped}")
         return 0
