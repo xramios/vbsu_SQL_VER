@@ -29,6 +29,14 @@ Use this when:
 - All required subjects for the semester are marked completed for the student.
 - There are no remaining required subjects in enrolled or dropped state that still block completion.
 
+## Enrollment Eligibility Gate (Catalog and Save)
+
+The semester progress status remains strict (`COMPLETED` still means the full curriculum semester is done), but subject eligibility is more flexible:
+
+- A student may open the immediate next semester in the same year level once the subjects they actually carried in the current semester are all completed.
+- Unfinished subjects from prior semesters remain eligible as backtrack load.
+- Subject-level prerequisites are still enforced. A next-semester subject remains blocked until all of its prerequisite subjects are completed.
+
 ## Recommended Automation Points
 
 ### On Enrollment Save
@@ -38,6 +46,7 @@ When a student saves an enrollment for any subject in a semester, ensure the sem
 ### On Grade or Completion Update
 
 When a subject completion is finalized, recompute whether all required semester subjects are complete. If they are, update the semester progress record to `COMPLETED`.
+Also refresh eligibility so the next semester can open when the student's active current-semester load is fully completed.
 
 ### On Faculty Completion Action
 

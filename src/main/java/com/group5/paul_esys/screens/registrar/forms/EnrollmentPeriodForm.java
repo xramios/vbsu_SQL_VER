@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
@@ -119,6 +120,38 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         .toInstant());
         }
 
+        private String buildEnrollmentPeriodLabel(EnrollmentPeriod period) {
+                if (period == null) {
+                        return "N/A";
+                }
+
+                return EnrollmentPeriodUtils.safeText(period.getSchoolYear(), "N/A")
+                        + " - "
+                        + EnrollmentPeriodUtils.safeText(period.getSemester(), "N/A");
+        }
+
+        private boolean hasConflict(EnrollmentPeriod period) {
+                Optional<EnrollmentPeriod> conflictingPeriod = enrollmentPeriodService.findConflictingEnrollmentPeriod(period);
+                if (conflictingPeriod.isEmpty()) {
+                        return false;
+                }
+
+                EnrollmentPeriod existingPeriod = conflictingPeriod.get();
+                JOptionPane.showMessageDialog(
+                        this,
+                        "The selected date range overlaps with "
+                                + buildEnrollmentPeriodLabel(existingPeriod)
+                                + " ("
+                                + EnrollmentPeriodUtils.formatDateTime(existingPeriod.getStartDate())
+                                + " to "
+                                + EnrollmentPeriodUtils.formatDateTime(existingPeriod.getEndDate())
+                                + ").",
+                        "Conflict Detected",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return true;
+        }
+
         private boolean isValidForm() {
                 String schoolYear = normalizeSchoolYear(txtSchoolYear.getText());
                 if (schoolYear.isEmpty()) {
@@ -206,6 +239,10 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         .setStartDate(toDate(startDate, false))
                         .setEndDate(toDate(endDate, true))
                         .setDescription(EnrollmentPeriodUtils.normalizeDescription(textAreaDescription.getText()));
+
+                if (hasConflict(period)) {
+                        return;
+                }
 
                 boolean success = editingEnrollmentPeriod == null
                         ? enrollmentPeriodService.createEnrollmentPeriod(period)

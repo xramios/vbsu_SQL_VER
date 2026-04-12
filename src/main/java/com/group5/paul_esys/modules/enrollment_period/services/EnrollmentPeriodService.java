@@ -116,8 +116,71 @@ public class EnrollmentPeriodService {
     return getLatestEnrollmentPeriod();
   }
 
-  public boolean createEnrollmentPeriod(EnrollmentPeriod period) {
+  public Optional<EnrollmentPeriod> findConflictingEnrollmentPeriod(EnrollmentPeriod period) {
+    if (period == null || period.getStartDate() == null || period.getEndDate() == null) {
+      return Optional.empty();
+    }
+
     try (Connection conn = ConnectionService.getConnection()) {
+      return findConflictingEnrollmentPeriod(conn, period);
+    } catch (SQLException e) {
+      logger.error("ERROR: " + e.getMessage(), e);
+      return Optional.empty();
+    }
+  }
+
+  private Optional<EnrollmentPeriod> findConflictingEnrollmentPeriod(Connection conn, EnrollmentPeriod period)
+      throws SQLException {
+    String sql = period.getId() == null
+        ? """
+          SELECT *
+          FROM enrollment_period
+          WHERE start_date <= ?
+            AND end_date >= ?
+          ORDER BY start_date ASC
+          FETCH FIRST 1 ROWS ONLY
+          """
+        : """
+          SELECT *
+          FROM enrollment_period
+          WHERE id <> ?
+            AND start_date <= ?
+            AND end_date >= ?
+          ORDER BY start_date ASC
+          FETCH FIRST 1 ROWS ONLY
+          """;
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      int parameterIndex = 1;
+      if (period.getId() != null) {
+        ps.setLong(parameterIndex++, period.getId());
+      }
+
+      ps.setTimestamp(parameterIndex++, EnrollmentPeriodUtils.toSqlTimestamp(period.getEndDate()));
+      ps.setTimestamp(parameterIndex, EnrollmentPeriodUtils.toSqlTimestamp(period.getStartDate()));
+
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return Optional.of(EnrollmentPeriodUtils.mapResultSetToEnrollmentPeriod(rs));
+        }
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  public boolean createEnrollmentPeriod(EnrollmentPeriod period) {
+    if (period == null || period.getStartDate() == null || period.getEndDate() == null) {
+      return false;
+    }
+
+    try (Connection conn = ConnectionService.getConnection()) {
+      if (findConflictingEnrollmentPeriod(conn, period).isPresent()) {
+        logger.warn("Enrollment period conflict detected. schoolYear={}, semester={}, startDate={}, endDate={}",
+            period.getSchoolYear(), period.getSemester(), period.getStartDate(), period.getEndDate());
+        return false;
+      }
+
       boolean hasDescription = hasDescriptionColumn(conn);
       String sql = hasDescription
           ? "INSERT INTO enrollment_period (school_year, semester, start_date, end_date, description) VALUES (?, ?, ?, ?, ?)"
@@ -142,7 +205,17 @@ public class EnrollmentPeriodService {
   }
 
   public boolean updateEnrollmentPeriod(EnrollmentPeriod period) {
+    if (period == null || period.getId() == null || period.getStartDate() == null || period.getEndDate() == null) {
+      return false;
+    }
+
     try (Connection conn = ConnectionService.getConnection()) {
+      if (findConflictingEnrollmentPeriod(conn, period).isPresent()) {
+        logger.warn("Enrollment period conflict detected during update. id={}, schoolYear={}, semester={}, startDate={}, endDate={}",
+            period.getId(), period.getSchoolYear(), period.getSemester(), period.getStartDate(), period.getEndDate());
+        return false;
+      }
+
       boolean hasDescription = hasDescriptionColumn(conn);
       String sql = hasDescription
           ? "UPDATE enrollment_period SET school_year = ?, semester = ?, start_date = ?, end_date = ?, description = ? WHERE id = ?"
