@@ -720,25 +720,6 @@ public class StudentDashboard extends javax.swing.JFrame {
                         );
         }
 
-        private String resolveLatestSemesterLabel(String studentId) {
-                if (studentId == null || studentId.isBlank()) {
-                        return resolveCurrentOrLatestSemesterLabel();
-                }
-
-                List<Enrollment> enrollments = EnrollmentService.getInstance().getEnrollmentsByStudent(studentId);
-                if (enrollments != null && !enrollments.isEmpty()) {
-                        Enrollment latest = enrollments.get(0);
-                        if (latest != null && latest.getEnrollmentPeriodId() != null) {
-                                Optional<EnrollmentPeriod> period = EnrollmentPeriodService.getInstance().getEnrollmentPeriodById(latest.getEnrollmentPeriodId());
-                                if (period.isPresent()) {
-                                        return buildEnrollmentPeriodLabel(period.get());
-                                }
-                        }
-                }
-
-                return resolveCurrentOrLatestSemesterLabel();
-        }
-
         private String resolveCurrentOrLatestSemesterLabel() {
                 return EnrollmentPeriodService.getInstance()
                         .getCurrentOrLatestEnrollmentPeriod()
@@ -836,6 +817,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 
                 Map<Long, Long> selectedOfferingBySubject = getSelectedOfferingBySubjectForPeriod(enrollmentPeriod.getId());
                 Set<Long> selectedOfferingIds = new HashSet<>(selectedOfferingBySubject.values());
+                Set<Long> completedSubjectIds = getCompletedSubjectIds();
                 String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase();
                 List<Object[]> rows = new ArrayList<>();
                 for (Offering offering : offerings) {
@@ -846,6 +828,10 @@ public class StudentDashboard extends javax.swing.JFrame {
                         Subject subject = subjectById.get(offering.getSubjectId());
                         Section section = sectionById.get(offering.getSectionId());
                         if (subject == null || section == null) {
+                                continue;
+                        }
+
+                        if (completedSubjectIds.contains(subject.getId())) {
                                 continue;
                         }
 
@@ -868,6 +854,35 @@ public class StudentDashboard extends javax.swing.JFrame {
                 }
 
                 return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, rows);
+        }
+
+        private Set<Long> getCompletedSubjectIds() {
+                Set<Long> completedSubjectIds = new HashSet<>();
+                if (currentStudent == null || currentStudent.getStudentId() == null || currentStudent.getStudentId().isBlank()) {
+                        return completedSubjectIds;
+                }
+
+                Map<Long, SemesterSubject> semesterSubjectCache = new HashMap<>();
+                for (StudentEnrolledSubject completedSubject : studentEnrolledSubjectService.getByStudent(currentStudent.getStudentId())) {
+                        if (completedSubject == null || completedSubject.getStatus() != StudentEnrolledSubjectStatus.COMPLETED) {
+                                continue;
+                        }
+
+                        Long semesterSubjectId = completedSubject.getSemesterSubjectId();
+                        if (semesterSubjectId == null) {
+                                continue;
+                        }
+
+                        SemesterSubject semesterSubject = semesterSubjectCache.computeIfAbsent(
+                                semesterSubjectId,
+                                id -> semesterSubjectService.getSemesterSubjectById(id).orElse(null)
+                        );
+                        if (semesterSubject != null && semesterSubject.getSubjectId() != null) {
+                                completedSubjectIds.add(semesterSubject.getSubjectId());
+                        }
+                }
+
+                return completedSubjectIds;
         }
 
         private void applySubjectCatalogSnapshot(SubjectCatalogSnapshot snapshot) {
@@ -920,37 +935,34 @@ public class StudentDashboard extends javax.swing.JFrame {
                         return Optional.empty();
                 }
 
-                Optional<Long> activeEnrollmentPeriodId = EnrollmentPeriodService.getInstance()
-                  .getCurrentEnrollmentPeriod()
-                  .map(EnrollmentPeriod::getId);
-
-                Optional<Enrollment> activeEnrollmentWithSchedule = activeEnrollmentPeriodId.flatMap(periodId ->
-                  enrollments.stream()
-                    .filter(enrollment -> periodId.equals(enrollment.getEnrollmentPeriodId()))
-                    .filter(this::hasSelectedEnrollmentDetails)
-                    .findFirst()
-                );
-                if (activeEnrollmentWithSchedule.isPresent()) {
-                        return activeEnrollmentWithSchedule;
+                Optional<Enrollment> activeEnrollment = resolveEnrollmentForActivePeriod(enrollments);
+                if (activeEnrollment.isEmpty()) {
+                        return Optional.empty();
                 }
 
-                Optional<Enrollment> latestEnrollmentWithSchedule = enrollments.stream()
-                  .filter(this::hasSelectedEnrollmentDetails)
-                  .findFirst();
-                if (latestEnrollmentWithSchedule.isPresent()) {
-                        return latestEnrollmentWithSchedule;
-                }
-
-                Optional<Enrollment> activeEnrollment = activeEnrollmentPeriodId.flatMap(periodId ->
-                  enrollments.stream()
-                    .filter(enrollment -> periodId.equals(enrollment.getEnrollmentPeriodId()))
-                    .findFirst()
-                );
-                if (activeEnrollment.isPresent()) {
+                if (hasSelectedEnrollmentDetails(activeEnrollment.get())) {
                         return activeEnrollment;
                 }
 
-                return Optional.of(enrollments.get(0));
+                return activeEnrollment;
+        }
+
+        private Optional<Enrollment> resolveEnrollmentForActivePeriod(List<Enrollment> enrollments) {
+                if (enrollments == null || enrollments.isEmpty()) {
+                        return Optional.empty();
+                }
+
+                Optional<Long> activeEnrollmentPeriodId = EnrollmentPeriodService.getInstance()
+                        .getCurrentEnrollmentPeriod()
+                        .map(EnrollmentPeriod::getId);
+                if (activeEnrollmentPeriodId.isEmpty()) {
+                        return Optional.empty();
+                }
+
+                Long periodId = activeEnrollmentPeriodId.get();
+                return enrollments.stream()
+                        .filter(enrollment -> periodId.equals(enrollment.getEnrollmentPeriodId()))
+                        .findFirst();
         }
 
         private boolean hasSelectedEnrollmentDetails(Enrollment enrollment) {
@@ -1031,20 +1043,21 @@ public class StudentDashboard extends javax.swing.JFrame {
 		txtBirthDate.setText(student.getBirthdate() != null ? student.getBirthdate().toString() : "");
 		txtStudentStatus.setText(student.getStudentStatus().toString());
 		txtYearLevel.setText(student.getYearLevel() != null ? student.getYearLevel().toString() : "");
-                txtSemester.setText(resolveLatestSemesterLabel(student.getStudentId()));
+                txtSemester.setText(resolveCurrentOrLatestSemesterLabel());
                 txtCourse.setText("N/A");
 
 		Optional<Course> course = CourseService.getInstance().getCourseById(student.getCourseId());
 		course.ifPresent(c -> txtCourse.setText(c.getCourseName()));
 
 		List<Enrollment> enrollments = EnrollmentService.getInstance().getEnrollmentsByStudent(student.getStudentId());
-		if (enrollments != null && !enrollments.isEmpty()) {
-                        Enrollment latest = enrollments.get(0);
-                        updateSemesterLabel(latest);
-                        txtEnrollmentStatus.setText(safeText(latest.getStatus() == null ? null : latest.getStatus().name(), "NOT ENROLLED"));
-                        txtTotalUnits.setText(formatUnits(latest.getTotalUnits() == null ? 0.0f : latest.getTotalUnits()));
+                Optional<Enrollment> activeEnrollment = resolveEnrollmentForActivePeriod(enrollments);
+		if (activeEnrollment.isPresent()) {
+                        Enrollment enrollment = activeEnrollment.get();
+                        updateSemesterLabel(enrollment);
+                        txtEnrollmentStatus.setText(safeText(enrollment.getStatus() == null ? null : enrollment.getStatus().name(), "NOT ENROLLED"));
+                        txtTotalUnits.setText(formatUnits(enrollment.getTotalUnits() == null ? 0.0f : enrollment.getTotalUnits()));
 
-			List<EnrollmentDetail> details = EnrollmentDetailService.getInstance().getEnrollmentDetailsByEnrollment(latest.getId());
+			List<EnrollmentDetail> details = EnrollmentDetailService.getInstance().getEnrollmentDetailsByEnrollment(enrollment.getId());
                         long selectedCount = details.stream().filter(detail -> detail.getStatus() == EnrollmentDetailStatus.SELECTED).count();
                         txtTotalSubjects.setText(String.valueOf(selectedCount));
 
@@ -1067,8 +1080,9 @@ public class StudentDashboard extends javax.swing.JFrame {
                         }
 
                         txtSections.setText(sectionCode);
-                        updateEnrollmentStatusPresentation(latest);
+                        updateEnrollmentStatusPresentation(enrollment);
 		} else {
+                        updateSemesterLabel(null);
 			txtEnrollmentStatus.setText("NOT ENROLLED");
                         txtTotalUnits.setText(formatUnits(0.0f));
 			txtTotalSubjects.setText("0");
@@ -1105,6 +1119,7 @@ public class StudentDashboard extends javax.swing.JFrame {
                         case SUBMITTED -> 50;
                         case APPROVED -> 75;
                         case ENROLLED -> 100;
+                        case COMPLETED -> 100;
                         case CANCELLED -> 0;
                 };
 
@@ -2278,7 +2293,8 @@ public class StudentDashboard extends javax.swing.JFrame {
 
         private boolean isFinalizedEnrollment(Enrollment enrollment) {
                 return enrollment.getStatus() == EnrollmentStatus.APPROVED
-                  || enrollment.getStatus() == EnrollmentStatus.ENROLLED;
+                                                                        || enrollment.getStatus() == EnrollmentStatus.ENROLLED
+                                                                        || enrollment.getStatus() == EnrollmentStatus.COMPLETED;
         }
 
 	private void loadMySchedule() {

@@ -219,6 +219,23 @@ public class EnrollmentService {
     }
   }
 
+  public int backfillCompletedEnrollments() {
+    try (Connection conn = ConnectionService.getConnection()) {
+      return markCompletedEnrollments(conn, null);
+    } catch (SQLException e) {
+      logger.error("ERROR: " + e.getMessage(), e);
+      return 0;
+    }
+  }
+
+  public int markCompletedEnrollmentsForStudent(Connection conn, String studentId) throws SQLException {
+    if (conn == null || studentId == null || studentId.isBlank()) {
+      return 0;
+    }
+
+    return markCompletedEnrollments(conn, studentId);
+  }
+
   private Optional<String> getStudentIdByEnrollmentId(Long enrollmentId) {
     String sql = "SELECT student_id FROM enrollments WHERE id = ?";
 
@@ -237,6 +254,44 @@ public class EnrollmentService {
     }
 
     return Optional.empty();
+  }
+
+  private int markCompletedEnrollments(Connection conn, String studentId) throws SQLException {
+    StringBuilder sql = new StringBuilder(
+        "UPDATE enrollments "
+            + "SET status = 'COMPLETED', updated_at = CURRENT_TIMESTAMP "
+            + "WHERE status = 'ENROLLED' ");
+
+    if (studentId != null) {
+      sql.append("AND student_id = ? ");
+    }
+
+    sql.append(
+        "AND EXISTS ("
+            + "SELECT 1 "
+            + "FROM enrollments_details ed "
+            + "WHERE ed.enrollment_id = enrollments.id "
+            + "AND ed.status = 'SELECTED'"
+            + ") "
+            + "AND NOT EXISTS ("
+            + "SELECT 1 "
+            + "FROM enrollments_details ed "
+            + "LEFT JOIN student_enrolled_subjects ses "
+            + "ON ses.enrollment_id = ed.enrollment_id "
+            + "AND ses.offering_id = ed.offering_id "
+            + "AND ses.student_id = enrollments.student_id "
+            + "WHERE ed.enrollment_id = enrollments.id "
+            + "AND ed.status = 'SELECTED' "
+            + "AND (ses.status IS NULL OR ses.status <> 'COMPLETED')"
+            + ")");
+
+    try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+      if (studentId != null) {
+        ps.setString(1, studentId);
+      }
+
+      return ps.executeUpdate();
+    }
   }
 
   private Long resolveEnrollmentPeriodId(Connection conn, Long requestedEnrollmentPeriodId) throws SQLException {

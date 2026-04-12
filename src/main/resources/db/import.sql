@@ -279,14 +279,14 @@ CREATE TABLE IF NOT EXISTS offerings
 /**
  * Enrollment records tracking a student's enrollment for a specific term.
  * Records the school year, semester, enrollment status, and unit limits.
- * Status workflow: DRAFT -> SUBMITTED -> APPROVED -> ENROLLED (or CANCELLED).
+ * Status workflow: DRAFT -> SUBMITTED -> APPROVED -> ENROLLED -> COMPLETED (or CANCELLED).
  */
 CREATE TABLE IF NOT EXISTS enrollments
 (
     id                   bigint PRIMARY KEY AUTO_INCREMENT,
     student_id           varchar(32) NOT NULL,
     enrollment_period_id bigint NOT NULL,
-    status               ENUM ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'CANCELLED') NOT NULL,
+    status               ENUM ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'COMPLETED', 'CANCELLED') NOT NULL,
     max_units            float,
     total_units          float,
     submitted_at         datetime,

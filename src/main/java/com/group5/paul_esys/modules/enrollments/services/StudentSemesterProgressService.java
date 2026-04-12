@@ -81,6 +81,16 @@ public class StudentSemesterProgressService {
           upsertProgress(conn, studentId, curriculumId, semesterId, nextStatus);
         }
 
+        try {
+          EnrollmentService.getInstance().markCompletedEnrollmentsForStudent(conn, studentId);
+        } catch (SQLException completionUpdateError) {
+          logger.warn(
+              "Unable to reconcile completed enrollments for student {}: {}",
+              studentId,
+              completionUpdateError.getMessage()
+          );
+        }
+
         StudentAcademicPromotionService.getInstance().promoteIfYearCompleted(conn, studentId);
 
         conn.commit();
