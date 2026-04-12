@@ -367,6 +367,7 @@ CREATE TABLE departments
 );
 
 CREATE UNIQUE INDEX student_enrolled_subjects_index_0 ON student_enrolled_subjects (student_id, offering_id);
+CREATE UNIQUE INDEX prerequisites_unique_pair_index_0 ON prerequisites (pre_subject_id, subject_id);
 
 CREATE UNIQUE INDEX student_semester_progress_index_0 ON student_semester_progress (student_id, semester_id);
 
