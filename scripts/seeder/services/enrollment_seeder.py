@@ -96,7 +96,7 @@ class EnrollmentSeeder(BaseSeeder):
             id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
             student_id VARCHAR(32) NOT NULL,
             enrollment_period_id BIGINT NOT NULL,
-            status VARCHAR(20) NOT NULL CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'CANCELLED')),
+            status VARCHAR(20) NOT NULL CHECK (status IN ('DRAFT', 'SUBMITTED', 'APPROVED', 'ENROLLED', 'COMPLETED', 'CANCELLED')),
             max_units FLOAT,
             total_units FLOAT,
             submitted_at TIMESTAMP,
