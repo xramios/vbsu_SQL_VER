@@ -7,11 +7,12 @@ package com.group5.paul_esys.screens.registrar.forms;
 import com.group5.paul_esys.modules.enrollment_period.model.EnrollmentPeriod;
 import com.group5.paul_esys.modules.enrollment_period.services.EnrollmentPeriodService;
 import com.group5.paul_esys.modules.enrollment_period.utils.EnrollmentPeriodUtils;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
 import raven.datetime.DatePicker;
 
@@ -47,14 +48,14 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                 initializeForm();
         }
 
-	private void configureFormattedTextFields(){
+        private void configureDatePickers() {
 
 		startDatePicker.setEditor(ftxtStartDate);
 		endDatePicker.setEditor(ftxtEndDate);
 	}
 
         private void initializeForm() {
-		this.configureFormattedTextFields();
+		this.configureDatePickers();
 
                 if (editingEnrollmentPeriod == null) {
                         windowBar1.setTitle("Enrollment Period Form");
@@ -74,26 +75,12 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                 textAreaDescription.setText(EnrollmentPeriodUtils.safeText(editingEnrollmentPeriod.getDescription(), ""));
 
                 if (editingEnrollmentPeriod.getStartDate() != null) {
-                        startDatePicker.setSelectedDate(editingEnrollmentPeriod.getStartDate()
-			  .toInstant()
-			.atZone(ZoneId.systemDefault())
-			.toLocalDate()
-			);
+                        startDatePicker.setSelectedDate(toLocalDate(editingEnrollmentPeriod.getStartDate()));
                 }
 
                 if (editingEnrollmentPeriod.getEndDate() != null) {
-                        endDatePicker.setSelectedDate(editingEnrollmentPeriod.getEndDate()
-                          .toInstant()
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                        );
+                        endDatePicker.setSelectedDate(toLocalDate(editingEnrollmentPeriod.getEndDate()));
                 }
-        }
-
-        private void configureDateSpinner(javax.swing.JSpinner spinner) {
-                spinner.setEditor(new javax.swing.JSpinner.DateEditor(spinner, "yyyy-MM-dd HH:mm"));
-                JFormattedTextField textField = ((javax.swing.JSpinner.DateEditor) spinner.getEditor()).getTextField();
-                textField.setColumns(16);
         }
 
         private String normalizeSchoolYear(String schoolYear) {
@@ -112,13 +99,24 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                 return semester.trim();
         }
 
-        private Date readSpinnerDate(javax.swing.JSpinner spinner) {
-                Object spinnerValue = spinner.getValue();
-                if (spinnerValue instanceof Date date) {
-                        return date;
+        private LocalDate toLocalDate(Date date) {
+                if (date == null) {
+                        return null;
                 }
 
-                return null;
+                return date.toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+        }
+
+        private Date toDate(LocalDate date, boolean endOfDay) {
+                if (date == null) {
+                        return null;
+                }
+
+                return Date.from((endOfDay ? date.atTime(LocalTime.MAX) : date.atStartOfDay())
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant());
         }
 
         private boolean isValidForm() {
@@ -167,8 +165,8 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         return false;
                 }
 
-                Date startDate = readSpinnerDate(spinnerStartDate);
-                Date endDate = readSpinnerDate(spinnerEndDate);
+                LocalDate startDate = startDatePicker.getSelectedDate();
+                LocalDate endDate = endDatePicker.getSelectedDate();
 
                 if (startDate == null || endDate == null) {
                         JOptionPane.showMessageDialog(
@@ -180,7 +178,7 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         return false;
                 }
 
-                if (endDate.before(startDate)) {
+                if (endDate.isBefore(startDate)) {
                         JOptionPane.showMessageDialog(
                                 this,
                                 "End date must be on or after the start date.",
@@ -198,12 +196,15 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         return;
                 }
 
+                LocalDate startDate = startDatePicker.getSelectedDate();
+                LocalDate endDate = endDatePicker.getSelectedDate();
+
                 EnrollmentPeriod period = editingEnrollmentPeriod == null ? new EnrollmentPeriod() : editingEnrollmentPeriod;
                 period
                         .setSchoolYear(normalizeSchoolYear(txtSchoolYear.getText()))
                         .setSemester(normalizeSemester(txtSemester.getText()))
-                        .setStartDate(readSpinnerDate(spinnerStartDate))
-                        .setEndDate(readSpinnerDate(spinnerEndDate))
+                        .setStartDate(toDate(startDate, false))
+                        .setEndDate(toDate(endDate, true))
                         .setDescription(EnrollmentPeriodUtils.normalizeDescription(textAreaDescription.getText()));
 
                 boolean success = editingEnrollmentPeriod == null

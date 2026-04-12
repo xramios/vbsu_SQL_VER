@@ -289,7 +289,7 @@ public class SubjectForm extends javax.swing.JDialog {
 
                 jLabel5.setText("Units");
 
-                spinnerUnit.setModel(new javax.swing.SpinnerNumberModel(Float.valueOf(0.0f), Float.valueOf(0.0f), Float.valueOf(25.0f), Float.valueOf(1.0f)));
+                spinnerUnit.setModel(new javax.swing.SpinnerNumberModel(0, 0, 25, 1));
                 spinnerUnit.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
 
                 cbxDepartment.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
