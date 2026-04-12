@@ -738,13 +738,13 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 jPanel1.setBackground(new java.awt.Color(255, 255, 255));
                 jPanel1.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
-                panelFilters.setMinimumSize(new java.awt.Dimension(0, 38));
+                panelFilters.setMinimumSize(new java.awt.Dimension(0, 72));
                 panelFilters.setOpaque(false);
 
                 lblSearch.setText("Search");
 
                 txtSearch.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
-                txtSearch.setPreferredSize(new java.awt.Dimension(280, 34));
+                txtSearch.setPreferredSize(new java.awt.Dimension(220, 34));
                 txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
                         public void keyReleased(java.awt.event.KeyEvent evt) {
                                 txtSearchKeyReleased(evt);
@@ -760,7 +760,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 lblEnrollmentPeriodFilter.setText("Enrollment Period");
 
                 cbxEnrollmentPeriod.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "ALL" }));
-                cbxEnrollmentPeriod.setPreferredSize(new java.awt.Dimension(250, 34));
+                cbxEnrollmentPeriod.setPreferredSize(new java.awt.Dimension(200, 34));
                 cbxEnrollmentPeriod.addItemListener(this::cbxEnrollmentPeriodItemStateChanged);
 
                 btnClearFilter.setBackground(new java.awt.Color(119, 0, 0));
@@ -786,6 +786,8 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 btnEditSchedule.setText("Edit Schedule");
                 btnEditSchedule.addActionListener(this::btnEditScheduleActionPerformed);
 
+                btnDeleteSchedule.setBackground(new java.awt.Color(119, 0, 0));
+                btnDeleteSchedule.setForeground(new java.awt.Color(255, 255, 255));
                 btnDeleteSchedule.setText("Delete Schedule");
                 btnDeleteSchedule.addActionListener(this::btnDeleteScheduleActionPerformed);
 
@@ -794,46 +796,52 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 panelFiltersLayout.setHorizontalGroup(
                         panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(panelFiltersLayout.createSequentialGroup()
-                                .addComponent(lblSearch)
+                                .addGroup(panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(panelFiltersLayout.createSequentialGroup()
+                                                .addComponent(lblSearch)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(txtSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 382, Short.MAX_VALUE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(lblDayFilter)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(cbxDay, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(lblEnrollmentPeriodFilter)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(cbxEnrollmentPeriod, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(panelFiltersLayout.createSequentialGroup()
+                                                .addComponent(btnAutoGenerate)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(btnNewSchedule)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnEditSchedule)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lblDayFilter)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cbxDay, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lblEnrollmentPeriodFilter)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(cbxEnrollmentPeriod, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnClearFilter)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnRefresh)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnAutoGenerate)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnNewSchedule)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnEditSchedule)
-                                .addGap(36, 36, 36)
-                                .addComponent(btnDeleteSchedule)
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                .addGroup(panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(panelFiltersLayout.createSequentialGroup()
+                                                .addComponent(btnClearFilter)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnRefresh))
+                                        .addComponent(btnDeleteSchedule, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
                 );
                 panelFiltersLayout.setVerticalGroup(
                         panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(lblSearch)
-                                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(lblDayFilter)
-                                .addComponent(cbxDay, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(lblEnrollmentPeriodFilter)
-                                .addComponent(cbxEnrollmentPeriod, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(btnClearFilter)
-                                .addComponent(btnRefresh)
-                                .addComponent(btnAutoGenerate)
-                                .addComponent(btnNewSchedule)
-                                .addComponent(btnEditSchedule)
-                                .addComponent(btnDeleteSchedule))
+                        .addGroup(panelFiltersLayout.createSequentialGroup()
+                                .addGroup(panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(lblSearch)
+                                        .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(lblDayFilter)
+                                        .addComponent(cbxDay, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(lblEnrollmentPeriodFilter)
+                                        .addComponent(cbxEnrollmentPeriod, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(btnClearFilter)
+                                        .addComponent(btnRefresh))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(panelFiltersLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(btnAutoGenerate)
+                                        .addComponent(btnNewSchedule)
+                                        .addComponent(btnEditSchedule)
+                                        .addComponent(btnDeleteSchedule)))
                 );
 
                 panelList.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
@@ -856,14 +864,14 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 "Subject Code", "Subject Name", "Section", "Day", "Time", "Room", "Faculty", "Enrollment Period", "Conflict"
                         }
                 ) {
-                        Class<?>[] types = new Class<?> [] {
+                        Class[] types = new Class [] {
                                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
                         };
                         boolean[] canEdit = new boolean [] {
                                 false, false, false, false, false, false, false, false, false
                         };
 
-                        public Class<?> getColumnClass(int columnIndex) {
+                        public Class getColumnClass(int columnIndex) {
                                 return types [columnIndex];
                         }
 
@@ -935,8 +943,8 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                 lblDay.setText("Day");
                 summaryRows.add(lblDay);
 
-                lblValueDay.setEnabled(false);
                 lblValueDay.setText("N/A");
+                lblValueDay.setEnabled(false);
                 summaryRows.add(lblValueDay);
 
                 lblTime.setText("Time");
@@ -1023,7 +1031,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(panelList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(panelSummary, javax.swing.GroupLayout.DEFAULT_SIZE, 519, Short.MAX_VALUE))
+                                        .addComponent(panelSummary, javax.swing.GroupLayout.DEFAULT_SIZE, 490, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblTableSummary)
                                 .addContainerGap())
@@ -1126,8 +1134,8 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
   }//GEN-LAST:event_tableSchedulesSelectionValueChanged
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
-        private javax.swing.JButton btnClearFilter;
         private javax.swing.JButton btnAutoGenerate;
+        private javax.swing.JButton btnClearFilter;
         private javax.swing.JButton btnDeleteSchedule;
         private javax.swing.JButton btnEditSchedule;
         private javax.swing.JButton btnNewSchedule;
