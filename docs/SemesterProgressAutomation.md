@@ -39,6 +39,18 @@ When a student saves an enrollment for any subject in a semester, ensure the sem
 
 When a subject completion is finalized, recompute whether all required semester subjects are complete. If they are, update the semester progress record to `COMPLETED`.
 
+### On Faculty Completion Action
+
+When faculty marks a student as `COMPLETED` for the subject they handle, persist the status in `student_enrolled_subjects`, then run semester progress sync for that student.
+
+### On Academic Year Completion
+
+After semester sync, evaluate all semesters for the student's current year level.
+
+- If every semester in the current year level is `COMPLETED`, promote the student to the next year level.
+- Promotion must not happen when only one semester is completed.
+- Promotion must stop at the final curriculum year (no semester exists for the next year level).
+
 ### On Subject Drop or Failure
 
 If a required subject is dropped or not passed, keep the semester at `IN_PROGRESS` until the subject is retaken and completed.
