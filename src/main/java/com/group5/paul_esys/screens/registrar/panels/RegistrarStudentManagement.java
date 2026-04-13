@@ -234,11 +234,11 @@ public final class RegistrarStudentManagement extends javax.swing.JPanel {
                 jLabel15 = new javax.swing.JLabel();
                 jLabel16 = new javax.swing.JLabel();
 
-                menuItemUpdateStudent.setText("jMenuItem1");
+                menuItemUpdateStudent.setText("Update Student");
                 menuItemUpdateStudent.addActionListener(this::menuItemUpdateStudentActionPerformed);
                 jPopupMenu1.add(menuItemUpdateStudent);
 
-                menuItemDeleteStudent.setText("jMenuItem2");
+                menuItemDeleteStudent.setText("Delete Student");
                 menuItemDeleteStudent.addActionListener(this::menuItemDeleteStudentActionPerformed);
                 jPopupMenu1.add(menuItemDeleteStudent);
 
