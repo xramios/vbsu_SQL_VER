@@ -202,7 +202,7 @@ public class StudentEnrollmentForm extends javax.swing.JFrame {
   private void refreshRegisterButtonState() {
     boolean hasFirstName = txtFirstName.getText() != null && !txtFirstName.getText().trim().isEmpty();
     boolean hasLastName = txtLastName.getText() != null && !txtLastName.getText().trim().isEmpty();
-    boolean hasEmail = txtEmail.getText() != null && !txtEmail.getText().trim().isEmpty();
+    boolean hasEmail = txtEmail.getText() != null && !txtEmail.getText().trim().isEmpty() && txtEmail.getText().trim().endsWith("@vbsu.edu.ph");
     boolean hasCourse = cbxCourse.getSelectedItem() != null;
     boolean hasCurriculum = cbxCurriculum.getSelectedItem() != null;
     boolean hasBirthDate = birthDatePicker.getSelectedDate() != null;
@@ -229,6 +229,16 @@ public class StudentEnrollmentForm extends javax.swing.JFrame {
       JOptionPane.showMessageDialog(
         this,
         "First name and last name are required.",
+        "Validation Error",
+        JOptionPane.WARNING_MESSAGE
+      );
+      return;
+    }
+
+    if (!email.endsWith("@vbsu.edu.ph")) {
+      JOptionPane.showMessageDialog(
+        this,
+        "Only official VBSU email addresses are allowed.",
         "Validation Error",
         JOptionPane.WARNING_MESSAGE
       );
@@ -418,7 +428,11 @@ public class StudentEnrollmentForm extends javax.swing.JFrame {
                 jPanel1.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 310, 330, -1));
 
                 txtEmail.setBorder(new com.group5.paul_esys.ui.TextFieldRoundBorder());
-                jPanel1.add(txtEmail, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 270, 330, -1));
+    txtEmail.addKeyListener(new java.awt.event.KeyAdapter() {
+      public void keyReleased(java.awt.event.KeyEvent evt) {
+        refreshRegisterButtonState();
+      }
+    });
 
                 jLabel8.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
                 jLabel8.setText("Student Type");
