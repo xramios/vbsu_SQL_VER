@@ -10,6 +10,9 @@ import com.group5.paul_esys.modules.offerings.model.OfferingGenerationResult;
 import com.group5.paul_esys.modules.offerings.services.OfferingGenerationService;
 import com.group5.paul_esys.modules.semester.model.Semester;
 import com.group5.paul_esys.modules.semester.services.SemesterService;
+import com.group5.paul_esys.screens.registrar.forms.OfferingForm;
+import java.awt.Frame;
+import java.awt.Window;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
@@ -385,6 +389,7 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
   private void setControlsEnabled(boolean enabled) {
     btnPreview.setEnabled(enabled);
     btnGenerate.setEnabled(enabled && getPotentialNewCount() > 0);
+    btnCreateOffering.setEnabled(enabled);
     btnRefresh.setEnabled(enabled);
     cbxEnrollmentPeriod.setEnabled(enabled);
     cbxCurriculum.setEnabled(enabled);
@@ -585,6 +590,28 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
     return Math.max(0, currentPlanRows.size() - existing);
   }
 
+  private void openCreateOfferingForm() {
+    Window window = SwingUtilities.getWindowAncestor(this);
+    Frame parentFrame = window instanceof Frame ? (Frame) window : null;
+
+    OfferingForm form = new OfferingForm(
+        parentFrame,
+        true,
+        getSelectedEnrollmentPeriodId(),
+        this::refreshAfterManualOfferingCreate
+    );
+    form.setVisible(true);
+  }
+
+  private void refreshAfterManualOfferingCreate() {
+    if (getSelectedEnrollmentPeriodId() == null) {
+      clearPreview();
+      return;
+    }
+
+    previewGenerationPlan();
+  }
+
   /**
    * This method is called from within the constructor to initialize the
    * form. WARNING: Do NOT modify this code. The content of this method is
@@ -606,6 +633,7 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
                 cbxSemester = new javax.swing.JComboBox<>();
                 btnRefresh = new javax.swing.JButton();
                 btnPreview = new javax.swing.JButton();
+                btnCreateOffering = new javax.swing.JButton();
                 btnGenerate = new javax.swing.JButton();
                 chkOnlyActiveSections = new javax.swing.JCheckBox();
                 chkIncludeWaitlist = new javax.swing.JCheckBox();
@@ -657,6 +685,11 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
                 btnPreview.setForeground(new java.awt.Color(255, 255, 255));
                 btnPreview.setText("Preview");
                 btnPreview.addActionListener(this::btnPreviewActionPerformed);
+
+                btnCreateOffering.setBackground(new java.awt.Color(119, 0, 0));
+                btnCreateOffering.setForeground(new java.awt.Color(255, 255, 255));
+                btnCreateOffering.setText("Create Offering");
+                btnCreateOffering.addActionListener(this::btnCreateOfferingActionPerformed);
 
                 btnGenerate.setBackground(new java.awt.Color(119, 0, 0));
                 btnGenerate.setForeground(new java.awt.Color(255, 255, 255));
@@ -744,6 +777,8 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
                                                         .addComponent(btnRefresh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                         .addComponent(btnPreview, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(btnCreateOffering)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(btnGenerate)))
                                 .addContainerGap())
                 );
@@ -768,7 +803,9 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
                                                         .addComponent(jLabel6)
                                                         .addComponent(cbxYearLevel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                         .addComponent(chkOnlyActiveSections)))
-                                        .addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                      .addComponent(btnCreateOffering, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                      .addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 502, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -820,6 +857,10 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
     generateOfferings();
   }//GEN-LAST:event_btnGenerateActionPerformed
 
+  private void btnCreateOfferingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateOfferingActionPerformed
+    openCreateOfferingForm();
+  }//GEN-LAST:event_btnCreateOfferingActionPerformed
+
   private void cbxCurriculumActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbxCurriculumActionPerformed
     onCurriculumOrYearFilterChanged();
   }//GEN-LAST:event_cbxCurriculumActionPerformed
@@ -837,6 +878,7 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
         }//GEN-LAST:event_cbxEnrollmentPeriodActionPerformed
 
         // Variables declaration - do not modify//GEN-BEGIN:variables
+        private javax.swing.JButton btnCreateOffering;
         private javax.swing.JButton btnGenerate;
         private javax.swing.JButton btnPreview;
         private javax.swing.JButton btnRefresh;

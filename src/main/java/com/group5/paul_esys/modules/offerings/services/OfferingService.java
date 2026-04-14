@@ -149,6 +149,29 @@ public class OfferingService {
     }
   }
 
+  public boolean existsOffering(Long subjectId, Long sectionId, Long enrollmentPeriodId) {
+    String sql = "SELECT COUNT(*) FROM offerings WHERE subject_id = ? AND section_id = ? AND enrollment_period_id = ?";
+
+    try (
+      Connection conn = ConnectionService.getConnection();
+      PreparedStatement ps = conn.prepareStatement(sql)
+    ) {
+      ps.setLong(1, subjectId);
+      ps.setLong(2, sectionId);
+      ps.setLong(3, enrollmentPeriodId);
+
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getLong(1) > 0;
+        }
+      }
+    } catch (SQLException e) {
+      logger.error("ERROR: " + e.getMessage(), e);
+    }
+
+    return false;
+  }
+
   public boolean updateOffering(Offering offering) {
     String sql = "UPDATE offerings SET subject_id = ?, section_id = ?, enrollment_period_id = ?, semester_subject_id = ?, capacity = ? WHERE id = ?";
 
