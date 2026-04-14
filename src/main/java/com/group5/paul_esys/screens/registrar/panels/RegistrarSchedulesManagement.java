@@ -52,6 +52,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
     tableModel = new DefaultTableModel(
         new Object[][]{},
         new String[]{
+            "Select",
             "Subject Code",
             "Subject Name",
             "Section",
@@ -64,19 +65,44 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
         }
     ) {
       @Override
+      public Class<?> getColumnClass(int columnIndex) {
+        return columnIndex == 0 ? Boolean.class : super.getColumnClass(columnIndex);
+      }
+
+      @Override
       public boolean isCellEditable(int row, int column) {
-        return false;
+        return column == 0;
       }
     };
 
     tableSchedules.setModel(tableModel);
     tableSchedules.getSelectionModel().addListSelectionListener(this::tableSchedulesSelectionValueChanged);
+
+    tableModel.addTableModelListener(e -> {
+      if (e.getType() == javax.swing.event.TableModelEvent.UPDATE && e.getColumn() == 0) {
+        int row = e.getFirstRow();
+        if (row >= 0 && row < filteredScheduleRows.size()) {
+          Boolean selected = (Boolean) tableModel.getValueAt(row, 0);
+          ScheduleManagementRow currentRow = filteredScheduleRows.get(row);
+          filteredScheduleRows.set(row, currentRow.withSelected(selected != null && selected));
+
+          // Also update the main list
+          for (int i = 0; i < scheduleRows.size(); i++) {
+            if (scheduleRows.get(i).scheduleId().equals(currentRow.scheduleId())) {
+              scheduleRows.set(i, scheduleRows.get(i).withSelected(selected != null && selected));
+              break;
+            }
+          }
+        }
+      }
+    });
+
     tableSchedules.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     tableSchedules.setRowHeight(28);
     tableSchedules.setAutoCreateRowSorter(false);
     tableSchedules.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
-    int[] preferredWidths = {120, 220, 95, 80, 130, 100, 170, 180, 130};
+    int[] preferredWidths = {50, 120, 220, 95, 80, 130, 100, 170, 180, 130};
     for (int column = 0; column < preferredWidths.length; column++) {
       tableSchedules.getColumnModel().getColumn(column).setPreferredWidth(preferredWidths[column]);
     }
@@ -341,6 +367,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
 
     for (ScheduleManagementRow row : filteredScheduleRows) {
       tableModel.addRow(new Object[]{
+          row.selected(),
           row.subjectCode(),
           row.subjectName(),
           row.sectionCode(),
@@ -544,20 +571,44 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
   }
 
   private void deleteSelectedSchedule() {
-    ScheduleManagementRow selected = getSelectedSchedule();
-    if (selected == null) {
-      JOptionPane.showMessageDialog(
-          this,
-          "Please select a schedule to delete.",
-          "Delete Schedule",
-          JOptionPane.WARNING_MESSAGE
-      );
-      return;
+    List<ScheduleManagementRow> selectedItems = filteredScheduleRows.stream()
+        .filter(ScheduleManagementRow::selected)
+        .toList();
+
+    if (selectedItems.isEmpty()) {
+      ScheduleManagementRow singleSelection = getSelectedSchedule();
+      if (singleSelection == null) {
+        JOptionPane.showMessageDialog(
+            this,
+            "Please select at least one schedule to delete.",
+            "Delete Schedule",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+      }
+      selectedItems = List.of(singleSelection);
+    }
+
+    String message;
+    if (selectedItems.size() == 1) {
+      ScheduleManagementRow s = selectedItems.get(0);
+      message = "Delete schedule for " + s.subjectCode() + " / " + s.sectionCode() + "?";
+    } else {
+      StringBuilder sb = new StringBuilder("Are you sure you want to delete the following " + selectedItems.size() + " schedules?\n\n");
+      for (int i = 0; i < Math.min(selectedItems.size(), 10); i++) {
+        ScheduleManagementRow s = selectedItems.get(i);
+        sb.append("• ").append(s.subjectCode()).append(" / ").append(s.sectionCode())
+            .append(" (").append(s.day()).append(" ").append(s.timeRangeLabel()).append(")\n");
+      }
+      if (selectedItems.size() > 10) {
+        sb.append("... and ").append(selectedItems.size() - 10).append(" more.");
+      }
+      message = sb.toString();
     }
 
     int confirm = JOptionPane.showConfirmDialog(
         this,
-        "Delete schedule for " + selected.subjectCode() + " / " + selected.sectionCode() + "?",
+        message,
         "Confirm Delete",
         JOptionPane.YES_NO_OPTION,
         JOptionPane.WARNING_MESSAGE
@@ -567,10 +618,14 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
       return;
     }
 
+    final List<Long> idsToDelete = selectedItems.stream()
+        .map(ScheduleManagementRow::scheduleId)
+        .toList();
+
     new SwingWorker<ScheduleSaveResult, Void>() {
       @Override
       protected ScheduleSaveResult doInBackground() throws Exception {
-        return scheduleManagementService.deleteSchedule(selected.scheduleId());
+        return scheduleManagementService.deleteSchedules(idsToDelete);
       }
 
       @Override
@@ -580,7 +635,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
           JOptionPane.showMessageDialog(
               RegistrarSchedulesManagement.this,
               result.message(),
-              "Delete Schedule",
+              "Delete Schedules",
               result.successful() ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE
           );
 
@@ -590,8 +645,8 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
         } catch (Exception ex) {
           JOptionPane.showMessageDialog(
               RegistrarSchedulesManagement.this,
-              "Error deleting schedule: " + ex.getMessage(),
-              "Delete Schedule",
+              "Error deleting schedules: " + ex.getMessage(),
+              "Delete Schedules",
               JOptionPane.ERROR_MESSAGE
           );
         }
@@ -788,7 +843,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
 
                 btnDeleteSchedule.setBackground(new java.awt.Color(119, 0, 0));
                 btnDeleteSchedule.setForeground(new java.awt.Color(255, 255, 255));
-                btnDeleteSchedule.setText("Delete Schedule");
+                btnDeleteSchedule.setText("Delete Selected");
                 btnDeleteSchedule.addActionListener(this::btnDeleteScheduleActionPerformed);
 
                 javax.swing.GroupLayout panelFiltersLayout = new javax.swing.GroupLayout(panelFilters);

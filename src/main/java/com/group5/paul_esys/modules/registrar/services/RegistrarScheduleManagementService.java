@@ -142,6 +142,7 @@ public class RegistrarScheduleManagementService {
             ),
             false,
             false,
+            false,
             false
         ));
       }
@@ -1334,6 +1335,44 @@ public class RegistrarScheduleManagementService {
     } catch (SQLException e) {
       logger.error("ERROR: {}", e.getMessage(), e);
       return new ScheduleSaveResult(false, "Failed to delete schedule. Please try again.");
+    }
+  }
+
+  public ScheduleSaveResult deleteSchedules(List<Long> scheduleIds) {
+    if (scheduleIds == null || scheduleIds.isEmpty()) {
+      return new ScheduleSaveResult(false, "Please select at least one schedule to delete.");
+    }
+
+    String sql = "DELETE FROM schedules WHERE id = ?";
+    int deletedCount = 0;
+    List<String> errors = new ArrayList<>();
+
+    try (
+        Connection conn = ConnectionService.getConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)
+    ) {
+      conn.setAutoCommit(false);
+      try {
+        for (Long id : scheduleIds) {
+          ps.setLong(1, id);
+          int result = ps.executeUpdate();
+          if (result > 0) {
+            deletedCount++;
+            logger.info("AUDIT: Deleted schedule ID: {}", id);
+          }
+        }
+        conn.commit();
+        return new ScheduleSaveResult(true, deletedCount + " schedule(s) deleted successfully.");
+      } catch (SQLException e) {
+        conn.rollback();
+        logger.error("ERROR during batch delete: {}", e.getMessage(), e);
+        return new ScheduleSaveResult(false, "Failed to delete schedules: " + e.getMessage());
+      } finally {
+        conn.setAutoCommit(true);
+      }
+    } catch (SQLException e) {
+      logger.error("ERROR establishing connection for batch delete: {}", e.getMessage(), e);
+      return new ScheduleSaveResult(false, "Database connection error.");
     }
   }
 

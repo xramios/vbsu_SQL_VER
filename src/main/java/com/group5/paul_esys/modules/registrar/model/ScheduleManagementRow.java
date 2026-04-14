@@ -23,7 +23,8 @@ public record ScheduleManagementRow(
     String facultyName,
     boolean roomConflict,
     boolean facultyConflict,
-    boolean sectionConflict
+    boolean sectionConflict,
+    boolean selected
 ) {
 
   private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -51,7 +52,32 @@ public record ScheduleManagementRow(
         facultyName,
         resolvedRoomConflict,
         resolvedFacultyConflict,
-        resolvedSectionConflict
+        resolvedSectionConflict,
+        selected
+    );
+  }
+
+  public ScheduleManagementRow withSelected(boolean selected) {
+    return new ScheduleManagementRow(
+        scheduleId,
+        offeringId,
+        enrollmentPeriodId,
+        enrollmentPeriodLabel,
+        sectionId,
+        sectionCode,
+        subjectCode,
+        subjectName,
+        day,
+        startTime,
+        endTime,
+        roomId,
+        roomName,
+        facultyId,
+        facultyName,
+        roomConflict,
+        facultyConflict,
+        sectionConflict,
+        selected
     );
   }
 
