@@ -20,31 +20,40 @@ jobs:
       - name: Build (skip tests)
         run: mvn -B -DskipTests package
 
-      - name: Create prerelease
+      - name: Get project version
+        id: version
+        run: |
+          VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:3.1.0:exec)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Normalize release tag
+        id: tag
+        run: |
+          RAW_VERSION=${{ steps.version.outputs.version }}
+          if [[ "$RAW_VERSION" == *"SNAPSHOT" ]]; then
+            # replace SNAPSHOT with run number
+            TAG_VERSION=${RAW_VERSION/SNAPSHOT/prerelease-${GITHUB_RUN_NUMBER}}
+          else
+            TAG_VERSION=${RAW_VERSION}-${GITHUB_RUN_NUMBER}
+          fi
+          echo "tag=$TAG_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub prerelease
         id: create_pr
-        uses: softprops/action-gh-release@v1
+        uses: actions/create-release@v4
         with:
-          tag_name: prerelease-${{ github.run_number }}
-          name: prerelease-${{ github.run_number }}
-          body: Automated prerelease from CI (snapshot)
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: ${{ steps.tag.outputs.tag }}
+          draft: false
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload jar asset
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: prerelease-${{ github.run_number }}
-          name: prerelease-${{ github.run_number }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifact
+      - name: Upload jar artifact
         uses: actions/upload-release-asset@v2
         with:
           upload_url: ${{ steps.create_pr.outputs.upload_url }}
-          asset_path: target/paul_esys-1.0-SNAPSHOT.jar
-          asset_name: paul_esys-1.0-SNAPSHOT.jar
+          asset_path: $(ls target/*.jar | head -n 1)
+          asset_name: $(basename $(ls target/*.jar | head -n 1))
           asset_content_type: application/java-archive
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
