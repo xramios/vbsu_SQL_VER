@@ -238,8 +238,12 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
 
                 int option = JOptionPane.showConfirmDialog(
                         this,
-                        "Delete enrollment period " + periodLabel + "?",
-                        "Confirm Delete",
+                        "<html><body>"
+                        + "Are you sure you want to delete enrollment period <b>" + periodLabel + "</b>?<br><br>"
+                        + "<font color='red'><b>WARNING:</b> This will also delete ALL offerings and student enrollments<br>"
+                        + "within this enrollment period. This action cannot be undone.</font>"
+                        + "</body></html>",
+                        "Confirm Cascaded Delete",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE
                 );

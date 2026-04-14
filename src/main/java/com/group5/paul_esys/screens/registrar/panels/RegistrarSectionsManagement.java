@@ -424,8 +424,12 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
 
                 int option = JOptionPane.showConfirmDialog(
                         this,
-                        "Delete section " + safeText(selectedSection.getSectionCode(), "") + "?",
-                        "Confirm Delete",
+                        "<html><body>"
+                        + "Are you sure you want to delete section <b>" + safeText(selectedSection.getSectionCode(), "") + "</b>?<br><br>"
+                        + "<font color='red'><b>WARNING:</b> This will also delete ALL offerings and student enrollments<br>"
+                        + "associated with this section. This action cannot be undone.</font>"
+                        + "</body></html>",
+                        "Confirm Cascaded Delete",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE
                 );

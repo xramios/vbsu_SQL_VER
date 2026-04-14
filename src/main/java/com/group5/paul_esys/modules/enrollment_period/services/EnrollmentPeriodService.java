@@ -243,13 +243,38 @@ public class EnrollmentPeriodService {
   }
 
   public boolean deleteEnrollmentPeriod(Long id) {
-    try (Connection conn = ConnectionService.getConnection();
-        PreparedStatement ps = conn.prepareStatement("DELETE FROM enrollment_period WHERE id = ?")) {
-      ps.setLong(1, id);
-      
-      return ps.executeUpdate() > 0;
+    try (Connection conn = ConnectionService.getConnection()) {
+      conn.setAutoCommit(false);
+      try {
+        // Step 1: Delete from student_enrolled_subjects through offerings
+        try (PreparedStatement ps = conn.prepareStatement(
+            "DELETE FROM student_enrolled_subjects WHERE offering_id IN (SELECT id FROM offerings WHERE enrollment_period_id = ?)")) {
+          ps.setLong(1, id);
+          ps.executeUpdate();
+        }
+
+        // Step 2: Delete from offerings
+        try (PreparedStatement ps = conn.prepareStatement(
+            "DELETE FROM offerings WHERE enrollment_period_id = ?")) {
+          ps.setLong(1, id);
+          ps.executeUpdate();
+        }
+
+        // Step 3: Delete the enrollment period itself
+        try (PreparedStatement ps = conn.prepareStatement(
+            "DELETE FROM enrollment_period WHERE id = ?")) {
+          ps.setLong(1, id);
+          
+          boolean deleted = ps.executeUpdate() > 0;
+          conn.commit();
+          return deleted;
+        }
+      } catch (SQLException e) {
+        conn.rollback();
+        throw e;
+      }
     } catch (SQLException e) {
-      logger.error("ERROR: " + e.getMessage(), e);
+      logger.error("ERROR deleting enrollment period " + id + ": " + e.getMessage(), e);
       return false;
     }
   }
