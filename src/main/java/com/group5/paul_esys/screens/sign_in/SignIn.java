@@ -65,6 +65,8 @@ public class SignIn extends javax.swing.JFrame {
                 jLabel2 = new javax.swing.JLabel();
                 jPanel1 = new javax.swing.JPanel();
                 jLabel7 = new javax.swing.JLabel();
+                jLabel9 = new javax.swing.JLabel();
+                jLabel10 = new javax.swing.JLabel();
 
                 setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -210,6 +212,14 @@ public class SignIn extends javax.swing.JFrame {
                 jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/login.png"))); // NOI18N
                 jPanel1.add(jLabel7, java.awt.BorderLayout.CENTER);
 
+                jLabel9.setForeground(new java.awt.Color(51, 51, 255));
+                jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                jLabel9.setText("Terms and Condition");
+
+                jLabel10.setForeground(new java.awt.Color(51, 51, 255));
+                jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                jLabel10.setText("Privacy Policy");
+
                 javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
                 jPanel2.setLayout(jPanel2Layout);
                 jPanel2Layout.setHorizontalGroup(
@@ -224,7 +234,10 @@ public class SignIn extends javax.swing.JFrame {
                                                 .addGap(34, 34, 34))
                                         .addGroup(jPanel2Layout.createSequentialGroup()
                                                 .addGap(26, 26, 26)
-                                                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 900, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(jPanel2Layout.createSequentialGroup()
@@ -248,7 +261,11 @@ public class SignIn extends javax.swing.JFrame {
                                                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addGap(37, 37, 37)
                                                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jLabel9)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jLabel10)
+                                                .addGap(28, 28, 28))
                                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 685, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 );
 
@@ -353,6 +370,7 @@ public class SignIn extends javax.swing.JFrame {
         private javax.swing.JButton btnClose;
         private javax.swing.JButton btnSignIn;
         private javax.swing.JLabel jLabel1;
+        private javax.swing.JLabel jLabel10;
         private javax.swing.JLabel jLabel2;
         private javax.swing.JLabel jLabel3;
         private javax.swing.JLabel jLabel4;
@@ -360,6 +378,7 @@ public class SignIn extends javax.swing.JFrame {
         private javax.swing.JLabel jLabel6;
         private javax.swing.JLabel jLabel7;
         private javax.swing.JLabel jLabel8;
+        private javax.swing.JLabel jLabel9;
         private javax.swing.JPanel jPanel1;
         private javax.swing.JPanel jPanel2;
         private javax.swing.JPanel jPanel3;

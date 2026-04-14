@@ -299,7 +299,6 @@ public class SettingsPanel extends javax.swing.JPanel {
         private void initComponents() {
 
                 rootPanel = new javax.swing.JPanel();
-                scrollPane = new javax.swing.JScrollPane();
                 contentPanel = new javax.swing.JPanel();
                 accountPanel = new javax.swing.JPanel();
                 lblAccountSection = new javax.swing.JLabel();
@@ -392,7 +391,7 @@ public class SettingsPanel extends javax.swing.JPanel {
                                                         .addComponent(lblAccountEmailValue)
                                                         .addComponent(lblAccountIdentifierValue)
                                                         .addComponent(lblAccountContactValue))))
-                                .addContainerGap(375, Short.MAX_VALUE))
+                                .addContainerGap(245, Short.MAX_VALUE))
                 );
                 accountPanelLayout.setVerticalGroup(
                         accountPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -467,7 +466,7 @@ public class SettingsPanel extends javax.swing.JPanel {
                                                         .addComponent(lblCurrentPassword)
                                                         .addComponent(lblNewPassword)
                                                         .addComponent(lblConfirmPassword))
-                                                .addGap(0, 357, Short.MAX_VALUE))
+                                                .addGap(0, 0, Short.MAX_VALUE))
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, passwordPanelLayout.createSequentialGroup()
                                                 .addGap(0, 0, Short.MAX_VALUE)
                                                 .addComponent(btnChangePassword)))
@@ -499,7 +498,7 @@ public class SettingsPanel extends javax.swing.JPanel {
                 themePanel.setBorder(new com.group5.paul_esys.ui.PanelRoundBorder());
 
                 lblThemeSection.setFont(new java.awt.Font("Poppins", 1, 20)); // NOI18N
-                lblThemeSection.setText("Theme Settings (Light Mode)");
+                lblThemeSection.setText("Appearance & Themes");
 
                 lblTheme.setText("Theme Preset");
 
@@ -518,7 +517,7 @@ public class SettingsPanel extends javax.swing.JPanel {
                                         .addComponent(lblTheme)
                                         .addComponent(cmbTheme, javax.swing.GroupLayout.PREFERRED_SIZE, 360, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(btnApplyTheme, javax.swing.GroupLayout.Alignment.TRAILING))
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap(696, Short.MAX_VALUE))
                 );
                 themePanelLayout.setVerticalGroup(
                         themePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -540,13 +539,13 @@ public class SettingsPanel extends javax.swing.JPanel {
                         contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(contentPanelLayout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(themePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGroup(contentPanelLayout.createSequentialGroup()
                                                 .addComponent(accountPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(passwordPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                        .addComponent(themePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addContainerGap())
+                                                .addComponent(passwordPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 );
                 contentPanelLayout.setVerticalGroup(
                         contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -560,24 +559,30 @@ public class SettingsPanel extends javax.swing.JPanel {
                                 .addContainerGap())
                 );
 
-                scrollPane.setViewportView(contentPanel);
-
                 javax.swing.GroupLayout rootPanelLayout = new javax.swing.GroupLayout(rootPanel);
                 rootPanel.setLayout(rootPanelLayout);
                 rootPanelLayout.setHorizontalGroup(
                         rootPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(scrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 1181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(rootPanelLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(contentPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
                 );
                 rootPanelLayout.setVerticalGroup(
                         rootPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(scrollPane, javax.swing.GroupLayout.PREFERRED_SIZE, 684, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(rootPanelLayout.createSequentialGroup()
+                                .addGap(0, 1, Short.MAX_VALUE)
+                                .addComponent(contentPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 1, Short.MAX_VALUE))
                 );
 
                 javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
                 this.setLayout(layout);
                 layout.setHorizontalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(rootPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(rootPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 );
                 layout.setVerticalGroup(
                         layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -612,7 +617,6 @@ public class SettingsPanel extends javax.swing.JPanel {
         private javax.swing.JLabel lblThemeSection;
         private javax.swing.JPanel passwordPanel;
         private javax.swing.JPanel rootPanel;
-        private javax.swing.JScrollPane scrollPane;
         private javax.swing.JPanel themePanel;
         private javax.swing.JPasswordField txtConfirmPassword;
         private javax.swing.JPasswordField txtCurrentPassword;

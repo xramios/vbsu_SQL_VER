@@ -16,11 +16,29 @@ public final class ThemeManager {
     private static final String DEFAULT_THEME_CLASS_NAME = "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme";
 
     private static final List<ThemeOption> THEME_OPTIONS = List.of(
-        new ThemeOption("Flat Light", "com.formdev.flatlaf.FlatLightLaf"),
-        new ThemeOption("IntelliJ Light", "com.formdev.flatlaf.FlatIntelliJLaf"),
-        new ThemeOption("GitHub Light", "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme"),
-        new ThemeOption("Arc", "com.formdev.flatlaf.intellijthemes.FlatArcIJTheme")
-    );
+            new ThemeOption("Flat Light", "com.formdev.flatlaf.FlatLightLaf"),
+            new ThemeOption("IntelliJ Light", "com.formdev.flatlaf.FlatIntelliJLaf"),
+            new ThemeOption("GitHub Light",
+                    "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubIJTheme"),
+            new ThemeOption("GitHub Contrast",
+                    "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTGitHubContrastIJTheme"),
+            new ThemeOption("Material Lighter",
+                    "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme"),
+            new ThemeOption("Material Lighter Contrast",
+                    "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterContrastIJTheme"),
+            new ThemeOption("Atom One Light",
+                    "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTAtomOneLightIJTheme"),
+            new ThemeOption("Light Owl",
+                    "com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTLightOwlIJTheme"),
+            new ThemeOption("Arc Light", "com.formdev.flatlaf.intellijthemes.FlatArcIJTheme"),
+            new ThemeOption("Arc Orange", "com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme"),
+            new ThemeOption("Cyan Light", "com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme"),
+            new ThemeOption("Gray", "com.formdev.flatlaf.intellijthemes.FlatGrayIJTheme"),
+            new ThemeOption("Light Flat", "com.formdev.flatlaf.intellijthemes.FlatLightFlatIJTheme"),
+            new ThemeOption("Solarized Light", "com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme"),
+            new ThemeOption("One Light", "com.formdev.flatlaf.intellijthemes.FlatOneLightIJTheme"),
+            new ThemeOption("macOS Light", "com.formdev.flatlaf.themes.FlatMacLightLaf"),
+            new ThemeOption("High Contrast Light", "com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme"));
 
     private ThemeManager() {
     }
@@ -55,8 +73,8 @@ public final class ThemeManager {
 
     private static synchronized boolean applyThemeInternal(String className, boolean persistSelection) {
         String resolvedClassName = isSupportedTheme(className)
-            ? className
-            : DEFAULT_THEME_CLASS_NAME;
+                ? className
+                : DEFAULT_THEME_CLASS_NAME;
 
         try {
             UIManager.setLookAndFeel(resolvedClassName);
