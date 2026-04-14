@@ -8,7 +8,7 @@ import com.group5.paul_esys.screens.registrar.panels.RegistrarDropRequestsManage
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSchedulesManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSectionsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarStudentManagement;
-import com.group5.paul_esys.screens.shared.panels.SecurityPanel;
+import com.group5.paul_esys.screens.shared.panels.SettingsPanel;
 import com.group5.paul_esys.screens.sign_in.SignIn;
 import com.group5.paul_esys.utils.ThemeManager;
 import java.awt.BorderLayout;
@@ -117,7 +117,7 @@ public final class RegistrarDashboard extends javax.swing.JFrame {
             case 4 -> new RegistrarSchedulesManagement();
             case 5 -> new RegistrarEnrollmentPeriodManagement();
             case 6 -> new RegistrarDropRequestsManagement();
-            case 7 -> new SecurityPanel();
+            case 7 -> new SettingsPanel();
             default -> null;
         };
 

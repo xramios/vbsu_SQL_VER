@@ -5,7 +5,7 @@ import com.group5.paul_esys.screens.admin.panels.AdminDashboardPanel;
 import com.group5.paul_esys.screens.admin.panels.AdminDepartmentManagement;
 import com.group5.paul_esys.screens.admin.panels.AdminRoomsManagementPanel;
 import com.group5.paul_esys.screens.admin.panels.AdminSubjectManagement;
-import com.group5.paul_esys.screens.shared.panels.SecurityPanel;
+import com.group5.paul_esys.screens.shared.panels.SettingsPanel;
 
 /**
  *
@@ -29,7 +29,7 @@ public final class AdminDashboard extends javax.swing.JFrame {
 		this.tabbedPaneAdmin.add("Curriculum", new AdminCurriculumManagement());
 		this.tabbedPaneAdmin.add("Rooms", new AdminRoomsManagementPanel());
 		this.tabbedPaneAdmin.add("Departments", new AdminDepartmentManagement());
-                this.tabbedPaneAdmin.add("Security", new SecurityPanel());
+                this.tabbedPaneAdmin.add("Security", new SettingsPanel());
 	}
 
 	/**
