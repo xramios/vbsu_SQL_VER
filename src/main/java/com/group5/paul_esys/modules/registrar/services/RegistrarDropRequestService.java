@@ -470,10 +470,11 @@ public class RegistrarDropRequestService {
       }
     }
 
-    String updateEnrollmentSql = "UPDATE enrollments SET total_units = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+    String updateEnrollmentSql = "UPDATE enrollments SET total_units = ?, status = CASE WHEN ? = 0 THEN 'CANCELLED' ELSE status END, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
     try (PreparedStatement updatePs = conn.prepareStatement(updateEnrollmentSql)) {
       updatePs.setFloat(1, totalUnits == null ? 0f : totalUnits);
-      updatePs.setLong(2, enrollmentId);
+      updatePs.setFloat(2, totalUnits == null ? 0f : totalUnits);
+      updatePs.setLong(3, enrollmentId);
       updatePs.executeUpdate();
     }
   }
