@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package com.group5.paul_esys.screens.registrar.panels;
+package com.group5.paul_esys.screens.admin.panels;
 
 import com.group5.paul_esys.modules.departments.model.Department;
 import com.group5.paul_esys.modules.departments.services.DepartmentService;
@@ -36,7 +36,7 @@ import java.util.concurrent.ExecutionException;
  *
  * @author nytri
  */
-public class RegistrarDepartmentManagement extends javax.swing.JPanel {
+public class AdminDepartmentManagement extends javax.swing.JPanel {
 
         private enum TableMode {
                 DEPARTMENTS,
@@ -65,7 +65,7 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
 	/**
 	 * Creates new form DepartmentManagement
 	 */
-	public RegistrarDepartmentManagement() {
+	public AdminDepartmentManagement() {
 		initComponents();
 		initializeDepartmentManagementPanel();
 	}
@@ -540,8 +540,7 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
                                                 return;
                                         }
                                         refreshCurrentView();
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarDepartmentManagement.this,
+                                        JOptionPane.showMessageDialog(AdminDepartmentManagement.this,
                                                 "Faculty deleted successfully.",
                                                 "Delete Faculty",
                                                 JOptionPane.INFORMATION_MESSAGE
@@ -631,8 +630,7 @@ public class RegistrarDepartmentManagement extends javax.swing.JPanel {
 
         private void showError(String message) {
                 SwingUtilities.invokeLater(() -> {
-                        JOptionPane.showMessageDialog(
-                                RegistrarDepartmentManagement.this,
+                        JOptionPane.showMessageDialog(AdminDepartmentManagement.this,
                                 message,
                                 "Error",
                                 JOptionPane.ERROR_MESSAGE

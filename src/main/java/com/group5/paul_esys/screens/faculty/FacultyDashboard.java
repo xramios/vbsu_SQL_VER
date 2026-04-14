@@ -5,10 +5,6 @@
 package com.group5.paul_esys.screens.faculty;
 
 import com.group5.paul_esys.screens.faculty.panels.FacultyDashboardPanel;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarCurriculumManagement;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarDepartmentManagement;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarRoomsManagementPanel;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarSubjectManagement;
 
 /**
  *

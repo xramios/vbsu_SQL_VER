@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package com.group5.paul_esys.screens.registrar.panels;
+package com.group5.paul_esys.screens.admin.panels;
 
 import com.group5.paul_esys.modules.rooms.model.Room;
 import com.group5.paul_esys.modules.rooms.services.RoomService;
@@ -21,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author nytri
  */
-public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
+public class AdminRoomsManagementPanel extends javax.swing.JPanel {
 
         private static final String FILTER_ALL = "ALL";
         private static final String DEFAULT_ROOM_TYPE = "OTHER";
@@ -35,7 +35,7 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
 	/**
 	 * Creates new form RegistrarRoomsManagementPanel
 	 */
-	public RegistrarRoomsManagementPanel() {
+	public AdminRoomsManagementPanel() {
 		initComponents();
 		initializeRoomPanel();
 	}
@@ -115,8 +115,7 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
                                         reloadFilterOptions();
                                         applyFilters();
                                 } catch (Exception ex) {
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarRoomsManagementPanel.this,
+                                        JOptionPane.showMessageDialog(AdminRoomsManagementPanel.this,
                                                 "Error loading rooms: " + ex.getMessage(),
                                                 "Rooms Management",
                                                 JOptionPane.ERROR_MESSAGE
@@ -299,8 +298,7 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
                                 try {
                                         boolean deleted = get();
                                         if (!deleted) {
-                                                JOptionPane.showMessageDialog(
-                                                        RegistrarRoomsManagementPanel.this,
+                                                JOptionPane.showMessageDialog(AdminRoomsManagementPanel.this,
                                                         "Failed to delete room. It may be referenced by schedule records.",
                                                         "Delete Room",
                                                         JOptionPane.ERROR_MESSAGE
@@ -308,15 +306,13 @@ public class RegistrarRoomsManagementPanel extends javax.swing.JPanel {
                                                 return;
                                         }
                                         initializeRooms();
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarRoomsManagementPanel.this,
+                                        JOptionPane.showMessageDialog(AdminRoomsManagementPanel.this,
                                                 "Room deleted successfully.",
                                                 "Delete Room",
                                                 JOptionPane.INFORMATION_MESSAGE
                                         );
                                 } catch (Exception ex) {
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarRoomsManagementPanel.this,
+                                        JOptionPane.showMessageDialog(AdminRoomsManagementPanel.this,
                                                 "Error deleting room: " + ex.getMessage(),
                                                 "Delete Room",
                                                 JOptionPane.ERROR_MESSAGE

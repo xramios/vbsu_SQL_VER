@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package com.group5.paul_esys.screens.registrar.panels;
+package com.group5.paul_esys.screens.admin.panels;
 
 import com.group5.paul_esys.modules.courses.model.Course;
 import com.group5.paul_esys.modules.courses.services.CourseService;
@@ -29,7 +29,7 @@ import javax.swing.SwingWorker;
  *
  * @author nytri
  */
-public class RegistrarCurriculumManagement extends javax.swing.JPanel {
+public class AdminCurriculumManagement extends javax.swing.JPanel {
 
         private final CurriculumService curriculumService = CurriculumService.getInstance();
         private final CourseService courseService = CourseService.getInstance();
@@ -43,7 +43,7 @@ public class RegistrarCurriculumManagement extends javax.swing.JPanel {
 	/**
 	 * Creates new form CurriculumManagement
 	 */
-	public RegistrarCurriculumManagement() {
+	public AdminCurriculumManagement() {
 		initComponents();
                 initializeCurriculumManagement();
 	}
@@ -134,8 +134,7 @@ public class RegistrarCurriculumManagement extends javax.swing.JPanel {
                                 try {
                                         boolean deleted = get();
                                         if (!deleted) {
-                                                JOptionPane.showMessageDialog(
-                                                        RegistrarCurriculumManagement.this,
+                                                JOptionPane.showMessageDialog(AdminCurriculumManagement.this,
                                                         "Failed to delete curriculum.",
                                                         "Delete Curriculum",
                                                         JOptionPane.ERROR_MESSAGE
@@ -144,15 +143,13 @@ public class RegistrarCurriculumManagement extends javax.swing.JPanel {
                                         }
 
                                         reloadCurriculumTabs();
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarCurriculumManagement.this,
+                                        JOptionPane.showMessageDialog(AdminCurriculumManagement.this,
                                                 "Curriculum deleted successfully.",
                                                 "Delete Curriculum",
                                                 JOptionPane.INFORMATION_MESSAGE
                                         );
                                 } catch (Exception ex) {
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarCurriculumManagement.this,
+                                        JOptionPane.showMessageDialog(AdminCurriculumManagement.this,
                                                 "Error deleting curriculum: " + ex.getMessage(),
                                                 "Delete Curriculum",
                                                 JOptionPane.ERROR_MESSAGE
@@ -192,7 +189,7 @@ public class RegistrarCurriculumManagement extends javax.swing.JPanel {
                                                 CurriculumCard curriculumCard = new CurriculumCard(
                                                         curriculum,
                                                         courseNameById.get(curriculum.getCourse()),
-                                                        RegistrarCurriculumManagement.this::reloadCurriculumTabs
+                                                        AdminCurriculumManagement.this::reloadCurriculumTabs
                                                 );
 
                                                 tabbedPaneCurriculums.addTab(buildCurriculumTabTitle(curriculum), curriculumCard);

@@ -1,10 +1,10 @@
 package com.group5.paul_esys.screens.admin;
 
 import com.group5.paul_esys.screens.admin.panels.AdminDashboardPanel;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarCurriculumManagement;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarDepartmentManagement;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarRoomsManagementPanel;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarSubjectManagement;
+import com.group5.paul_esys.screens.admin.panels.AdminCurriculumManagement;
+import com.group5.paul_esys.screens.admin.panels.AdminDepartmentManagement;
+import com.group5.paul_esys.screens.admin.panels.AdminRoomsManagementPanel;
+import com.group5.paul_esys.screens.admin.panels.AdminSubjectManagement;
 
 /**
  *
@@ -23,10 +23,10 @@ public final class AdminDashboard extends javax.swing.JFrame {
 
 	public void initializeFrame(){
 		this.tabbedPaneAdmin.add("Users", new AdminDashboardPanel());
-		this.tabbedPaneAdmin.add("Subjects", new RegistrarSubjectManagement());
-		this.tabbedPaneAdmin.add("Curriculum", new RegistrarCurriculumManagement());
-		this.tabbedPaneAdmin.add("Rooms", new RegistrarRoomsManagementPanel());
-		this.tabbedPaneAdmin.add("Departments", new RegistrarDepartmentManagement());
+		this.tabbedPaneAdmin.add("Subjects", new AdminSubjectManagement());
+		this.tabbedPaneAdmin.add("Curriculum", new AdminCurriculumManagement());
+		this.tabbedPaneAdmin.add("Rooms", new AdminRoomsManagementPanel());
+		this.tabbedPaneAdmin.add("Departments", new AdminDepartmentManagement());
 	}
 
 	/**

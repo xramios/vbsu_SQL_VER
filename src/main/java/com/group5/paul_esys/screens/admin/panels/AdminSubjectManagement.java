@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-package com.group5.paul_esys.screens.registrar.panels;
+package com.group5.paul_esys.screens.admin.panels;
 
 import com.group5.paul_esys.modules.departments.model.Department;
 import com.group5.paul_esys.modules.departments.services.DepartmentService;
@@ -34,7 +34,7 @@ import javax.swing.table.DefaultTableModel;
  *
  * @author nytri
  */
-public class RegistrarSubjectManagement extends javax.swing.JPanel {
+public class AdminSubjectManagement extends javax.swing.JPanel {
 
         private static final String FILTER_ALL = "ALL";
 
@@ -55,7 +55,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
 	/**
 	 * Creates new form RegistrarSubjectPanel
 	 */
-	public RegistrarSubjectManagement() {
+	public AdminSubjectManagement() {
 		initComponents();
 		initializeSubjectPanel();
 	}
@@ -222,8 +222,7 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                                         applyFilters();
                                 } catch (Exception e) {
                                         if (!isCancelled()) {
-                                                JOptionPane.showMessageDialog(
-                                                        RegistrarSubjectManagement.this,
+                                                JOptionPane.showMessageDialog(AdminSubjectManagement.this,
                                                         "Failed to load subjects: " + e.getMessage(),
                                                         "Error",
                                                         JOptionPane.ERROR_MESSAGE
@@ -437,23 +436,20 @@ public class RegistrarSubjectManagement extends javax.swing.JPanel {
                                         boolean deleted = get();
                                         if (deleted) {
                                                 initializeSubjects();
-                                                JOptionPane.showMessageDialog(
-                                                        RegistrarSubjectManagement.this,
+                                                JOptionPane.showMessageDialog(AdminSubjectManagement.this,
                                                         "Subject deleted successfully.",
                                                         "Delete Subject",
                                                         JOptionPane.INFORMATION_MESSAGE
                                                 );
                                         } else {
-                                                JOptionPane.showMessageDialog(
-                                                        RegistrarSubjectManagement.this,
+                                                JOptionPane.showMessageDialog(AdminSubjectManagement.this,
                                                         "Failed to delete subject. It may be referenced by other records.",
                                                         "Delete Subject",
                                                         JOptionPane.ERROR_MESSAGE
                                                 );
                                         }
                                 } catch (Exception e) {
-                                        JOptionPane.showMessageDialog(
-                                                RegistrarSubjectManagement.this,
+                                        JOptionPane.showMessageDialog(AdminSubjectManagement.this,
                                                 "Error deleting subject: " + e.getMessage(),
                                                 "Delete Subject",
                                                 JOptionPane.ERROR_MESSAGE
