@@ -5,7 +5,16 @@ import com.group5.paul_esys.screens.admin.panels.AdminDashboardPanel;
 import com.group5.paul_esys.screens.admin.panels.AdminDepartmentManagement;
 import com.group5.paul_esys.screens.admin.panels.AdminRoomsManagementPanel;
 import com.group5.paul_esys.screens.admin.panels.AdminSubjectManagement;
+import com.group5.paul_esys.modules.users.services.UserSession;
 import com.group5.paul_esys.screens.shared.panels.SettingsPanel;
+import com.group5.paul_esys.screens.sign_in.SignIn;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 /**
  *
@@ -19,9 +28,43 @@ public final class AdminDashboard extends javax.swing.JFrame {
 	public AdminDashboard() {
 		this.setUndecorated(true);
 		initComponents();
+                configureLogoutAction();
 		this.setLocationRelativeTo(null);
 		this.initializeFrame();
 	}
+
+        private void configureLogoutAction() {
+                JButton logoutButton = new JButton("Logout");
+                logoutButton.setFont(new Font("Poppins", Font.PLAIN, 13));
+                logoutButton.putClientProperty("JButton.buttonType", "roundRect");
+                logoutButton.putClientProperty("JComponent.minimumWidth", 120);
+                logoutButton.addActionListener(evt -> logoutCurrentUser());
+
+                JPanel trailingPanel = new JPanel(new BorderLayout());
+                trailingPanel.setOpaque(false);
+                trailingPanel.setBorder(BorderFactory.createEmptyBorder(10, 8, 12, 8));
+                trailingPanel.add(logoutButton, BorderLayout.SOUTH);
+
+                tabbedPaneAdmin.putClientProperty("JTabbedPane.trailingComponent", trailingPanel);
+        }
+
+        private void logoutCurrentUser() {
+                int confirm = JOptionPane.showConfirmDialog(
+                                this,
+                                "Are you sure you want to logout?",
+                                "Confirm Logout",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (confirm != JOptionPane.YES_OPTION) {
+                        return;
+                }
+
+                UserSession.getInstance().logout();
+                this.dispose();
+                SwingUtilities.invokeLater(() -> new SignIn().setVisible(true));
+        }
 
 	public void initializeFrame(){
 		this.tabbedPaneAdmin.add("Users", new AdminDashboardPanel());

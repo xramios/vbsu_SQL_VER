@@ -37,6 +37,7 @@ class BsitNiten2023BundleSeeder:
 
     REQUIRED_TABLES: tuple[str, ...] = (
         "courses",
+        "admins",
         "curriculum",
         "departments",
         "faculty_student_drop_requests",
@@ -63,6 +64,8 @@ class BsitNiten2023BundleSeeder:
         "students",
         "faculty",
         "registrar",
+        "admins",
+        "password_reset_tokens",
         "users",
         "subjects",
         "curriculum",
@@ -86,6 +89,8 @@ class BsitNiten2023BundleSeeder:
         "faculty",
         "registrar",
         "students",
+        "admins",
+        "password_reset_tokens",
         "curriculum",
         "users",
         "rooms",
@@ -159,24 +164,30 @@ class BsitNiten2023BundleSeeder:
         cursor = self.db_manager.connection.cursor()
         reset_actions: list[str] = []
         try:
+            print("Starting Derby bundle reset")
             for table in self.DERBY_TABLES_TO_DROP:
                 try:
-                    cursor.execute(f"DROP TABLE {self._table(table)}")
+                    print(f"Dropping Derby table: {table}")
+                    cursor.execute(f"DROP TABLE {self._table(table)} CASCADE")
                     reset_actions.append(f"dropped:{table}")
                 except Exception as error:
+                    print(f"Failed to drop Derby table {table}: {error}")
                     if not self._is_ignorable_drop_error(error):
                         raise
 
             schema_path = self._resolve_schema_file_path()
+            print(f"Recreating Derby schema from {schema_path.name}")
             for statement in self._load_schema_statements(schema_path):
                 try:
                     cursor.execute(statement)
                 except Exception as error:
+                    print(f"Failed to execute Derby schema statement: {error}")
                     if not self._is_ignorable_schema_error(error):
                         raise
 
             reset_actions.append(f"reran:{schema_path.name}")
             self.db_manager.commit()
+            print("Derby bundle reset completed")
             return tuple(reset_actions)
         except Exception:
             rollback = getattr(self.db_manager.connection, "rollback", None)
