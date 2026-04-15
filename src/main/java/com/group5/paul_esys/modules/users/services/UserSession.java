@@ -6,7 +6,6 @@ public class UserSession {
 
     private static UserSession instance;
     private UserInformation<?> userInformation;
-    private long timestamp;
 
     private UserSession() {
         if (instance != null) {
@@ -27,7 +26,6 @@ public class UserSession {
 
     public void setUserInformation(UserInformation<?> userInformation) {
         this.userInformation = userInformation;
-        this.timestamp = System.currentTimeMillis();
     }
 
     public void logout() {

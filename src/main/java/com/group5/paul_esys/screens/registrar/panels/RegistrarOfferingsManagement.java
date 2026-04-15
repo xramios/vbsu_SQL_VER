@@ -714,17 +714,19 @@ public class RegistrarOfferingsManagement extends javax.swing.JPanel {
                                 "Subject Code", "Subject Name", "Section", "Capacity", "Semester Subject ID", "Already Exists"
                         }
                 ) {
-                        Class[] types = new Class [] {
+                        Class<?>[] types = new Class<?> [] {
                                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Object.class, java.lang.Object.class, java.lang.String.class
                         };
                         boolean[] canEdit = new boolean [] {
                                 false, false, false, false, false, false
                         };
 
-                        public Class getColumnClass(int columnIndex) {
+                        @Override
+                        public Class<?> getColumnClass(int columnIndex) {
                                 return types [columnIndex];
                         }
 
+                        @Override
                         public boolean isCellEditable(int rowIndex, int columnIndex) {
                                 return canEdit [columnIndex];
                         }

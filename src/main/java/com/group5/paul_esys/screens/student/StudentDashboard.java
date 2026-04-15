@@ -354,86 +354,8 @@ public class StudentDashboard extends javax.swing.JFrame {
 		refreshSelectedSubjectsPreview();
 	}
 
-	private void configureSemesterProgressTab() {
-		if (panelSemesterProgress == null) {
-			panelSemesterProgress = new JPanel(new BorderLayout(0, 12));
-			panelSemesterProgress.setBackground(Color.WHITE);
-			panelSemesterProgress.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
-		}
+/* The following methods (configureSemesterProgressTab, configureCompletedSubjectsTab, etc.) are currently unused. */
 
-		if (tableSemesterProgress != null) {
-			tableSemesterProgress.setModel(semesterProgressModel);
-			tableSemesterProgress.setRowHeight(26);
-			tableSemesterProgress.setFillsViewportHeight(true);
-			tableSemesterProgress.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			tableSemesterProgress.setAutoCreateRowSorter(false);
-		}
-
-		if (panelSemesterProgressHeader != null) {
-			panelSemesterProgressHeader.setOpaque(false);
-		}
-
-		if (lblSemesterProgressTitle != null) {
-			lblSemesterProgressTitle.setText("Semester Progress");
-		}
-
-		if (lblSemesterProgressSubtitle != null) {
-			lblSemesterProgressSubtitle.setText("Track derived semester status from enrollment and completion records.");
-		}
-
-		if (semesterProgressScrollPane != null) {
-			semesterProgressScrollPane.setBorder(BorderFactory.createLineBorder(new Color(225, 225, 225)));
-		}
-
-		if (panelSemesterProgress.getComponentCount() > 0) {
-			if (tabbedPane.indexOfComponent(panelSemesterProgress) == -1) {
-				tabbedPane.addTab("Semester Progress", panelSemesterProgress);
-			}
-			return;
-		}
-
-		JLabel lblTitle = new JLabel("Semester Progress");
-		lblTitle.setFont(new Font("Poppins", Font.BOLD, 22));
-
-		JLabel lblSubtitle = new JLabel("Track derived semester status from enrollment and completion records.");
-		lblSubtitle.setFont(new Font("Poppins", Font.PLAIN, 12));
-		lblSubtitle.setForeground(new Color(120, 120, 120));
-
-		JPanel headerPanel = new JPanel(new BorderLayout(0, 4));
-		headerPanel.setOpaque(false);
-		headerPanel.add(lblTitle, BorderLayout.NORTH);
-		headerPanel.add(lblSubtitle, BorderLayout.CENTER);
-
-		lblSemesterProgressSummary = new JLabel("Loading semester progress...");
-		lblSemesterProgressSummary.setFont(new Font("Poppins", Font.PLAIN, 13));
-		lblSemesterProgressSummary.setForeground(new Color(95, 95, 95));
-
-		JPanel summaryPanel = new JPanel(new BorderLayout());
-		summaryPanel.setOpaque(false);
-		summaryPanel.add(lblSemesterProgressSummary, BorderLayout.WEST);
-
-		tableSemesterProgress = new JTable();
-		tableSemesterProgress.setModel(semesterProgressModel);
-		tableSemesterProgress.setRowHeight(26);
-		tableSemesterProgress.setFillsViewportHeight(true);
-		tableSemesterProgress.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		tableSemesterProgress.setAutoCreateRowSorter(false);
-
-		JScrollPane semesterProgressScrollPane = new JScrollPane(tableSemesterProgress);
-		semesterProgressScrollPane.setBorder(BorderFactory.createLineBorder(new Color(225, 225, 225)));
-
-		JPanel topPanel = new JPanel(new BorderLayout(0, 8));
-		topPanel.setOpaque(false);
-		topPanel.add(headerPanel, BorderLayout.NORTH);
-		topPanel.add(summaryPanel, BorderLayout.CENTER);
-
-		panelSemesterProgress.add(topPanel, BorderLayout.NORTH);
-		panelSemesterProgress.add(semesterProgressScrollPane, BorderLayout.CENTER);
-
-		if (tabbedPane.indexOfComponent(panelSemesterProgress) == -1) {
-			tabbedPane.addTab("Semester Progress", panelSemesterProgress);
-		}
-	}
 
 	private void configureCompletedSubjectsTab() {
 		if (panelCompletedSubjects == null) {
@@ -1805,11 +1727,12 @@ public class StudentDashboard extends javax.swing.JFrame {
                                 "Subject Name", "Code", "Units", "Description"
                         }
                 ) {
-                        Class[] types = new Class [] {
+                        Class<?>[] types = new Class<?> [] {
                                 java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.String.class
                         };
 
-                        public Class getColumnClass(int columnIndex) {
+                        @Override
+                        public Class<?> getColumnClass(int columnIndex) {
                                 return types [columnIndex];
                         }
                 });
@@ -2176,14 +2099,6 @@ public class StudentDashboard extends javax.swing.JFrame {
 		loadSubjectCatalogAsync(txtSearch.getText());
 	}// GEN-LAST:event_btnSearchSubjectActionPerformed
 
-	private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {
-		printSchedule();
-	}
-
-	private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {
-		exportPdfPreview();
-	}
-
 	private void exportPdfPreview() {
 		// Provide a quick feedback for exporting
 		JFileChooser fileChooser = new JFileChooser();
@@ -2314,7 +2229,6 @@ public class StudentDashboard extends javax.swing.JFrame {
 		List<OfferingSelection> selectedOfferings = new ArrayList<>();
 		Map<Long, Section> selectedSectionsById = new HashMap<>();
 		Map<Long, Integer> selectedSectionRoomCapacity = new HashMap<>();
-		Set<Long> selectedSubjectIds = new HashSet<>();
 		for (Integer modelRow : selectedRows) {
 			Long offeringId = parseLongCell(catalogModel.getValueAt(modelRow, CATALOG_COL_OFFERING_ID));
 			if (offeringId == null) {

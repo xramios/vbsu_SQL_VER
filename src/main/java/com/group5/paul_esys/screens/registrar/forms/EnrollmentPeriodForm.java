@@ -27,10 +27,8 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(EnrollmentPeriodForm.class.getName());
         private static final Pattern SCHOOL_YEAR_PATTERN = Pattern.compile("^(\\d{4})\\s*-\\s*(\\d{4})$");
         private static final int SCHOOL_YEAR_TEXT_LENGTH = 9;
-        private static final int MIN_SEMESTER_LENGTH = 2;
-        private static final int MAX_SEMESTER_LENGTH = 30;
         private static final int MAX_DESCRIPTION_LENGTH = 500;
-        private static final Pattern SEMESTER_PATTERN = Pattern.compile("^[A-Za-z0-9 .,'()\\-/&]+$");
+
         private static final String[] SEMESTER_OPTIONS = {
                 "First Semester",
                 "Second Semester",
@@ -107,13 +105,6 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                 return schoolYear.trim().replaceAll("\\s+", "");
         }
 
-        private String normalizeSemester(String semester) {
-                if (semester == null) {
-                        return "";
-                }
-
-                return semester.trim();
-        }
 
         private LocalDate toLocalDate(Date date) {
                 if (date == null) {

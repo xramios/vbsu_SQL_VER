@@ -1,8 +1,5 @@
 package com.group5.paul_esys.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;

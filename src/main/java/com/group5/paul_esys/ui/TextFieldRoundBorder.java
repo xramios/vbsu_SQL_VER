@@ -5,8 +5,6 @@
 package com.group5.paul_esys.ui;
 
 import com.formdev.flatlaf.ui.FlatRoundBorder;
-import javax.swing.border.AbstractBorder;
-import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 

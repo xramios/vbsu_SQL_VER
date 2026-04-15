@@ -1366,7 +1366,6 @@ public class RegistrarScheduleManagementService {
 
     String sql = "DELETE FROM schedules WHERE id = ?";
     int deletedCount = 0;
-    List<String> errors = new ArrayList<>();
 
     try (
         Connection conn = ConnectionService.getConnection();

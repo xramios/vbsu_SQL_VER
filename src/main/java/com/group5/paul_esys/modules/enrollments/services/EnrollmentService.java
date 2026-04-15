@@ -140,8 +140,8 @@ public class EnrollmentService {
           : new Timestamp(enrollment.getSubmittedAt().getTime());
       ps.setTimestamp(6, submittedAt);
 
-      // Rule: Auto-approve enrollment for students (Change PENDING to ENROLLED)
-      if (EnrollmentStatus.PENDING.equals(enrollment.getStatus())) {
+      // Rule: Auto-approve enrollment for students (Change SUBMITTED to ENROLLED)
+      if (EnrollmentStatus.SUBMITTED.equals(enrollment.getStatus())) {
           ps.setString(3, EnrollmentStatus.ENROLLED.name());
       }
 

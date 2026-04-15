@@ -692,17 +692,19 @@ public class AdminDepartmentManagement extends javax.swing.JPanel {
                                 "Name", "Code", "Description", "Faculty Count"
                         }
                 ) {
-                        Class[] types = new Class [] {
+                        Class<?>[] types = new Class<?> [] {
                                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class
                         };
                         boolean[] canEdit = new boolean [] {
                                 false, false, false, false
                         };
 
-                        public Class getColumnClass(int columnIndex) {
+                        @Override
+                        public Class<?> getColumnClass(int columnIndex) {
                                 return types [columnIndex];
                         }
 
+                        @Override
                         public boolean isCellEditable(int rowIndex, int columnIndex) {
                                 return canEdit [columnIndex];
                         }

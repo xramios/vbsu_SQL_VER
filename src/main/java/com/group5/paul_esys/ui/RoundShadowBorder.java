@@ -1,8 +1,6 @@
 package com.group5.paul_esys.ui;
 
-import com.formdev.flatlaf.ui.FlatBorder;
 import com.formdev.flatlaf.ui.FlatDropShadowBorder;
-import com.formdev.flatlaf.ui.FlatLineBorder;
 import com.formdev.flatlaf.ui.FlatRoundBorder;
 import java.awt.*;
 import javax.swing.border.Border;

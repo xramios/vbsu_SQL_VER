@@ -68,7 +68,8 @@ class ScheduleManagementRowTest {
         "Lutz, Kathy",
         roomConflict,
         facultyConflict,
-        sectionConflict
+        sectionConflict,
+        false
     );
   }
 }
