@@ -1,12 +1,12 @@
 package com.group5.paul_esys.screens.admin;
 
+import com.group5.paul_esys.modules.admin.model.Admin;
+import com.group5.paul_esys.modules.users.services.UserSession;
 import com.group5.paul_esys.screens.admin.panels.AdminCurriculumManagement;
 import com.group5.paul_esys.screens.admin.panels.AdminDashboardPanel;
 import com.group5.paul_esys.screens.admin.panels.AdminDepartmentManagement;
 import com.group5.paul_esys.screens.admin.panels.AdminRoomsManagementPanel;
 import com.group5.paul_esys.screens.admin.panels.AdminSubjectManagement;
-import com.group5.paul_esys.modules.admin.model.Admin;
-import com.group5.paul_esys.modules.users.services.UserSession;
 import com.group5.paul_esys.screens.shared.panels.SettingsPanel;
 import com.group5.paul_esys.screens.sign_in.SignIn;
 import java.awt.BorderLayout;
@@ -75,7 +75,7 @@ public final class AdminDashboard extends javax.swing.JFrame {
                 this.tabbedPaneAdmin.add("Curriculum", new AdminCurriculumManagement());
                 this.tabbedPaneAdmin.add("Rooms", new AdminRoomsManagementPanel());
                 this.tabbedPaneAdmin.add("Departments", new AdminDepartmentManagement());
-                this.tabbedPaneAdmin.add("Security", new SettingsPanel());
+                this.tabbedPaneAdmin.add("Settings", new SettingsPanel());
         }
 
         /**

@@ -221,7 +221,7 @@ class BsitNiten2023BundleSeeder:
                 )
                 cursor.execute(
                     f"ALTER TABLE {self._table(table_name_text.lower())} "
-                    f"DROP CONSTRAINT {constraint_name_text}"
+                    f"DROP CONSTRAINT {self._quoted_identifier(constraint_name_text)}"
                 )
             except Exception as error:
                 print(
@@ -378,3 +378,7 @@ class BsitNiten2023BundleSeeder:
 
     def _table(self, table_name: str) -> str:
         return f"{self._table_prefix}{table_name}"
+
+    def _quoted_identifier(self, identifier: str) -> str:
+        escaped = identifier.replace('"', '""')
+        return f'"{escaped}"'

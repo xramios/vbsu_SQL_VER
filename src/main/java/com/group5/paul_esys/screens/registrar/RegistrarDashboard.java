@@ -2,9 +2,9 @@ package com.group5.paul_esys.screens.registrar;
 
 import com.group5.paul_esys.modules.registrar.model.Registrar;
 import com.group5.paul_esys.modules.users.services.UserSession;
+import com.group5.paul_esys.screens.registrar.panels.RegistrarDropRequestsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarEnrollmentPeriodManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarOfferingsManagement;
-import com.group5.paul_esys.screens.registrar.panels.RegistrarDropRequestsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSchedulesManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarSectionsManagement;
 import com.group5.paul_esys.screens.registrar.panels.RegistrarStudentManagement;
@@ -60,7 +60,7 @@ public final class RegistrarDashboard extends javax.swing.JFrame {
         tabbedPaneStudents.add("Schedules", null);
         tabbedPaneStudents.add("Enrollment Periods", null);
         tabbedPaneStudents.add("Drop Requests", null);
-        tabbedPaneStudents.add("Security", null);
+        tabbedPaneStudents.add("Settings", null);
 
         loadTab(0);
 
