@@ -406,7 +406,12 @@ public class ScheduleEntryDialog extends javax.swing.JDialog {
         LocalTime startTime = getSelectedStartTime();
         LocalTime endTime = getSelectedEndTime();
         if (startTime == null || endTime == null) {
-            showError("Please use HH:mm format for start and end time.");
+            showError("Fixed schedule times are required. Use HH:mm format.");
+            return;
+        }
+
+        if (startTime.getHour() == 0 && startTime.getMinute() == 0 && endTime.getHour() == 0 && endTime.getMinute() == 0) {
+            showError("TBA (00:00) is not allowed. Please set specific times.");
             return;
         }
 

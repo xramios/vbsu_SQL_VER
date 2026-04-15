@@ -153,6 +153,22 @@ public class RegistrarDropRequestService {
     }
   }
 
+  public boolean createDropRequest(Long facultyId, String studentId, Long offeringId, String reason) {
+    String sql = "INSERT INTO faculty_student_drop_requests (faculty_id, student_id, offering_id, reason, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+    try (Connection conn = ConnectionService.getConnection();
+         PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setLong(1, facultyId);
+      ps.setString(2, studentId);
+      ps.setLong(3, offeringId);
+      ps.setString(4, reason);
+      ps.setString(5, DropRequestStatus.PENDING.name());
+      return ps.executeUpdate() > 0;
+    } catch (SQLException e) {
+      logger.error("ERROR: {}", e.getMessage(), e);
+      return false;
+    }
+  }
+
   public boolean dropStudentFromOffering(String studentId, Long offeringId, String reason) {
     if (studentId == null || studentId.isBlank() || offeringId == null) {
       return false;

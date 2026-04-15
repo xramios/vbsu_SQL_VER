@@ -8,6 +8,9 @@ import com.group5.paul_esys.modules.registrar.model.ScheduleUpsertRequest;
 import com.group5.paul_esys.modules.registrar.services.RegistrarScheduleManagementService;
 import com.group5.paul_esys.screens.registrar.forms.ScheduleEntryDialog;
 import com.group5.paul_esys.screens.registrar.forms.ScheduleGenerationDialog;
+import com.group5.paul_esys.modules.users.models.enums.Role;
+import com.group5.paul_esys.modules.users.models.user.UserInformation;
+import com.group5.paul_esys.modules.users.services.UserSession;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -45,7 +48,23 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
 
   public RegistrarSchedulesManagement() {
     initComponents();
+    applyRoleRestrictions();
     initializeSchedulePanel();
+  }
+
+  private void applyRoleRestrictions() {
+    UserInformation<?> userSession = UserSession.getInstance().getUserInformation();
+    if (userSession != null && userSession.getRole() == Role.REGISTRAR) {
+        btnNewSchedule.setEnabled(false);
+        btnEditSchedule.setEnabled(false);
+        btnDeleteSchedule.setEnabled(false);
+        btnAutoGenerate.setEnabled(false);
+        
+        btnNewSchedule.setToolTipText("Scheduling is now managed by Department Heads.");
+        btnEditSchedule.setToolTipText("Scheduling is now managed by Department Heads.");
+        btnDeleteSchedule.setToolTipText("Scheduling is now managed by Department Heads.");
+        btnAutoGenerate.setToolTipText("Scheduling is now managed by Department Heads.");
+    }
   }
 
   private void configureScheduleTableComponent() {

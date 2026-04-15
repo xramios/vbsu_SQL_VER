@@ -31,6 +31,11 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
         private static final int MAX_SEMESTER_LENGTH = 30;
         private static final int MAX_DESCRIPTION_LENGTH = 500;
         private static final Pattern SEMESTER_PATTERN = Pattern.compile("^[A-Za-z0-9 .,'()\\-/&]+$");
+        private static final String[] SEMESTER_OPTIONS = {
+                "First Semester",
+                "Second Semester",
+                "Summer"
+        };
 
         private final EnrollmentPeriodService enrollmentPeriodService = EnrollmentPeriodService.getInstance();
         private final EnrollmentPeriod editingEnrollmentPeriod;
@@ -63,6 +68,10 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
 
         private void initializeForm() {
 		this.configureDatePickers();
+                txtSemester.setVisible(false);
+                javax.swing.JComboBox<String> cbxSemesterOpt = new javax.swing.JComboBox<>(SEMESTER_OPTIONS);
+                cbxSemesterOpt.setEditable(false);
+                jPanel1.add(cbxSemesterOpt, new org.netbeans.lib.awtextra.AbsoluteConstraints(54, 188, 243, -1));
 
                 if (editingEnrollmentPeriod == null) {
                         windowBar1.setTitle("Enrollment Period Form");
@@ -78,7 +87,7 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                 btnSave.setText("Update");
 
                 txtSchoolYear.setText(EnrollmentPeriodUtils.safeText(editingEnrollmentPeriod.getSchoolYear(), ""));
-                txtSemester.setText(EnrollmentPeriodUtils.safeText(editingEnrollmentPeriod.getSemester(), ""));
+                cbxSemesterOpt.setSelectedItem(EnrollmentPeriodUtils.safeText(editingEnrollmentPeriod.getSemester(), SEMESTER_OPTIONS[0]));
                 textAreaDescription.setText(EnrollmentPeriodUtils.safeText(editingEnrollmentPeriod.getDescription(), ""));
 
                 if (editingEnrollmentPeriod.getStartDate() != null) {
@@ -196,33 +205,6 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         return false;
                 }
 
-                String semester = normalizeSemester(txtSemester.getText());
-                if (showValidationError(
-                        FormValidationUtil.validateRequiredText(
-                                "Semester",
-                                semester,
-                                MIN_SEMESTER_LENGTH,
-                                MAX_SEMESTER_LENGTH,
-                                SEMESTER_PATTERN,
-                                "letters, numbers, spaces, and . , ' ( ) - / &"
-                        )
-                )) {
-                        return false;
-                }
-
-                if (showValidationError(
-                        FormValidationUtil.validateOptionalText(
-                                "Description",
-                                textAreaDescription.getText(),
-                                1,
-                                MAX_DESCRIPTION_LENGTH,
-                                null,
-                                ""
-                        )
-                )) {
-                        return false;
-                }
-
                 LocalDate startDate = startDatePicker.getSelectedDate();
                 LocalDate endDate = endDatePicker.getSelectedDate();
 
@@ -230,6 +212,16 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Start date and end date are required.",
+                                "Validation Error",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return false;
+                }
+                
+                if (editingEnrollmentPeriod == null && startDate.isBefore(LocalDate.now())) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Start date cannot be in the past.",
                                 "Validation Error",
                                 JOptionPane.WARNING_MESSAGE
                         );
@@ -243,6 +235,19 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
                                 "Validation Error",
                                 JOptionPane.WARNING_MESSAGE
                         );
+                        return false;
+                }
+
+                if (showValidationError(
+                        FormValidationUtil.validateOptionalText(
+                                "Description",
+                                textAreaDescription.getText(),
+                                1,
+                                MAX_DESCRIPTION_LENGTH,
+                                null,
+                                ""
+                        )
+                )) {
                         return false;
                 }
 
@@ -270,11 +275,22 @@ public class EnrollmentPeriodForm extends javax.swing.JFrame {
 
                 LocalDate startDate = startDatePicker.getSelectedDate();
                 LocalDate endDate = endDatePicker.getSelectedDate();
+                
+                String selectedSemester = "First Semester";
+                for (java.awt.Component comp : jPanel1.getComponents()) {
+                        if (comp instanceof javax.swing.JComboBox<?> cbx) {
+                                Object item = cbx.getSelectedItem();
+                                if (item != null) {
+                                        selectedSemester = item.toString();
+                                        break;
+                                }
+                        }
+                }
 
                 EnrollmentPeriod period = editingEnrollmentPeriod == null ? new EnrollmentPeriod() : editingEnrollmentPeriod;
                 period
                         .setSchoolYear(normalizeSchoolYear(txtSchoolYear.getText()))
-                        .setSemester(normalizeSemester(txtSemester.getText()))
+                        .setSemester(selectedSemester)
                         .setStartDate(toDate(startDate, false))
                         .setEndDate(toDate(endDate, true))
                         .setDescription(EnrollmentPeriodUtils.normalizeDescription(textAreaDescription.getText()));

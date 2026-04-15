@@ -6,9 +6,12 @@ package com.group5.paul_esys.screens.faculty.forms;
 
 import com.group5.paul_esys.modules.enums.StudentEnrolledSubjectStatus;
 import com.group5.paul_esys.modules.enrollments.services.StudentEnrolledSubjectService;
+import com.group5.paul_esys.modules.faculty.model.Faculty;
 import com.group5.paul_esys.modules.faculty.model.FacultyClassListRow;
 import com.group5.paul_esys.modules.faculty.model.FacultyClassStudentRow;
 import com.group5.paul_esys.modules.faculty.services.FacultyClassListService;
+import com.group5.paul_esys.modules.registrar.services.RegistrarDropRequestService;
+import com.group5.paul_esys.modules.users.services.UserSession;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -86,12 +89,19 @@ public class FacultyViewClassForm extends javax.swing.JFrame {
         }
 
         private void configureCompletionAction() {
-                JPopupMenu completionMenu = new JPopupMenu();
+                JPopupMenu contextMenu = new JPopupMenu();
+                
                 JMenuItem markCompletedItem = new JMenuItem("Mark as COMPLETED");
                 markCompletedItem.addActionListener(evt -> markSelectedStudentCompleted());
-                completionMenu.add(markCompletedItem);
+                contextMenu.add(markCompletedItem);
+                
+                contextMenu.addSeparator();
+                
+                JMenuItem requestDropItem = new JMenuItem("Request Student DROP");
+                requestDropItem.addActionListener(evt -> requestSelectedStudentDrop());
+                contextMenu.add(requestDropItem);
 
-                tableClassStudents.setComponentPopupMenu(completionMenu);
+                tableClassStudents.setComponentPopupMenu(contextMenu);
                 tableClassStudents.addMouseListener(new MouseAdapter() {
                         @Override
                         public void mouseClicked(MouseEvent evt) {
@@ -208,6 +218,43 @@ public class FacultyViewClassForm extends javax.swing.JFrame {
                 }
 
                 JOptionPane.showMessageDialog(this, "Failed to mark student as COMPLETED.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        private void requestSelectedStudentDrop() {
+                FacultyClassStudentRow selectedStudent = getSelectedClassStudent();
+                if (selectedStudent == null) {
+                        JOptionPane.showMessageDialog(this, "Select a student first.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                        return;
+                }
+
+                if (selectedStudent.enrolledSubjectStatus() == StudentEnrolledSubjectStatus.DROPPED) {
+                        JOptionPane.showMessageDialog(this, "This student is already marked as DROPPED.", "No Changes", JOptionPane.INFORMATION_MESSAGE);
+                        return;
+                }
+
+                Faculty currentFaculty = (Faculty) UserSession.getInstance().getUserInformation().getUser();
+                if (currentFaculty == null || currentFaculty.getId() == null) {
+                        JOptionPane.showMessageDialog(this, "Faculty profile not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                }
+
+                String reason = JOptionPane.showInputDialog(this, "Enter reason for drop request:", "Drop Request", JOptionPane.QUESTION_MESSAGE);
+                if (reason == null || reason.trim().isEmpty()) {
+                        return;
+                }
+
+                boolean success = RegistrarDropRequestService.getInstance().createDropRequest(
+                        currentFaculty.getId(),
+                        selectedStudent.studentId(),
+                        selectedStudent.offeringId(),
+                        reason.trim()
+                );
+
+                if (success) {
+                        JOptionPane.showMessageDialog(this, "Drop request submitted to Registrar for approval.", "Request Sent", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                        JOptionPane.showMessageDialog(this, "Failed to submit drop request.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
         }
 
         private String buildWindowTitle(FacultyClassListRow row) {

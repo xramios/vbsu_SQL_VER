@@ -2365,14 +2365,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 			}
 
 			Subject subject = subjectOpt.get();
-			if (!selectedSubjectIds.add(subject.getId())) {
-				showValidationErrorAndRefresh(
-						"Validation Conflict",
-						"Duplicate subject selection detected for "
-								+ safeText(subject.getSubjectCode(), "Unknown Subject")
-								+ ".");
-				return;
-			}
+			/* Deleted Duplicate Subject Check - Allowing duplicates to be picked for conflict resolution */
 
 			Optional<Section> sectionOpt = SectionService.getInstance().getSectionById(offering.getSectionId());
 			if (sectionOpt.isEmpty()) {

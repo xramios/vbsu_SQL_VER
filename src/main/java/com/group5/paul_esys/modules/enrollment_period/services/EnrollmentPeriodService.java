@@ -180,6 +180,13 @@ public class EnrollmentPeriodService {
             period.getSchoolYear(), period.getSemester(), period.getStartDate(), period.getEndDate());
         return false;
       }
+      
+      // Step: Close any existing OPEN enrollment periods
+      try (PreparedStatement psClose = conn.prepareStatement(
+          "UPDATE enrollment_period SET end_date = CURRENT_TIMESTAMP WHERE end_date >= CURRENT_TIMESTAMP AND id <> COALESCE(?, -1)")) {
+        psClose.setObject(1, period.getId());
+        psClose.executeUpdate();
+      }
 
       boolean hasDescription = hasDescriptionColumn(conn);
       String sql = hasDescription

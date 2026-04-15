@@ -58,6 +58,9 @@ public class SectionForm extends javax.swing.JFrame {
                 spinnerCapaity.setModel(new javax.swing.SpinnerNumberModel(40, 1, 500, 1));
                 cbxStatus.setModel(new javax.swing.DefaultComboBoxModel<>(STATUS_OPTIONS.toArray(new String[0])));
                 cbxStatus.setSelectedItem(STATUS_OPEN);
+                
+                txtSectionName.setVisible(false);
+                jLabel4.setText("Section Name (Combined)");
 
                 if (editingSection == null) {
                         windowBar1.setTitle("Section Form");
@@ -181,9 +184,10 @@ public class SectionForm extends javax.swing.JFrame {
                 }
 
                 Section section = editingSection == null ? new Section() : editingSection;
+                String unifiedCode = FormValidationUtil.normalizeOptionalText(txtSectionCode.getText());
                 section
-                        .setSectionCode(FormValidationUtil.normalizeOptionalText(txtSectionCode.getText()))
-                        .setSectionName(FormValidationUtil.normalizeOptionalText(txtSectionName.getText()))
+                        .setSectionCode(unifiedCode)
+                        .setSectionName(unifiedCode)
                         .setCapacity(((Number) spinnerCapaity.getValue()).intValue())
                         .setStatus(normalizeStatus(cbxStatus.getSelectedItem() == null ? STATUS_OPEN : cbxStatus.getSelectedItem().toString()));
 

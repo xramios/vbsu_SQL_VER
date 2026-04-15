@@ -1,6 +1,7 @@
 package com.group5.paul_esys.modules.registrar.services;
 
 import com.group5.paul_esys.modules.enums.DayOfWeek;
+import com.group5.paul_esys.modules.faculty.model.Faculty;
 import com.group5.paul_esys.modules.registrar.model.ScheduleGenerationOfferingCandidate;
 import com.group5.paul_esys.modules.registrar.model.ScheduleGenerationPlanRow;
 import com.group5.paul_esys.modules.registrar.model.ScheduleGenerationRequest;
@@ -14,7 +15,9 @@ import com.group5.paul_esys.modules.registrar.model.ScheduleOfferingOption;
 import com.group5.paul_esys.modules.registrar.model.ScheduleSaveResult;
 import com.group5.paul_esys.modules.registrar.model.ScheduleUpsertRequest;
 import com.group5.paul_esys.modules.subjects.model.SubjectSchedulePattern;
+import com.group5.paul_esys.modules.users.models.user.UserInformation;
 import com.group5.paul_esys.modules.users.services.ConnectionService;
+import com.group5.paul_esys.modules.users.services.UserSession;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -192,7 +195,13 @@ public class RegistrarScheduleManagementService {
   }
 
   public List<ScheduleOfferingOption> getOfferingOptions() {
-    String sql = """
+    UserInformation<?> userSession = UserSession.getInstance().getUserInformation();
+    Long filterDepartmentId = null;
+    if (userSession != null && userSession.getUser() instanceof Faculty faculty) {
+        filterDepartmentId = faculty.getDepartmentId();
+    }
+
+    StringBuilder sqlBuilder = new StringBuilder("""
         SELECT
           o.id AS offering_id,
           o.subject_id,
@@ -207,60 +216,72 @@ public class RegistrarScheduleManagementService {
         INNER JOIN enrollment_period ep ON ep.id = o.enrollment_period_id
         INNER JOIN sections sec ON sec.id = o.section_id
         INNER JOIN subjects sub ON sub.id = o.subject_id
+        """);
+    
+    if (filterDepartmentId != null) {
+        sqlBuilder.append(" WHERE sub.department_id = ? ");
+    }
+
+    sqlBuilder.append("""
         ORDER BY
           ep.created_at DESC,
           sec.section_code,
           sub.subject_code,
           o.id
-        """;
+        """);
 
     List<ScheduleOfferingOption> options = new ArrayList<>();
-  Map<Long, String> prerequisiteLabelBySubjectId = new HashMap<>();
+    Map<Long, String> prerequisiteLabelBySubjectId = new HashMap<>();
     try (
         Connection conn = ConnectionService.getConnection();
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery()
+        PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())
     ) {
-      while (rs.next()) {
-        Long enrollmentPeriodId = rsGetLong(rs, "enrollment_period_id");
-        String periodLabel = buildEnrollmentPeriodLabel(
-            enrollmentPeriodId,
-            rs.getString("school_year"),
-            rs.getString("semester")
-        );
+      if (filterDepartmentId != null) {
+          ps.setLong(1, filterDepartmentId);
+      }
+      
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          Long enrollmentPeriodId = rsGetLong(rs, "enrollment_period_id");
+          String periodLabel = buildEnrollmentPeriodLabel(
+              enrollmentPeriodId,
+              rs.getString("school_year"),
+              rs.getString("semester")
+          );
 
-        Integer capacity = rs.getObject("effective_capacity", Integer.class);
-        String capacityLabel = capacity == null || capacity <= 0 ? "Open" : String.valueOf(capacity);
-        String sectionCode = safeText(rs.getString("section_code"), "N/A");
-        String subjectCode = safeText(rs.getString("subject_code"), "N/A");
-        String subjectName = safeText(rs.getString("subject_name"), "N/A");
-        Long subjectId = rsGetLong(rs, "subject_id");
+          Integer capacity = rs.getObject("effective_capacity", Integer.class);
+          String capacityLabel = capacity == null || capacity <= 0 ? "Open" : String.valueOf(capacity);
+          String sectionCode = safeText(rs.getString("section_code"), "N/A");
+          String subjectCode = safeText(rs.getString("subject_code"), "N/A");
+          String subjectName = safeText(rs.getString("subject_name"), "N/A");
+          Long subjectId = rsGetLong(rs, "subject_id");
 
-        String prerequisiteLabel = "None";
-        if (subjectId != null) {
-          if (prerequisiteLabelBySubjectId.containsKey(subjectId)) {
-            prerequisiteLabel = prerequisiteLabelBySubjectId.get(subjectId);
-          } else {
-            prerequisiteLabel = resolvePrerequisiteLabel(conn, subjectId);
-            prerequisiteLabelBySubjectId.put(subjectId, prerequisiteLabel);
+          String prerequisiteLabel = "None";
+          if (subjectId != null) {
+            if (prerequisiteLabelBySubjectId.containsKey(subjectId)) {
+              prerequisiteLabel = prerequisiteLabelBySubjectId.get(subjectId);
+            } else {
+              prerequisiteLabel = resolvePrerequisiteLabel(conn, subjectId);
+              prerequisiteLabelBySubjectId.put(subjectId, prerequisiteLabel);
+            }
           }
+
+          String label = sectionCode
+              + " | " + subjectCode + " - " + subjectName
+              + " | " + periodLabel
+              + " | Cap " + capacityLabel;
+
+          options.add(new ScheduleOfferingOption(
+              rsGetLong(rs, "offering_id"),
+              enrollmentPeriodId,
+              periodLabel,
+              sectionCode,
+              subjectCode,
+              subjectName,
+              prerequisiteLabel,
+              label
+          ));
         }
-
-        String label = sectionCode
-            + " | " + subjectCode + " - " + subjectName
-            + " | " + periodLabel
-            + " | Cap " + capacityLabel;
-
-        options.add(new ScheduleOfferingOption(
-            rsGetLong(rs, "offering_id"),
-            enrollmentPeriodId,
-            periodLabel,
-            sectionCode,
-            subjectCode,
-            subjectName,
-            prerequisiteLabel,
-            label
-        ));
       }
     } catch (SQLException e) {
       logger.error("ERROR: {}", e.getMessage(), e);
