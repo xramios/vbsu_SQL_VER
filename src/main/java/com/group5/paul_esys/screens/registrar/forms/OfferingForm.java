@@ -129,10 +129,9 @@ public class OfferingForm extends javax.swing.JDialog {
 
     private String buildSectionLabel(Section section) {
         String code = safeText(section.getSectionCode(), "NO-CODE");
-        String name = safeText(section.getSectionName(), "Unnamed Section");
         String status = safeText(section.getStatus(), "OPEN").toUpperCase();
         String capacity = section.getCapacity() == null ? "N/A" : String.valueOf(section.getCapacity());
-        return code + " - " + name + " | Status: " + status + " | Cap: " + capacity + " | ID " + section.getId();
+        return code + " | Status: " + status + " | Cap: " + capacity + " | ID " + section.getId();
     }
 
     private String safeText(String value, String fallback) {

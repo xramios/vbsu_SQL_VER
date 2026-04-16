@@ -55,9 +55,11 @@ public class SectionForm extends javax.swing.JFrame {
                 spinnerCapaity.setModel(new javax.swing.SpinnerNumberModel(40, 1, 500, 1));
                 cbxStatus.setModel(new javax.swing.DefaultComboBoxModel<>(STATUS_OPTIONS.toArray(new String[0])));
                 cbxStatus.setSelectedItem(STATUS_OPEN);
-                
+
+                txtSectionName.setEnabled(false);
                 txtSectionName.setVisible(false);
-                jLabel4.setText("Section Code (Canonical Identifier)");
+                jLabel1.setText("Section Management");
+                jLabel4.setText("Section Code (Identifier)");
 
                 if (editingSection == null) {
                         windowBar1.setTitle("Section Form");

@@ -120,7 +120,6 @@ CREATE TABLE subjects
 CREATE TABLE sections
 (
     id           bigint NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    section_name varchar(64),
     section_code varchar(64),
     capacity     int    NOT NULL,
     status      varchar(16) CHECK (status IN ('OPEN', 'CLOSED', 'WAITLIST', 'DISSOLVED')) DEFAULT 'OPEN',

@@ -63,7 +63,6 @@ class AcademicSeeder(BaseSeeder):
     SECTIONS_CREATE_SQL = """
         CREATE TABLE APP.sections (
             id BIGINT NOT NULL GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            section_name VARCHAR(48),
             section_code VARCHAR(48),
             capacity INT NOT NULL,
             status VARCHAR(20) CHECK (status IN ('OPEN', 'CLOSED', 'WAITLIST', 'DISSOLVED')) DEFAULT 'OPEN',
@@ -310,29 +309,27 @@ class AcademicSeeder(BaseSeeder):
             for section_index in tqdm(range(section_count), desc="Creating sections", unit="section"):
                 # sectionName is derived from sectionCode (canonical identifier)
                 section_code = f"SEC-{section_index + 1:03d}"
-                section_name = section_code  # Derived from code
                 capacity = random.randint(*SECTION_CAPACITY_RANGE)
                 status = random.choices(SECTION_STATUSES, weights=[0.82, 0.08, 0.07, 0.03], k=1)[0]
 
                 if self.db_manager.db_type == "derby":
                     query = """
-                        INSERT INTO APP.sections (section_name, section_code, capacity, status)
-                        VALUES (?, ?, ?, ?)
+                        INSERT INTO APP.sections (section_code, capacity, status)
+                        VALUES (?, ?, ?)
                     """
-                    cursor.execute(query, (section_name, section_code, capacity, status))
+                    cursor.execute(query, (section_code, capacity, status))
                 else:
                     query = """
-                        INSERT INTO sections (section_name, section_code, capacity, status)
-                        VALUES (%s, %s, %s, %s)
+                        INSERT INTO sections (section_code, capacity, status)
+                        VALUES (%s, %s, %s)
                     """
-                    cursor.execute(query, (section_name, section_code, capacity, status))
+                    cursor.execute(query, (section_code, capacity, status))
 
                 last_id = self.adapter.get_last_insert_id(cursor, "sections")
 
                 self.state.sections.append(
                     Section(
                         id=last_id,
-                        section_name=section_name,
                         section_code=section_code,
                         capacity=capacity,
                         status=status,

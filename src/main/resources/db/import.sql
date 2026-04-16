@@ -104,7 +104,6 @@ CREATE TABLE IF NOT EXISTS subjects
 CREATE TABLE IF NOT EXISTS sections
 (
     id           bigint PRIMARY KEY AUTO_INCREMENT,
-    section_name varchar(48),
     section_code varchar(48),
     capacity     int NOT NULL,
     status       ENUM ('OPEN', 'CLOSED', 'WAITLIST', 'DISSOLVED') DEFAULT 'OPEN',

@@ -115,12 +115,12 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
         private void configureTableModel() {
                 DefaultTableModel model = new DefaultTableModel(
                         new Object[][]{},
-                        new String[]{"Section Name", "Code", "Capacity", "Enrolled", "Status"}
+                        new String[]{"Section Code", "Capacity", "Enrolled", "Status"}
                 ) {
                         @Override
                         public Class<?> getColumnClass(int columnIndex) {
                                 return switch (columnIndex) {
-                                        case 2, 3 -> Integer.class;
+                                        case 1, 2 -> Integer.class;
                                         default -> String.class;
                                 };
                         }
@@ -248,7 +248,6 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                         hash = 31 * hash + Objects.hash(
                                 section.getId(),
                                 safeText(section.getSectionCode(), ""),
-                                safeText(section.getSectionName(), ""),
                                 normalizeCapacity(section.getCapacity()),
                                 normalizeStatus(section.getStatus())
                         );
@@ -308,10 +307,9 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                         return true;
                 }
 
-                String sectionName = safeText(section.getSectionName(), "").toLowerCase();
                 String sectionCode = safeText(section.getSectionCode(), "").toLowerCase();
 
-                return sectionName.contains(searchTerm) || sectionCode.contains(searchTerm);
+                return sectionCode.contains(searchTerm);
         }
 
         private boolean matchesStatus(Section section, String selectedStatus) {
@@ -339,7 +337,6 @@ public class RegistrarSectionsManagement extends javax.swing.JPanel {
                         String displayStatus = deriveDisplayStatus(section, enrolledCount, capacity);
 
                         model.addRow(new Object[]{
-                                safeText(section.getSectionName(), "N/A"),
                                 safeText(section.getSectionCode(), "N/A"),
                                 capacity,
                                 enrolledCount,

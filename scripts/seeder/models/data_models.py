@@ -192,7 +192,6 @@ class Section:
     """Represents a reusable class section."""
 
     id: int
-    section_name: str
     section_code: str
     capacity: int
     status: str = "OPEN"
@@ -200,13 +199,14 @@ class Section:
     updated_at: Optional[datetime] = None
 
     @property
-    def name(self) -> str:
-        """Backward-compatible alias for section_name."""
-        return self.section_name
+    def section_name(self) -> str:
+        """Name is derived from code."""
+        return self.section_code
 
-    @name.setter
-    def name(self, value: str) -> None:
-        self.section_name = value
+    @property
+    def name(self) -> str:
+        """Alias for section_code."""
+        return self.section_code
 
     @property
     def code(self) -> str:

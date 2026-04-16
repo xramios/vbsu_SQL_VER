@@ -71,16 +71,14 @@ public class SectionService {
     try (Connection conn = ConnectionService.getConnection()) {
       boolean hasStatusColumn = hasStatusColumn(conn);
       String sql = hasStatusColumn
-          ? "INSERT INTO sections (section_name, section_code, capacity, status) VALUES (?, ?, ?, ?)"
-          : "INSERT INTO sections (section_name, section_code, capacity) VALUES (?, ?, ?)";
+          ? "INSERT INTO sections (section_code, capacity, status) VALUES (?, ?, ?)"
+          : "INSERT INTO sections (section_code, capacity) VALUES (?, ?)";
 
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        // sectionName is derived from sectionCode
         ps.setString(1, normalizeText(section.getSectionCode()));
-        ps.setString(2, normalizeText(section.getSectionCode()));
-        ps.setInt(3, normalizeCapacity(section.getCapacity()));
+        ps.setInt(2, normalizeCapacity(section.getCapacity()));
         if (hasStatusColumn) {
-          ps.setString(4, normalizeStatus(section.getStatus()));
+          ps.setString(3, normalizeStatus(section.getStatus()));
         }
 
         return ps.executeUpdate() > 0;
@@ -99,19 +97,17 @@ public class SectionService {
     try (Connection conn = ConnectionService.getConnection()) {
       boolean hasStatusColumn = hasStatusColumn(conn);
       String sql = hasStatusColumn
-          ? "UPDATE sections SET section_name = ?, section_code = ?, capacity = ?, status = ? WHERE id = ?"
-          : "UPDATE sections SET section_name = ?, section_code = ?, capacity = ? WHERE id = ?";
+          ? "UPDATE sections SET section_code = ?, capacity = ?, status = ? WHERE id = ?"
+          : "UPDATE sections SET section_code = ?, capacity = ? WHERE id = ?";
 
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        // sectionName is derived from sectionCode
         ps.setString(1, normalizeText(section.getSectionCode()));
-        ps.setString(2, normalizeText(section.getSectionCode()));
-        ps.setInt(3, normalizeCapacity(section.getCapacity()));
+        ps.setInt(2, normalizeCapacity(section.getCapacity()));
         if (hasStatusColumn) {
-          ps.setString(4, normalizeStatus(section.getStatus()));
-          ps.setLong(5, section.getId());
-        } else {
+          ps.setString(3, normalizeStatus(section.getStatus()));
           ps.setLong(4, section.getId());
+        } else {
+          ps.setLong(3, section.getId());
         }
 
         return ps.executeUpdate() > 0;

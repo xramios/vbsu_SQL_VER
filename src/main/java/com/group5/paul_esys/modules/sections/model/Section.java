@@ -5,7 +5,6 @@ import java.sql.Timestamp;
 public class Section {
 
   private Long id;
-  private String sectionName;
   private String sectionCode;
   private Integer capacity;
   private String status;
@@ -26,8 +25,6 @@ public class Section {
     this.status = status;
     this.updatedAt = updatedAt;
     this.createdAt = createdAt;
-    // sectionName is derived from sectionCode
-    this.sectionName = sectionCode;
   }
 
   public Long getId() {
@@ -40,13 +37,7 @@ public class Section {
   }
 
   public String getSectionName() {
-    return sectionName;
-  }
-
-  // sectionName is derived from sectionCode; not settable from outside
-  private Section setSectionName(String sectionName) {
-    this.sectionName = sectionName;
-    return this;
+    return sectionCode;
   }
 
   public String getSectionCode() {
@@ -55,8 +46,6 @@ public class Section {
 
   public Section setSectionCode(String sectionCode) {
     this.sectionCode = sectionCode;
-    // sectionName is always derived from sectionCode
-    this.sectionName = sectionCode;
     return this;
   }
 
