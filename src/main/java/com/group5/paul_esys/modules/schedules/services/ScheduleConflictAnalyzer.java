@@ -1,6 +1,5 @@
 package com.group5.paul_esys.modules.schedules.services;
 
-import com.group5.paul_esys.modules.courses.services.CourseService;
 import com.group5.paul_esys.modules.offerings.model.Offering;
 import com.group5.paul_esys.modules.offerings.services.OfferingService;
 import com.group5.paul_esys.modules.schedules.model.Schedule;

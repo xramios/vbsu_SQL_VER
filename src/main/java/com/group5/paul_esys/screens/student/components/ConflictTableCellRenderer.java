@@ -15,16 +15,13 @@ public class ConflictTableCellRenderer extends DefaultTableCellRenderer {
   public static final Color NORMAL_BACKGROUND = Color.WHITE;
 
   private final boolean hasConflict;
-  private final String conflictIcon;
 
   /**
    * Creates a renderer for a cell.
    * @param hasConflict true if this row represents a schedule with conflicts
-   * @param conflictIcon optional icon to display (e.g., "⚠" or "🔴")
    */
-  public ConflictTableCellRenderer(boolean hasConflict, String conflictIcon) {
+  public ConflictTableCellRenderer(boolean hasConflict) {
     this.hasConflict = hasConflict;
-    this.conflictIcon = conflictIcon;
   }
 
   @Override

@@ -41,15 +41,12 @@ import com.group5.paul_esys.modules.subjects.services.SubjectService;
 import com.group5.paul_esys.modules.users.services.UserSession;
 import com.group5.paul_esys.screens.shared.panels.SettingsPanel;
 import com.group5.paul_esys.screens.sign_in.SignIn;
+import com.group5.paul_esys.utils.ThemeManager;
 import com.group5.paul_esys.screens.student.components.ConflictTableCellRenderer;
 import com.group5.paul_esys.modules.users.models.enums.RemovalActionType;
 import com.group5.paul_esys.modules.users.services.RemovalAuditService;
 import java.awt.*;
-import java.awt.print.PrinterException;
-import java.io.File;
-import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.MessageFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -205,6 +202,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 		configureSubjectCatalogTable();
 		configureScheduleTable();
 		configureSelectedSubjectsPanel();
+		configureCompletedSubjectsTab();
 	}
 
 	private void reloadStudentDashboardData() {
@@ -2133,60 +2131,6 @@ public class StudentDashboard extends javax.swing.JFrame {
 		loadSubjectCatalogAsync(txtSearch.getText());
 	}// GEN-LAST:event_btnSearchSubjectActionPerformed
 
-	private void exportPdfPreview() {
-		// Provide a quick feedback for exporting
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setDialogTitle("Export Schedule PDF");
-		String fileName = "Schedule_" + currentStudent.getFirstName() + "_" + currentStudent.getLastName() + ".pdf";
-		fileChooser.setSelectedFile(new File(fileName));
-
-		if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-			File fileToSave = fileChooser.getSelectedFile();
-			// Ensure it has .pdf extension
-			if (!fileToSave.getName().toLowerCase().endsWith(".pdf")) {
-				fileToSave = new File(fileToSave.getParentFile(), fileToSave.getName() + ".pdf");
-			}
-
-			final File finalFile = fileToSave;
-
-			try {
-				MessageFormat header = new MessageFormat("Class Schedule - " + currentStudent.getFirstName() + " " + currentStudent.getLastName());
-				MessageFormat footer = new MessageFormat("VBSU Enrollment System - Page {0}");
-
-				// Trigger the print with the system dialog to allow "Print to PDF" redirection
-				// Then automatically attempt to open the resulting file preview
-				boolean complete = tableSchedules.print(JTable.PrintMode.FIT_WIDTH, header, footer);
-
-				if (complete) {
-					JOptionPane.showMessageDialog(this,
-							"Schedule exported. Opening preview...",
-							"Export PDF",
-							JOptionPane.INFORMATION_MESSAGE);
-
-					// Wait briefly and try to open if the file exists (requires user to actually save to the chosen path)
-					if (finalFile.exists()) {
-						Desktop.getDesktop().open(finalFile);
-					}
-				}
-			} catch (PrinterException | IOException pe) {
-				JOptionPane.showMessageDialog(this, "Export failed: " + pe.getMessage(), "Export Error", JOptionPane.ERROR_MESSAGE);
-			}
-		}
-	}
-
-	private void printSchedule() {
-		try {
-			MessageFormat header = new MessageFormat("Class Schedule - " + currentStudent.getFirstName() + " " + currentStudent.getLastName());
-			MessageFormat footer = new MessageFormat("VBSU Enrollment System - Page {0}");
-			boolean complete = tableSchedules.print(JTable.PrintMode.FIT_WIDTH, header, footer);
-			if (complete) {
-				JOptionPane.showMessageDialog(this, "Printing complete", "Print Schedule", JOptionPane.INFORMATION_MESSAGE);
-			}
-		} catch (PrinterException pe) {
-			JOptionPane.showMessageDialog(this, "Printing failed: " + pe.getMessage(), "Print Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-
 	private void btnSubmitScheduleActionPerformed(java.awt.event.ActionEvent evt) {// GEN-FIRST:event_btnSubmitScheduleActionPerformed
 		persistSelectedSchedule(EnrollmentStatus.ENROLLED);
 	}// GEN-LAST:event_btnSubmitScheduleActionPerformed
@@ -2744,7 +2688,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 		List<ScheduleConflict> conflicts = ScheduleConflictAnalyzer.getInstance()
 				.getConflictsForOffering(offeringId, new HashMap<>(), currentScheduleConflicts);
 
-		ConflictTableCellRenderer conflictRenderer = new ConflictTableCellRenderer(true, "⚠");
+		ConflictTableCellRenderer conflictRenderer = new ConflictTableCellRenderer(true);
 		for (int col = 0; col < tableSchedules.getColumnCount(); col++) {
 			tableSchedules.getColumn(tableSchedules.getColumnName(col))
 					.setCellRenderer(conflictRenderer);
