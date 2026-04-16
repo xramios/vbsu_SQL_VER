@@ -42,7 +42,8 @@ import com.group5.paul_esys.modules.users.services.UserSession;
 import com.group5.paul_esys.screens.shared.panels.SettingsPanel;
 import com.group5.paul_esys.screens.sign_in.SignIn;
 import com.group5.paul_esys.screens.student.components.ConflictTableCellRenderer;
-import com.group5.paul_esys.utils.ThemeManager;
+import com.group5.paul_esys.modules.users.models.enums.RemovalActionType;
+import com.group5.paul_esys.modules.users.services.RemovalAuditService;
 import java.awt.*;
 import java.awt.print.PrinterException;
 import java.io.File;
@@ -1104,9 +1105,38 @@ public class StudentDashboard extends javax.swing.JFrame {
 
 	private List<Integer> getCheckedCatalogModelRows(DefaultTableModel catalogModel) {
 		List<Integer> checkedRows = new ArrayList<>();
+		Set<Long> subjectIds = new HashSet<>();
+		List<Integer> duplicateRows = new ArrayList<>();
+
 		for (int modelRow = 0; modelRow < catalogModel.getRowCount(); modelRow++) {
 			if (isCatalogRowChecked(catalogModel, modelRow)) {
+				Long subjectId = parseLongCell(catalogModel.getValueAt(modelRow, CATALOG_COL_SUBJECT_ID));
+				if (subjectId != null && !subjectIds.add(subjectId)) {
+					duplicateRows.add(modelRow);
+					continue;
+				}
 				checkedRows.add(modelRow);
+			}
+		}
+
+		if (!duplicateRows.isEmpty()) {
+			int confirm = JOptionPane.showConfirmDialog(
+					this,
+					"Multiple sections for the same subject were detected. "
+							+ "Only the first section per subject will be preserved to avoid duplication errors. "
+							+ "Continue?",
+					"Duplicate Subject Resolution",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.WARNING_MESSAGE);
+
+			if (confirm == JOptionPane.YES_OPTION) {
+				RemovalAuditService.getInstance().logRemoval(
+						UserSession.getInstance().getUserInformation().getUser(),
+						RemovalActionType.DUPLICATE_RESOLUTION,
+						"Removed " + duplicateRows.size() + " duplicate subject sections automatically.");
+			} else {
+				// User cancelled, return empty to stop persistence but allow manual correction
+				return new ArrayList<>();
 			}
 		}
 
@@ -2437,7 +2467,9 @@ public class StudentDashboard extends javax.swing.JFrame {
 		Map<Long, EnrollmentDetail> existingDetailsByOfferingId = new HashMap<>();
 		for (EnrollmentDetail detail : EnrollmentDetailService.getInstance()
 				.getEnrollmentDetailsByEnrollment(activeEnrollment.getId())) {
-			existingDetailsByOfferingId.put(detail.getOfferingId(), detail);
+			if (detail.getStatus() != EnrollmentDetailStatus.DROPPED) {
+				existingDetailsByOfferingId.put(detail.getOfferingId(), detail);
+			}
 		}
 
 		Set<Long> selectedOfferingIds = new HashSet<>();
@@ -2445,12 +2477,51 @@ public class StudentDashboard extends javax.swing.JFrame {
 			selectedOfferingIds.add(selection.offering.getId());
 		}
 
+		// Safeguard: Check for mass removal
+		int removedCount = 0;
+		for (Long existingOfferingId : existingDetailsByOfferingId.keySet()) {
+			if (!selectedOfferingIds.contains(existingOfferingId)) {
+				removedCount++;
+			}
+		}
+
+		if (removedCount > 0 && selectedOfferingIds.isEmpty()) {
+			int confirm = JOptionPane.showConfirmDialog(
+					this,
+					"You are attempting to remove ALL subjects from your enrollment. "
+							+ "This action will be logged. Continue?",
+					"Mass Removal Confirmation",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.WARNING_MESSAGE);
+
+			if (confirm != JOptionPane.YES_OPTION) {
+				return;
+			}
+			RemovalAuditService.getInstance().logRemoval(
+					UserSession.getInstance().getUserInformation(),
+					RemovalActionType.MASS_REMOVAL,
+					"Student removed all subjects (" + removedCount + " items) from enrollment period ID: "
+							+ activeEnrollmentPeriodId);
+		} else if (removedCount >= 3) {
+			int confirm = JOptionPane.showConfirmDialog(
+					this,
+					"You are removing " + removedCount + " subjects. Are you sure?",
+					"Confirm Removal",
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE);
+
+			if (confirm != JOptionPane.YES_OPTION) {
+				return;
+			}
+			RemovalAuditService.getInstance().logRemoval(
+					UserSession.getInstance().getUserInformation(),
+					RemovalActionType.REMOVE_ITEM,
+					"Student removed " + removedCount + " subjects from enrollment period ID: "
+							+ activeEnrollmentPeriodId);
+		}
+
 		for (EnrollmentDetail existingDetail : existingDetailsByOfferingId.values()) {
 			if (selectedOfferingIds.contains(existingDetail.getOfferingId())) {
-				continue;
-			}
-
-			if (existingDetail.getStatus() == EnrollmentDetailStatus.DROPPED) {
 				continue;
 			}
 
