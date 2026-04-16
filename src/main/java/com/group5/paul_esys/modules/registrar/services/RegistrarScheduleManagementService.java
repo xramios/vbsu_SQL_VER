@@ -1417,11 +1417,23 @@ public class RegistrarScheduleManagementService {
       return new ScheduleSaveResult(false, "Start and end time are required.");
     }
 
+    if (isTBATime(request.startTime())) {
+      return new ScheduleSaveResult(false, "Start time cannot be TBA (00:00). Please set a specific start time.");
+    }
+
+    if (isTBATime(request.endTime())) {
+      return new ScheduleSaveResult(false, "End time cannot be TBA (00:00). Please set a specific end time.");
+    }
+
     if (!request.startTime().isBefore(request.endTime())) {
       return new ScheduleSaveResult(false, "Start time must be earlier than end time.");
     }
 
     return new ScheduleSaveResult(true, "OK");
+  }
+
+  private boolean isTBATime(LocalTime time) {
+    return time != null && time.getHour() == 0 && time.getMinute() == 0;
   }
 
   private ScheduleSaveResult validateConflicts(Connection conn, ScheduleUpsertRequest request, boolean isUpdate)

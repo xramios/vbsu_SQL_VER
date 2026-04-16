@@ -410,8 +410,13 @@ public class ScheduleEntryDialog extends javax.swing.JDialog {
             return;
         }
 
-        if (startTime.getHour() == 0 && startTime.getMinute() == 0 && endTime.getHour() == 0 && endTime.getMinute() == 0) {
-            showError("TBA (00:00) is not allowed. Please set specific times.");
+        if (isTBATime(startTime)) {
+            showError("Start time cannot be TBA (00:00). Please set a specific start time.");
+            return;
+        }
+
+        if (isTBATime(endTime)) {
+            showError("End time cannot be TBA (00:00). Please set a specific end time.");
             return;
         }
 
@@ -514,6 +519,10 @@ public class ScheduleEntryDialog extends javax.swing.JDialog {
         } catch (DateTimeParseException ex) {
             return null;
         }
+    }
+
+    private boolean isTBATime(LocalTime time) {
+        return time != null && time.getHour() == 0 && time.getMinute() == 0;
     }
 
     private void showError(String message) {

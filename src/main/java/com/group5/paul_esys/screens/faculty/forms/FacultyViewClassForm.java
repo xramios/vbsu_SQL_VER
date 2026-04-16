@@ -238,7 +238,23 @@ public class FacultyViewClassForm extends javax.swing.JFrame {
                         return;
                 }
 
-                String reason = JOptionPane.showInputDialog(this, "Enter reason for drop request:", "Drop Request", JOptionPane.QUESTION_MESSAGE);
+                if (!RegistrarDropRequestService.getInstance().isDropRequestAllowed(classListRow.offeringId())) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Drop requests are no longer allowed for this enrollment period.\n" +
+                                "The enrollment period has ended.",
+                                "Drop Request Not Allowed",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
+                String reason = JOptionPane.showInputDialog(
+                        this,
+                        "Enter reason for drop request (mandatory):",
+                        "Request Student DROP",
+                        JOptionPane.QUESTION_MESSAGE
+                );
                 if (reason == null || reason.trim().isEmpty()) {
                         return;
                 }
@@ -251,9 +267,21 @@ public class FacultyViewClassForm extends javax.swing.JFrame {
                 );
 
                 if (success) {
-                        JOptionPane.showMessageDialog(this, "Drop request submitted to Registrar for approval.", "Request Sent", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Drop request for " + selectedStudent.fullName() + " has been submitted to the Registrar for approval.\n" +
+                                "The student will be notified of the decision.",
+                                "Request Submitted",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                        loadClassStudents();
                 } else {
-                        JOptionPane.showMessageDialog(this, "Failed to submit drop request.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Failed to submit drop request. Please try again or contact the Registrar.",
+                                "Submission Failed",
+                                JOptionPane.ERROR_MESSAGE
+                        );
                 }
         }
 

@@ -154,18 +154,77 @@ public class RegistrarDropRequestService {
   }
 
   public boolean createDropRequest(Long facultyId, String studentId, Long offeringId, String reason) {
-    String sql = "INSERT INTO faculty_student_drop_requests (faculty_id, student_id, offering_id, reason, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
-    try (Connection conn = ConnectionService.getConnection();
-         PreparedStatement ps = conn.prepareStatement(sql)) {
-      ps.setLong(1, facultyId);
-      ps.setString(2, studentId);
-      ps.setLong(3, offeringId);
-      ps.setString(4, reason);
-      ps.setString(5, DropRequestStatus.PENDING.name());
-      return ps.executeUpdate() > 0;
-    } catch (SQLException e) {
-      logger.error("ERROR: {}", e.getMessage(), e);
+    if (facultyId == null || studentId == null || studentId.isBlank() || offeringId == null) {
+      logger.warn("Unable to create drop request: insufficient parameters");
       return false;
+    }
+
+    try (Connection conn = ConnectionService.getConnection()) {
+      if (!isDropRequestAllowed(conn, offeringId)) {
+        logger.warn(
+            "Drop request rejected: allowed period has expired. facultyId={}, studentId={}, offeringId={}",
+            facultyId, studentId, offeringId
+        );
+        return false;
+      }
+
+      String sql = "INSERT INTO faculty_student_drop_requests (faculty_id, student_id, offering_id, reason, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setLong(1, facultyId);
+        ps.setString(2, studentId);
+        ps.setLong(3, offeringId);
+        ps.setString(4, reason);
+        ps.setString(5, DropRequestStatus.PENDING.name());
+
+        boolean inserted = ps.executeUpdate() > 0;
+        if (inserted) {
+          logger.info(
+              "Faculty drop request created: facultyId={}, studentId={}, offeringId={}, reason={}",
+              facultyId, studentId, offeringId, reason == null ? "" : reason.trim()
+          );
+        }
+        return inserted;
+      }
+    } catch (SQLException e) {
+      logger.error("ERROR creating drop request: {}", e.getMessage(), e);
+      return false;
+    }
+  }
+
+  public boolean isDropRequestAllowed(Long offeringId) {
+    try (Connection conn = ConnectionService.getConnection()) {
+      return isDropRequestAllowed(conn, offeringId);
+    } catch (SQLException e) {
+      logger.error("ERROR checking drop request eligibility: {}", e.getMessage(), e);
+      return false;
+    }
+  }
+
+  private boolean isDropRequestAllowed(Connection conn, Long offeringId) throws SQLException {
+    String sql = """
+        SELECT ep.id, ep.end_date
+        FROM offerings o
+        INNER JOIN enrollment_period ep ON ep.id = o.enrollment_period_id
+        WHERE o.id = ?
+        """;
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setLong(1, offeringId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (!rs.next()) {
+          return false;
+        }
+
+        java.sql.Timestamp endDate = rs.getTimestamp("end_date");
+        if (endDate == null) {
+          return false;
+        }
+
+        java.time.LocalDateTime endDateTime = endDate.toLocalDateTime();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+
+        return !now.isAfter(endDateTime);
+      }
     }
   }
 
