@@ -75,7 +75,8 @@ public class SectionService {
           : "INSERT INTO sections (section_name, section_code, capacity) VALUES (?, ?, ?)";
 
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setString(1, normalizeText(section.getSectionName()));
+        // sectionName is derived from sectionCode
+        ps.setString(1, normalizeText(section.getSectionCode()));
         ps.setString(2, normalizeText(section.getSectionCode()));
         ps.setInt(3, normalizeCapacity(section.getCapacity()));
         if (hasStatusColumn) {
@@ -102,7 +103,8 @@ public class SectionService {
           : "UPDATE sections SET section_name = ?, section_code = ?, capacity = ? WHERE id = ?";
 
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setString(1, normalizeText(section.getSectionName()));
+        // sectionName is derived from sectionCode
+        ps.setString(1, normalizeText(section.getSectionCode()));
         ps.setString(2, normalizeText(section.getSectionCode()));
         ps.setInt(3, normalizeCapacity(section.getCapacity()));
         if (hasStatusColumn) {

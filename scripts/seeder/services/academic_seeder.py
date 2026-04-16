@@ -308,8 +308,9 @@ class AcademicSeeder(BaseSeeder):
         try:
             section_count = random.randint(*SECTIONS_PER_SUBJECT) * max(len(self.state.courses), 1)
             for section_index in tqdm(range(section_count), desc="Creating sections", unit="section"):
-                section_name = f"Block {section_index + 1}"
+                # sectionName is derived from sectionCode (canonical identifier)
                 section_code = f"SEC-{section_index + 1:03d}"
+                section_name = section_code  # Derived from code
                 capacity = random.randint(*SECTION_CAPACITY_RANGE)
                 status = random.choices(SECTION_STATUSES, weights=[0.82, 0.08, 0.07, 0.03], k=1)[0]
 

@@ -21,10 +21,7 @@ public class SectionForm extends javax.swing.JFrame {
 	private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(SectionForm.class.getName());
         private static final int MIN_SECTION_CODE_LENGTH = 2;
         private static final int MAX_SECTION_CODE_LENGTH = 20;
-        private static final int MIN_SECTION_NAME_LENGTH = 2;
-        private static final int MAX_SECTION_NAME_LENGTH = 100;
         private static final Pattern SECTION_CODE_PATTERN = Pattern.compile("^[A-Za-z0-9._\\-/]+$");
-        private static final Pattern SECTION_NAME_PATTERN = Pattern.compile("^[A-Za-z0-9 .,'()\\-/&]+$");
 
         private static final String STATUS_OPEN = "OPEN";
         private static final List<String> STATUS_OPTIONS = List.of(
@@ -60,7 +57,7 @@ public class SectionForm extends javax.swing.JFrame {
                 cbxStatus.setSelectedItem(STATUS_OPEN);
                 
                 txtSectionName.setVisible(false);
-                jLabel4.setText("Section Name (Combined)");
+                jLabel4.setText("Section Code (Canonical Identifier)");
 
                 if (editingSection == null) {
                         windowBar1.setTitle("Section Form");
@@ -76,7 +73,6 @@ public class SectionForm extends javax.swing.JFrame {
                 btnSave.setText("Update");
 
                 txtSectionCode.setText(readSafeText(editingSection.getSectionCode()));
-                txtSectionName.setText(readSafeText(editingSection.getSectionName()));
                 spinnerCapaity.setValue(Math.max(1, normalizeCapacity(editingSection.getCapacity())));
                 cbxStatus.setSelectedItem(normalizeStatus(editingSection.getStatus()));
         }
@@ -112,20 +108,6 @@ public class SectionForm extends javax.swing.JFrame {
                                 MAX_SECTION_CODE_LENGTH,
                                 SECTION_CODE_PATTERN,
                                 "letters, numbers, and . _ - /"
-                        )
-                )) {
-                        return false;
-                }
-
-                String sectionName = readSafeText(txtSectionName.getText());
-                if (showValidationError(
-                        FormValidationUtil.validateRequiredText(
-                                "Section name",
-                                sectionName,
-                                MIN_SECTION_NAME_LENGTH,
-                                MAX_SECTION_NAME_LENGTH,
-                                SECTION_NAME_PATTERN,
-                                "letters, numbers, spaces, and . , ' ( ) - / &"
                         )
                 )) {
                         return false;
@@ -187,7 +169,6 @@ public class SectionForm extends javax.swing.JFrame {
                 String unifiedCode = FormValidationUtil.normalizeOptionalText(txtSectionCode.getText());
                 section
                         .setSectionCode(unifiedCode)
-                        .setSectionName(unifiedCode)
                         .setCapacity(((Number) spinnerCapaity.getValue()).intValue())
                         .setStatus(normalizeStatus(cbxStatus.getSelectedItem() == null ? STATUS_OPEN : cbxStatus.getSelectedItem().toString()));
 

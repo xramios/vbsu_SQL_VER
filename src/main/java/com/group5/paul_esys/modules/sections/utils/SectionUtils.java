@@ -11,7 +11,6 @@ public class SectionUtils {
   public static Section mapResultSetToSection(ResultSet rs) throws SQLException {
     return new Section(
         rs.getLong("id"),
-        rs.getString("section_name"),
         rs.getString("section_code"),
         rs.getInt("capacity"),
         getOptionalColumnValue(rs, "status", "OPEN"),

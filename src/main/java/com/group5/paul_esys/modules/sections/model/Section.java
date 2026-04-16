@@ -15,18 +15,19 @@ public class Section {
   public Section() {
   }
 
-  public Section(Long id, String sectionName, String sectionCode, Integer capacity, Timestamp updatedAt, Timestamp createdAt) {
-    this(id, sectionName, sectionCode, capacity, "OPEN", updatedAt, createdAt);
+  public Section(Long id, String sectionCode, Integer capacity, Timestamp updatedAt, Timestamp createdAt) {
+    this(id, sectionCode, capacity, "OPEN", updatedAt, createdAt);
   }
 
-  public Section(Long id, String sectionName, String sectionCode, Integer capacity, String status, Timestamp updatedAt, Timestamp createdAt) {
+  public Section(Long id, String sectionCode, Integer capacity, String status, Timestamp updatedAt, Timestamp createdAt) {
     this.id = id;
-    this.sectionName = sectionName;
     this.sectionCode = sectionCode;
     this.capacity = capacity;
     this.status = status;
     this.updatedAt = updatedAt;
     this.createdAt = createdAt;
+    // sectionName is derived from sectionCode
+    this.sectionName = sectionCode;
   }
 
   public Long getId() {
@@ -42,7 +43,8 @@ public class Section {
     return sectionName;
   }
 
-  public Section setSectionName(String sectionName) {
+  // sectionName is derived from sectionCode; not settable from outside
+  private Section setSectionName(String sectionName) {
     this.sectionName = sectionName;
     return this;
   }
@@ -53,6 +55,8 @@ public class Section {
 
   public Section setSectionCode(String sectionCode) {
     this.sectionCode = sectionCode;
+    // sectionName is always derived from sectionCode
+    this.sectionName = sectionCode;
     return this;
   }
 
