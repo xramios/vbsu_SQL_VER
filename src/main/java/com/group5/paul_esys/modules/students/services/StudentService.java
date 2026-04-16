@@ -249,21 +249,7 @@ public class StudentService {
     }
 
     public Optional<String> getUserEmailByUserId(Long userId) {
-        String sql = "SELECT email FROM users WHERE id = ?";
-        try (
-            Connection conn = ConnectionService.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            stmt.setLong(1, userId);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.ofNullable(rs.getString("email"));
-                }
-            }
-        } catch (SQLException e) {
-            logger.error(e.getMessage());
-        }
-        return Optional.empty();
+        return com.group5.paul_esys.modules.users.utils.UserUtils.getUserEmailByUserId(userId);
     }
 
     public boolean isEmailAvailable(String email) {

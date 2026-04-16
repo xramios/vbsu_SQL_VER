@@ -235,26 +235,7 @@ public class FacultyService {
   }
 
   public Optional<String> getUserEmailByUserId(Long userId) {
-    if (userId == null) {
-      return Optional.empty();
-    }
-
-    try (
-      Connection conn = ConnectionService.getConnection();
-      PreparedStatement ps = conn.prepareStatement("SELECT email FROM users WHERE id = ?")
-    ) {
-      ps.setLong(1, userId);
-
-      try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) {
-          return Optional.ofNullable(rs.getString("email"));
-        }
-      }
-    } catch (SQLException e) {
-      logger.error("ERROR: " + e.getMessage(), e);
-    }
-
-    return Optional.empty();
+    return com.group5.paul_esys.modules.users.utils.UserUtils.getUserEmailByUserId(userId);
   }
 
   public boolean updateFacultyWithEmail(Faculty faculty, String email) {
