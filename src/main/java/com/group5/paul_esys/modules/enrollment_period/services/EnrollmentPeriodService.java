@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,6 +130,35 @@ public class EnrollmentPeriodService {
     }
   }
 
+  public Optional<EnrollmentPeriod> getOpenEnrollmentPeriodExcluding(Long excludeId) {
+    try (Connection conn = ConnectionService.getConnection()) {
+      return findOpenEnrollmentPeriod(conn, excludeId);
+    } catch (SQLException e) {
+      logger.error("ERROR: " + e.getMessage(), e);
+    }
+    return Optional.empty();
+  }
+
+  private Optional<EnrollmentPeriod> findOpenEnrollmentPeriod(Connection conn, Long excludeId) throws SQLException {
+    String sql = excludeId == null
+        ? "SELECT * FROM enrollment_period WHERE start_date <= CURRENT_TIMESTAMP AND end_date >= CURRENT_TIMESTAMP"
+        : "SELECT * FROM enrollment_period WHERE id <> ? AND start_date <= CURRENT_TIMESTAMP AND end_date >= CURRENT_TIMESTAMP";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+      if (excludeId != null) {
+        ps.setLong(1, excludeId);
+      }
+
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return Optional.of(EnrollmentPeriodUtils.mapResultSetToEnrollmentPeriod(rs));
+        }
+      }
+    }
+
+    return Optional.empty();
+  }
+
   private Optional<EnrollmentPeriod> findConflictingEnrollmentPeriod(Connection conn, EnrollmentPeriod period)
       throws SQLException {
     String sql = period.getId() == null
@@ -170,22 +200,24 @@ public class EnrollmentPeriodService {
   }
 
   public boolean createEnrollmentPeriod(EnrollmentPeriod period) {
-    if (period == null || period.getStartDate() == null || period.getEndDate() == null) {
+    if (period == null
+        || period.getStartDate() == null
+        || period.getEndDate() == null
+        || EnrollmentPeriodUtils.safeText(period.getSchoolYear(), null) == null
+        || EnrollmentPeriodUtils.safeText(period.getSemester(), null) == null) {
       return false;
     }
 
     try (Connection conn = ConnectionService.getConnection()) {
+      if (findOpenEnrollmentPeriod(conn, null).isPresent()) {
+        logger.warn("Enrollment period creation blocked because another period is already open.");
+        return false;
+      }
+
       if (findConflictingEnrollmentPeriod(conn, period).isPresent()) {
         logger.warn("Enrollment period conflict detected. schoolYear={}, semester={}, startDate={}, endDate={}",
             period.getSchoolYear(), period.getSemester(), period.getStartDate(), period.getEndDate());
         return false;
-      }
-      
-      // Step: Close any existing OPEN enrollment periods
-      try (PreparedStatement psClose = conn.prepareStatement(
-          "UPDATE enrollment_period SET end_date = CURRENT_TIMESTAMP WHERE end_date >= CURRENT_TIMESTAMP AND id <> COALESCE(?, -1)")) {
-        psClose.setObject(1, period.getId());
-        psClose.executeUpdate();
       }
 
       boolean hasDescription = hasDescriptionColumn(conn);
@@ -212,11 +244,23 @@ public class EnrollmentPeriodService {
   }
 
   public boolean updateEnrollmentPeriod(EnrollmentPeriod period) {
-    if (period == null || period.getId() == null || period.getStartDate() == null || period.getEndDate() == null) {
+    if (period == null
+        || period.getId() == null
+        || period.getStartDate() == null
+        || period.getEndDate() == null
+        || EnrollmentPeriodUtils.safeText(period.getSchoolYear(), null) == null
+        || EnrollmentPeriodUtils.safeText(period.getSemester(), null) == null) {
       return false;
     }
 
     try (Connection conn = ConnectionService.getConnection()) {
+      Optional<EnrollmentPeriod> openPeriod = findOpenEnrollmentPeriod(conn, period.getId());
+      if (openPeriod.isPresent() && !Objects.equals(openPeriod.get().getId(), period.getId())) {
+        logger.warn("Enrollment period update blocked because another period is currently open. updateId={}, openId={}",
+            period.getId(), openPeriod.get().getId());
+        return false;
+      }
+
       if (findConflictingEnrollmentPeriod(conn, period).isPresent()) {
         logger.warn("Enrollment period conflict detected during update. id={}, schoolYear={}, semester={}, startDate={}, endDate={}",
             period.getId(), period.getSchoolYear(), period.getSemester(), period.getStartDate(), period.getEndDate());
@@ -250,7 +294,17 @@ public class EnrollmentPeriodService {
   }
 
   public boolean deleteEnrollmentPeriod(Long id) {
+    if (id == null) {
+      return false;
+    }
+
     try (Connection conn = ConnectionService.getConnection()) {
+      Optional<EnrollmentPeriod> openPeriod = findOpenEnrollmentPeriod(conn, null);
+      if (openPeriod.isPresent() && Objects.equals(openPeriod.get().getId(), id)) {
+        logger.warn("Enrollment period delete blocked because the requested period is currently open. id={}", id);
+        return false;
+      }
+
       conn.setAutoCommit(false);
       try {
         // Step 1: Delete from student_enrolled_subjects through offerings

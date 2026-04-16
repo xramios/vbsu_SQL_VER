@@ -31,6 +31,7 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
 
         private List<EnrollmentPeriod> enrollmentPeriods = new ArrayList<>();
         private List<EnrollmentPeriod> filteredEnrollmentPeriods = new ArrayList<>();
+        private boolean controlsEnabled = true;
 
 	/**
 	 * Creates new form EnrollmentPeriodManagement
@@ -107,6 +108,7 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
                                 try {
                                         enrollmentPeriods = get();
                                         applyFilters();
+                                        updateActionAvailability();
                                 } catch (InterruptedException | ExecutionException e) {
                                         JOptionPane.showMessageDialog(
                                                 RegistrarEnrollmentPeriodManagement.this,
@@ -122,10 +124,24 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
         }
 
         private void setControlsEnabled(boolean enabled) {
+                controlsEnabled = enabled;
                 btnAddPeriod.setEnabled(enabled);
                 txtSearch.setEnabled(enabled);
                 cbxStatus.setEnabled(enabled);
                 tableEnrollmentPeriods.setEnabled(enabled);
+                updateActionAvailability();
+        }
+
+        private void updateActionAvailability() {
+                boolean mutationAllowed = controlsEnabled && !hasOpenEnrollmentPeriod();
+
+                btnAddPeriod.setEnabled(mutationAllowed);
+                menuItemUpdate.setEnabled(mutationAllowed);
+                menuItemDelete.setEnabled(mutationAllowed);
+        }
+
+        private boolean hasOpenEnrollmentPeriod() {
+                return enrollmentPeriodService.getOpenEnrollmentPeriodExcluding(null).isPresent();
         }
 
         private void applyFilters() {
@@ -205,6 +221,16 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
         }
 
         private void openUpdateEnrollmentPeriodForm() {
+                if (!controlsEnabled || hasOpenEnrollmentPeriod()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Enrollment periods cannot be modified while an OPEN enrollment period exists.",
+                                "Enrollment Period Locked",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
                 EnrollmentPeriod selectedPeriod = getSelectedEnrollmentPeriod();
                 if (selectedPeriod == null) {
                         JOptionPane.showMessageDialog(
@@ -221,6 +247,16 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
         }
 
         private void deleteSelectedEnrollmentPeriod() {
+                if (!controlsEnabled || hasOpenEnrollmentPeriod()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Enrollment periods cannot be modified while an OPEN enrollment period exists.",
+                                "Enrollment Period Locked",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
                 EnrollmentPeriod selectedPeriod = getSelectedEnrollmentPeriod();
                 if (selectedPeriod == null) {
                         JOptionPane.showMessageDialog(
@@ -468,6 +504,16 @@ public class RegistrarEnrollmentPeriodManagement extends javax.swing.JPanel {
         }//GEN-LAST:event_cbxStatusItemStateChanged
 
         private void btnAddPeriodActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddPeriodActionPerformed
+                if (!controlsEnabled || hasOpenEnrollmentPeriod()) {
+                        JOptionPane.showMessageDialog(
+                                this,
+                                "Enrollment periods cannot be modified while an OPEN enrollment period exists.",
+                                "Enrollment Period Locked",
+                                JOptionPane.WARNING_MESSAGE
+                        );
+                        return;
+                }
+
                 EnrollmentPeriodForm form = new EnrollmentPeriodForm(null, this::initializeEnrollmentPeriods);
                 form.setVisible(true);
         }//GEN-LAST:event_btnAddPeriodActionPerformed
