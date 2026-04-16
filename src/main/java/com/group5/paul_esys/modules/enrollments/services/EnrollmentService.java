@@ -2,7 +2,9 @@ package com.group5.paul_esys.modules.enrollments.services;
 
 import com.group5.paul_esys.modules.enrollment_period.services.EnrollmentPeriodService;
 import com.group5.paul_esys.modules.enums.EnrollmentStatus;
+import com.group5.paul_esys.modules.audit.services.AuditService;
 import com.group5.paul_esys.modules.enrollments.model.Enrollment;
+import com.group5.paul_esys.modules.enrollments.model.EnrollmentDetail;
 import com.group5.paul_esys.modules.enrollments.utils.EnrollmentUtils;
 import com.group5.paul_esys.modules.users.services.ConnectionService;
 
@@ -146,9 +148,11 @@ public class EnrollmentService {
           : new Timestamp(enrollment.getSubmittedAt().getTime());
       ps.setTimestamp(6, submittedAt);
 
-      // Rule: Auto-approve enrollment for students (Change SUBMITTED to ENROLLED)
-      if (EnrollmentStatus.SUBMITTED.equals(enrollment.getStatus())) {
-          ps.setString(3, EnrollmentStatus.ENROLLED.name());
+      // Rule: Auto-approve enrollment for students (Change SUBMITTED to APPROVED if rules pass)
+      if (EnrollmentStatus.SUBMITTED.equals(enrollment.getStatus()) || EnrollmentStatus.ENROLLED.equals(enrollment.getStatus())) {
+          List<EnrollmentDetail> details = EnrollmentDetailService.getInstance().getEnrollmentDetailsByEnrollment(enrollment.getId());
+          // Note: In create, we might not have the ID yet if it's auto-generated, or details might not be saved yet.
+          // Usually, enrollment is created first as DRAFT, then updated to SUBMITTED.
       }
 
       boolean created = ps.executeUpdate() > 0;
@@ -197,6 +201,9 @@ public class EnrollmentService {
 
       boolean updated = ps.executeUpdate() > 0;
       if (updated) {
+        if (EnrollmentStatus.SUBMITTED.equals(enrollment.getStatus())) {
+            attemptAutoApproval(enrollment);
+        }
         StudentSemesterProgressService.getInstance().syncStudentProgress(enrollment.getStudentId());
       }
       return updated;
@@ -206,7 +213,38 @@ public class EnrollmentService {
     }
   }
 
+  private void attemptAutoApproval(Enrollment enrollment) {
+      List<EnrollmentDetail> details = EnrollmentDetailService.getInstance().getEnrollmentDetailsByEnrollment(enrollment.getId());
+      
+      // Get student info for rule engine
+      try (Connection conn = ConnectionService.getConnection();
+           PreparedStatement ps = conn.prepareStatement("SELECT semester, year_level FROM students s JOIN enrollment_period ep ON ep.id = ? WHERE s.student_id = ?")) {
+          // Wait, students table has year_level. Enrollment period has semester.
+          ps.setLong(1, enrollment.getEnrollmentPeriodId());
+          ps.setString(2, enrollment.getStudentId());
+          
+          try (ResultSet rs = ps.executeQuery()) {
+              if (rs.next()) {
+                  String semester = rs.getString("semester");
+                  long yearLevel = rs.getLong("year_level");
+                  
+                  if (EnrollmentApprovalRuleEngine.canAutoApprove(enrollment.getStudentId(), enrollment.getId(), semester, yearLevel, details)) {
+                      updateEnrollmentStatus(enrollment.getId(), EnrollmentStatus.APPROVED);
+                      AuditService.getInstance().logAction("SYSTEM", "AUTO_APPROVAL", "Enrollment " + enrollment.getId() + " auto-approved for student " + enrollment.getStudentId());
+                      logger.info("Enrollment {} auto-approved", enrollment.getId());
+                  }
+              }
+          }
+      } catch (SQLException e) {
+          logger.error("Error during auto-approval check: {}", e.getMessage(), e);
+      }
+  }
+
   public boolean updateEnrollmentStatus(Long id, EnrollmentStatus status) {
+    return updateEnrollmentStatus(id, status, null);
+  }
+
+  public boolean updateEnrollmentStatus(Long id, EnrollmentStatus status, String overrideReason) {
     Optional<String> studentId = getStudentIdByEnrollmentId(id);
 
     try (Connection conn = ConnectionService.getConnection();
@@ -218,6 +256,11 @@ public class EnrollmentService {
 
       boolean updated = ps.executeUpdate() > 0;
       if (updated && studentId.isPresent()) {
+        String logDetails = "Status changed to " + status.name();
+        if (overrideReason != null && !overrideReason.isBlank()) {
+            logDetails += " | Reason: " + overrideReason;
+        }
+        AuditService.getInstance().logAction(studentId.get(), "ENROLLMENT_STATUS_CHANGE", logDetails);
         StudentSemesterProgressService.getInstance().syncStudentProgress(studentId.get());
       }
       return updated;
