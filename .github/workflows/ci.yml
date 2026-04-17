@@ -55,6 +55,15 @@ jobs:
           for i in {1..30}; do ss -ltn | grep -q 1527 && break || sleep 1; done
           ss -ltnp | grep 1527 || true
 
+      - name: Install Python deps for seeder and run seeder
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r scripts/requirements.txt
+          # Run seeder to populate the 'sample' database
+          pushd scripts
+          python3 -m real_seeder.cli --db-type=derby --database=sample
+          popd
+
       - name: Build and run unit tests (headful Swing tests via Xvfb)
         env:
           DERBY_SYSTEM_HOME: ${{ github.workspace }}/derby/system
