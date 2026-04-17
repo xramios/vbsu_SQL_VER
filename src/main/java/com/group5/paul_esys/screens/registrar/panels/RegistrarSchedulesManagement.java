@@ -107,8 +107,10 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
 
           // Also update the main list
           for (int i = 0; i < scheduleRows.size(); i++) {
-            if (scheduleRows.get(i).scheduleId().equals(currentRow.scheduleId())) {
-              scheduleRows.set(i, scheduleRows.get(i).withSelected(selected != null && selected));
+            com.group5.paul_esys.modules.registrar.model.ScheduleManagementRow s = scheduleRows.get(i);
+            if (java.util.Objects.equals(s.scheduleId(), currentRow.scheduleId()) 
+                && java.util.Objects.equals(s.offeringId(), currentRow.offeringId())) {
+              scheduleRows.set(i, s.withSelected(selected != null && selected));
               break;
             }
           }
@@ -561,7 +563,7 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
       return;
     }
 
-    ScheduleSaveResult result = editingSchedule == null
+    ScheduleSaveResult result = (editingSchedule == null || editingSchedule.scheduleId() == null)
         ? scheduleManagementService.createSchedule(request)
         : scheduleManagementService.updateSchedule(request);
 
@@ -639,7 +641,18 @@ public class RegistrarSchedulesManagement extends javax.swing.JPanel {
 
     final List<Long> idsToDelete = selectedItems.stream()
         .map(ScheduleManagementRow::scheduleId)
+        .filter(java.util.Objects::nonNull)
         .toList();
+
+    if (idsToDelete.isEmpty()) {
+        JOptionPane.showMessageDialog(
+            this,
+            "The selected item(s) do not have any schedules to delete.",
+            "Delete Schedule",
+            JOptionPane.WARNING_MESSAGE
+        );
+        return;
+    }
 
     new SwingWorker<ScheduleSaveResult, Void>() {
       @Override

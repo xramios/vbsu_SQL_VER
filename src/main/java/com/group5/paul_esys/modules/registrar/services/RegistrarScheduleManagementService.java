@@ -91,8 +91,8 @@ public class RegistrarScheduleManagementService {
           fac.id AS faculty_id,
           fac.first_name AS faculty_first_name,
           fac.last_name AS faculty_last_name
-        FROM schedules s
-        INNER JOIN offerings o ON o.id = s.offering_id
+        FROM offerings o
+        LEFT JOIN schedules s ON s.offering_id = o.id
         INNER JOIN enrollment_period ep ON ep.id = o.enrollment_period_id
         INNER JOIN sections sec ON sec.id = o.section_id
         INNER JOIN subjects sub ON sub.id = o.subject_id
