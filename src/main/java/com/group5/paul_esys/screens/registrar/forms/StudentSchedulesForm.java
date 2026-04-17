@@ -701,6 +701,16 @@ public class StudentSchedulesForm extends javax.swing.JFrame {
                         javax.swing.JOptionPane.showMessageDialog(this, "Select a duplicate to delete.");
                         return;
                 }
+                
+                String source = (String) tableDuplicates.getModel().getValueAt(row, 3);
+                if (source != null && !source.contains("Requested")) {
+                        javax.swing.JOptionPane.showMessageDialog(this, 
+                            "Cannot delete a previously completed or already enrolled subject from here.\n" +
+                            "You can only delete duplicate subjects requested in the current enrollment.", 
+                            "Invalid Action", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        return;
+                }
+                
                 Long detailId = (Long) tableDuplicates.getModel().getValueAt(row, 4);
                 try {
                         com.group5.paul_esys.modules.enrollments.services.EnrollmentDetailService.getInstance()
@@ -709,6 +719,7 @@ public class StudentSchedulesForm extends javax.swing.JFrame {
                         loadStudentSchedules();
                         loadDuplicateSubjects();
                 } catch (Exception e) {
+                        javax.swing.JOptionPane.showMessageDialog(this, "Error deleting duplicate: " + e.getMessage());
                 }
         }
 
