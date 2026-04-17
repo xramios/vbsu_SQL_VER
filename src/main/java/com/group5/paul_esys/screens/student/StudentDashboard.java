@@ -1111,7 +1111,6 @@ public class StudentDashboard extends javax.swing.JFrame {
 				Long subjectId = parseLongCell(catalogModel.getValueAt(modelRow, CATALOG_COL_SUBJECT_ID));
 				if (subjectId != null && !subjectIds.add(subjectId)) {
 					duplicateRows.add(modelRow);
-					continue;
 				}
 				checkedRows.add(modelRow);
 			}
@@ -1121,25 +1120,20 @@ public class StudentDashboard extends javax.swing.JFrame {
 			int confirm = JOptionPane.showConfirmDialog(
 					this,
 					"Multiple sections for the same subject were detected. "
-							+ "Only the first section per subject will be preserved to avoid duplication errors. "
+							+ "These duplicates will be submitted for the Registrar to review. "
 							+ "Continue?",
-					"Duplicate Subject Resolution",
+					"Duplicate Subject Added",
 					JOptionPane.YES_NO_OPTION,
 					JOptionPane.WARNING_MESSAGE);
 
-			if (confirm == JOptionPane.YES_OPTION) {
-				RemovalAuditService.getInstance().logRemoval(
-						UserSession.getInstance().getUserInformation().getUser(),
-						RemovalActionType.DUPLICATE_RESOLUTION,
-						"Removed " + duplicateRows.size() + " duplicate subject sections automatically.");
-			} else {
-				// User cancelled, return empty to stop persistence but allow manual correction
+			if (confirm != JOptionPane.YES_OPTION) {
 				return new ArrayList<>();
 			}
 		}
 
 		return checkedRows;
 	}
+
 
 	private void initStudentData(Student student) {
 		txtStudentID.setText(student.getStudentId());

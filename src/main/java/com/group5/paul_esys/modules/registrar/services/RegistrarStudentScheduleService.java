@@ -40,6 +40,30 @@ public class RegistrarStudentScheduleService {
         return getStudentSchedules(studentId, null);
     }
 
+    public List<DuplicateSubjectDTO> getDuplicateSubjects(String studentId, Long enrollmentId) {
+        List<StudentScheduleRow> schedules = getStudentSchedules(studentId, enrollmentId);
+        Map<Long, List<StudentScheduleRow>> bySubject = new java.util.LinkedHashMap<>();
+        for (StudentScheduleRow row : schedules) {
+            bySubject.computeIfAbsent(row.subjectId(), k -> new ArrayList<>()).add(row);
+        }
+        
+        List<DuplicateSubjectDTO> duplicates = new ArrayList<>();
+        for (List<StudentScheduleRow> list : bySubject.values()) {
+            if (list.size() > 1) {
+                for (StudentScheduleRow row : list) {
+                    duplicates.add(new DuplicateSubjectDTO(
+                        row.enrollmentDetailId(),
+                        row.subjectCode(),
+                        row.sectionCode(),
+                        row.instructor() != null && !row.instructor().isBlank() ? row.instructor() : "TBA",
+                        "Enrollment Request"
+                    ));
+                }
+            }
+        }
+        return duplicates;
+    }
+
     public List<StudentScheduleRow> getStudentSchedules(String studentId, Long enrollmentId) {
         if (studentId == null || studentId.isBlank()) {
             return List.of();
