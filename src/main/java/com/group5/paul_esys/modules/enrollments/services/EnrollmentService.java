@@ -1,6 +1,5 @@
 package com.group5.paul_esys.modules.enrollments.services;
 
-import com.group5.paul_esys.modules.enrollment_period.services.EnrollmentPeriodService;
 import com.group5.paul_esys.modules.enums.EnrollmentStatus;
 import com.group5.paul_esys.modules.audit.services.AuditService;
 import com.group5.paul_esys.modules.enrollments.model.Enrollment;
@@ -110,11 +109,6 @@ public class EnrollmentService {
 
     if (enrollment.getStatus() == null) {
       logger.warn("Unable to create enrollment: status is required");
-      return false;
-    }
-
-    if (EnrollmentPeriodService.getInstance().getCurrentEnrollmentPeriod().isPresent()) {
-      logger.warn("Enrollment creation blocked: An enrollment period is currently active.");
       return false;
     }
 

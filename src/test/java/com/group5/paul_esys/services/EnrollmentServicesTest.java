@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.group5.paul_esys.modules.enums.EnrollmentDetailStatus;
 import com.group5.paul_esys.modules.enums.EnrollmentStatus;
+import com.group5.paul_esys.modules.enrollments.model.Enrollment;
 import com.group5.paul_esys.modules.enrollments.model.EnrollmentDetail;
 import com.group5.paul_esys.modules.enrollments.services.EnrollmentDetailService;
 import com.group5.paul_esys.modules.enrollments.services.EnrollmentService;
@@ -17,9 +18,12 @@ import com.group5.paul_esys.modules.students.model.Student;
 import com.group5.paul_esys.modules.students.model.StudentStatus;
 import com.group5.paul_esys.modules.students.services.StudentService;
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import com.group5.paul_esys.testsupport.ServiceTestSupport;
+import static org.mockito.Mockito.when;
 
 class EnrollmentServicesTest extends ServiceTestSupport {
 
@@ -80,6 +84,30 @@ class EnrollmentServicesTest extends ServiceTestSupport {
   @Test
   void enrollmentServiceRejectsNullEnrollment() {
     assertFalse(EnrollmentService.getInstance().createEnrollment(null));
+  }
+
+  @Test
+  void enrollmentServiceAllowsCreateWhenAnotherOpenPeriodExists() throws Exception {
+    JdbcMock jdbc = mockUpdateConnection(1);
+    when(jdbc.resultSet().next()).thenReturn(true, false);
+    when(jdbc.resultSet().getLong("id")).thenReturn(1L);
+    when(jdbc.resultSet().getString("school_year")).thenReturn("2025-2026");
+    when(jdbc.resultSet().getString("semester")).thenReturn("First Semester");
+    when(jdbc.resultSet().getString("description")).thenReturn("Open period");
+    when(jdbc.resultSet().getTimestamp("start_date")).thenReturn(Timestamp.valueOf(LocalDateTime.now().minusDays(1)));
+    when(jdbc.resultSet().getTimestamp("end_date")).thenReturn(Timestamp.valueOf(LocalDateTime.now().plusDays(1)));
+    when(jdbc.resultSet().getTimestamp("updated_at")).thenReturn(Timestamp.valueOf(LocalDateTime.now()));
+    when(jdbc.resultSet().getTimestamp("created_at")).thenReturn(Timestamp.valueOf(LocalDateTime.now().minusDays(2)));
+
+    Enrollment enrollment = new Enrollment()
+        .setStudentId("20250001")
+        .setEnrollmentPeriodId(1L)
+        .setStatus(EnrollmentStatus.DRAFT)
+        .setMaxUnits(24.0f)
+        .setTotalUnits(0.0f);
+
+    withConnection(jdbc.connection(), () ->
+        assertTrue(EnrollmentService.getInstance().createEnrollment(enrollment)));
   }
 
   @Test
