@@ -546,30 +546,27 @@ public class RegistrarScheduleManagementService {
 
       for (ScheduleGenerationOfferingCandidate candidate : candidates) {
         String schedulePattern = normalizeSchedulePattern(candidate.schedulePattern());
+        List<ScheduleGenerationTemplateBlock> templateBlocks = resolveTemplateBlocks(candidate);
+        List<ScheduleGenerationPlanRow> existingRows = loadExistingPlanRowsForOffering(
+            conn,
+            candidate,
+            schedulePattern,
+            templateBlocks
+        );
 
-        if (hasExistingScheduleForOffering(conn, candidate.offeringId())) {
-          planRows.add(new ScheduleGenerationPlanRow(
-              candidate.offeringId(),
-              candidate.subjectCode(),
-              candidate.subjectName(),
-              schedulePattern,
-              "All Blocks",
-              normalizeEstimatedMinutes(candidate.estimatedMinutes()),
-              null,
-              null,
-              null,
-              null,
-              null,
-              "EXISTING",
-              "Skipped because this offering already has at least one schedule row."
-          ));
+        if (!existingRows.isEmpty()) {
+          planRows.addAll(existingRows);
+          plannedRows.addAll(existingRows);
+        }
+
+        if (existingRows.size() >= templateBlocks.size()) {
           continue;
         }
 
-        List<ScheduleGenerationTemplateBlock> templateBlocks = resolveTemplateBlocks(candidate);
+        int nextBlockIndex = existingRows.size();
         boolean placementFailed = false;
 
-        for (int blockIndex = 0; blockIndex < templateBlocks.size(); blockIndex++) {
+        for (int blockIndex = nextBlockIndex; blockIndex < templateBlocks.size(); blockIndex++) {
           ScheduleGenerationTemplateBlock block = templateBlocks.get(blockIndex);
 
           if (maxEndTime.minusMinutes(block.minutes()).isBefore(minStartTime)) {
@@ -945,14 +942,87 @@ public class RegistrarScheduleManagementService {
     return rooms;
   }
 
-  private boolean hasExistingScheduleForOffering(Connection conn, Long offeringId) throws SQLException {
-    String sql = "SELECT 1 FROM schedules WHERE offering_id = ? FETCH FIRST 1 ROWS ONLY";
+  private List<ScheduleGenerationPlanRow> loadExistingPlanRowsForOffering(
+      Connection conn,
+      ScheduleGenerationOfferingCandidate candidate,
+      String schedulePattern,
+      List<ScheduleGenerationTemplateBlock> templateBlocks
+  ) throws SQLException {
+    String sql = """
+        SELECT
+          s.day,
+          s.start_time,
+          s.end_time,
+          s.room_id,
+          rm.building,
+          rm.room
+        FROM schedules s
+        LEFT JOIN rooms rm ON rm.id = s.room_id
+        WHERE s.offering_id = ?
+        ORDER BY
+          CASE s.day
+            WHEN 'MON' THEN 1
+            WHEN 'TUE' THEN 2
+            WHEN 'WED' THEN 3
+            WHEN 'THU' THEN 4
+            WHEN 'FRI' THEN 5
+            WHEN 'SAT' THEN 6
+            WHEN 'SUN' THEN 7
+            ELSE 8
+          END,
+          s.start_time,
+          s.id
+        """;
+
+    List<ScheduleGenerationPlanRow> existingRows = new ArrayList<>();
     try (PreparedStatement ps = conn.prepareStatement(sql)) {
-      ps.setLong(1, offeringId);
+      ps.setLong(1, candidate.offeringId());
       try (ResultSet rs = ps.executeQuery()) {
-        return rs.next();
+        int index = 0;
+        while (rs.next()) {
+          String blockLabel = index < templateBlocks.size()
+              ? templateBlocks.get(index).blockLabel()
+              : "EXISTING_" + (index + 1);
+          int blockMinutes = index < templateBlocks.size()
+              ? templateBlocks.get(index).minutes()
+              : normalizeEstimatedMinutes(candidate.estimatedMinutes());
+
+          Long roomId = rsGetLong(rs, "room_id");
+          String building = safeText(rs.getString("building"), "");
+          String room = safeText(rs.getString("room"), "");
+          String roomLabel = null;
+
+          if (roomId != null) {
+            if (!building.isBlank() && !room.isBlank()) {
+              roomLabel = building + " - " + room;
+            } else if (!building.isBlank()) {
+              roomLabel = building;
+            } else if (!room.isBlank()) {
+              roomLabel = room;
+            }
+          }
+
+          existingRows.add(new ScheduleGenerationPlanRow(
+              candidate.offeringId(),
+              candidate.subjectCode(),
+              candidate.subjectName(),
+              schedulePattern,
+              blockLabel,
+              blockMinutes,
+              safeText(rs.getString("day"), null),
+              rsGetLocalTime(rs, "start_time"),
+              rsGetLocalTime(rs, "end_time"),
+              roomId,
+              roomLabel,
+              "EXISTING",
+              "Existing schedule retained."
+          ));
+          index++;
+        }
       }
     }
+
+    return existingRows;
   }
 
   private boolean hasCompatibleRoomForBlock(
