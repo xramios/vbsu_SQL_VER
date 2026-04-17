@@ -367,10 +367,14 @@ public class AdminDepartmentManagement extends javax.swing.JPanel {
                 for (Faculty faculty : facultyToDisplay) {
                         String fullName = buildFacultyDisplayName(faculty);
                         String email = safeText(facultyEmailByFacultyId.get(faculty.getId()), "No email");
-                        model.addRow(new Object[]{fullName, email, "Faculty"});
+                        model.addRow(new Object[]{fullName, email, buildFacultyPositionLabel(faculty)});
                 }
 
                 tableDepartments.setModel(model);
+        }
+
+        private String buildFacultyPositionLabel(Faculty faculty) {
+                return faculty != null && faculty.isDepartmentHead() ? "Department Head" : "Faculty";
         }
 
         private void updateDepartmentSummary(List<Faculty> visibleFaculty) {
