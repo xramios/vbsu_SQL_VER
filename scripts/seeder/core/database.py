@@ -192,7 +192,7 @@ class DatabaseManager:
         if not jpype.isJVMStarted():
             jpype.startJVM(classpath=[DERBY_JAR_PATH, DERBY_SHARED_JAR_PATH])
 
-        connection_string = f"jdbc:derby://{self.host}:{self.port}/{self.database}?create=true;"
+        connection_string = f"jdbc:derby://{self.host}:{self.port}/{self.database};create=true"
         driver_class = "org.apache.derby.client.ClientAutoloadedDriver"
 
         try:
