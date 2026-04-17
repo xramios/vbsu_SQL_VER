@@ -113,6 +113,7 @@ class DatabaseManager:
         self,
         db_type: str = "mysql",
         host: Optional[str] = None,
+        port: Optional[int] = None,
         database: Optional[str] = None,
         user: Optional[str] = None,
         password: Optional[str] = None,
@@ -131,11 +132,13 @@ class DatabaseManager:
 
         if self.db_type == "derby":
             self.host = host or DERBY_CONFIG["host"]
+            self.port = port or DERBY_CONFIG.get("port", 1527)
             self.database = database or DERBY_CONFIG["database"]
             self.user = user or DERBY_CONFIG["user"]
             self.password = password or DERBY_CONFIG["password"]
         else:
             self.host = host or DATABASE_CONFIG["host"]
+            self.port = port
             self.database = database or DATABASE_CONFIG["database"]
             self.user = user or DATABASE_CONFIG["user"]
             self.password = password or DATABASE_CONFIG["password"]
@@ -189,7 +192,7 @@ class DatabaseManager:
         if not jpype.isJVMStarted():
             jpype.startJVM(classpath=[DERBY_JAR_PATH, DERBY_SHARED_JAR_PATH])
 
-        connection_string = f"jdbc:derby://localhost:1527/{self.database};create=true"
+        connection_string = f"jdbc:derby://{self.host}:{self.port}/{self.database}"
         driver_class = "org.apache.derby.client.ClientAutoloadedDriver"
 
         try:
@@ -199,7 +202,10 @@ class DatabaseManager:
                 connection_string,
                 credentials,
             )
-            print(f"Connected to Derby database '{self.database}' using network server")
+            print(
+                f"Connected to Derby database '{self.database}' using network server "
+                f"at {self.host}:{self.port}"
+            )
             return True
         except Exception as network_error:
             print(f"Network server connection failed: {network_error}")

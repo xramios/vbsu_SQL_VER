@@ -57,6 +57,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser = create_parser()
     args = parser.parse_args(argv)
 
+    print(f"Host: {args.host}")
+    print(f"Database: {args.database}")
+    print(f"User: {args.user}")
+    
+
     db_manager = DatabaseManager(
         db_type=args.db_type,
         host=args.host,

@@ -128,12 +128,22 @@ def main(argv: list[str] | None = None) -> int:
 
     config_defaults = DERBY_CONFIG if args.db_type == "derby" else DATABASE_CONFIG
 
+    host = _resolve_db_value(args.host, config_defaults, "host")
+    database = _resolve_db_value(args.database, config_defaults, "database")
+    user = _resolve_db_value(args.user, config_defaults, "user")
+    password = _resolve_db_value(args.password, config_defaults, "password")
+
+    print(f"Host: {host}")
+    print(f"Database: {database}")
+    print(f"User: {user}")
+
     db_manager = DatabaseManager(
         db_type=args.db_type,
-        host=_resolve_db_value(args.host, config_defaults, "host"),
-        database=_resolve_db_value(args.database, config_defaults, "database"),
-        user=_resolve_db_value(args.user, config_defaults, "user"),
-        password=_resolve_db_value(args.password, config_defaults, "password"),
+        host=host,
+        port=config_defaults.get("port") if args.db_type == "derby" else None,
+        database=database,
+        user=user,
+        password=password,
     )
 
     if args.target == "bundle":
