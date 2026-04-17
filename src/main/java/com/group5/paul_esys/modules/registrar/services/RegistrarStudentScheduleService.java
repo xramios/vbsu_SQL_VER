@@ -43,7 +43,7 @@ public class RegistrarStudentScheduleService {
     private List<DuplicateSubjectDTO> getPriorEnrollments(String studentId, Long excludeEnrollmentId) {
         String sql = """
             SELECT
-              o.subject_id,
+              o.id AS offering_id,
               sub.subject_code,
               sec.section_code,
               fac.first_name,
@@ -59,9 +59,8 @@ public class RegistrarStudentScheduleService {
               AND (ses.enrollment_id != ? OR ? IS NULL)
               AND ses.status IN ('ENROLLED', 'COMPLETED')
             """;
-        List<DuplicateSubjectDTO> result = new ArrayList<>();
-        // Note: storing subjectId in enrollmentDetailId just for temporary mapping to match signature, 
-        // will use it in mapping logic.
+        Map<String, DuplicateSubjectDTO> priorMap = new LinkedHashMap<>();
+        
         try (
             Connection conn = ConnectionService.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)
@@ -76,6 +75,9 @@ public class RegistrarStudentScheduleService {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    Long offeringId = rsGetLong(rs, "offering_id");
+                    String uniqueKey = offeringId + "_" + safeText(rs.getString("subject_code"), "N/A");
+                    
                     String instructor = "TBA";
                     String fName = rs.getString("first_name");
                     String lName = rs.getString("last_name");
@@ -92,20 +94,34 @@ public class RegistrarStudentScheduleService {
                         source = "Currently Enrolled / Faculty Assignment";
                     }
 
-                    DuplicateSubjectDTO dto = new DuplicateSubjectDTO(
-                        rsGetLong(rs, "subject_id"), // Piggybacking id field temporarily
-                        safeText(rs.getString("subject_code"), "N/A"),
-                        safeText(rs.getString("section_code"), "N/A"),
-                        instructor,
-                        source
-                    );
-                    result.add(dto);
+                    DuplicateSubjectDTO existing = priorMap.get(uniqueKey);
+                    if (existing != null) {
+                        if (!"TBA".equals(instructor) && !existing.instructor().contains(instructor)) {
+                            String newInst = existing.instructor().equals("TBA") ? instructor : existing.instructor() + ", " + instructor;
+                            priorMap.put(uniqueKey, new DuplicateSubjectDTO(
+                                null,
+                                existing.subjectCode(),
+                                existing.section(),
+                                newInst,
+                                existing.source()
+                            ));
+                        }
+                    } else {
+                        DuplicateSubjectDTO dto = new DuplicateSubjectDTO(
+                            null,
+                            safeText(rs.getString("subject_code"), "N/A"),
+                            safeText(rs.getString("section_code"), "N/A"),
+                            instructor,
+                            source
+                        );
+                        priorMap.put(uniqueKey, dto);
+                    }
                 }
             }
         } catch (SQLException e) {
             logger.error("ERROR fetching prior enrollments: {}", e.getMessage(), e);
         }
-        return result;
+        return new ArrayList<>(priorMap.values());
     }
 
     public List<DuplicateSubjectDTO> getDuplicateSubjects(String studentId, Long enrollmentId) {
@@ -118,10 +134,11 @@ public class RegistrarStudentScheduleService {
         List<StudentScheduleRow> schedules = getStudentSchedules(studentId, resolvedEnrollmentId);
         List<DuplicateSubjectDTO> priors = getPriorEnrollments(studentId, resolvedEnrollmentId);
         
-        Map<Long, List<DuplicateSubjectDTO>> bySubject = new java.util.LinkedHashMap<>();
+        Map<String, List<DuplicateSubjectDTO>> bySubjectCode = new java.util.LinkedHashMap<>();
         
         for (StudentScheduleRow row : schedules) {
-            bySubject.computeIfAbsent(row.subjectId(), k -> new ArrayList<>()).add(new DuplicateSubjectDTO(
+            String codeCode = row.subjectCode() != null ? row.subjectCode().trim().toUpperCase() : "";
+            bySubjectCode.computeIfAbsent(codeCode, k -> new ArrayList<>()).add(new DuplicateSubjectDTO(
                 row.enrollmentDetailId(),
                 row.subjectCode(),
                 row.sectionCode(),
@@ -131,18 +148,12 @@ public class RegistrarStudentScheduleService {
         }
         
         for (DuplicateSubjectDTO prior : priors) {
-            Long subjectId = prior.enrollmentDetailId(); // Piggybacked subject id
-            bySubject.computeIfAbsent(subjectId, k -> new ArrayList<>()).add(new DuplicateSubjectDTO(
-                null,
-                prior.subjectCode(),
-                prior.section(),
-                prior.instructor(),
-                prior.source()
-            ));
+            String codeCode = prior.subjectCode() != null ? prior.subjectCode().trim().toUpperCase() : "";
+            bySubjectCode.computeIfAbsent(codeCode, k -> new ArrayList<>()).add(prior);
         }
         
         List<DuplicateSubjectDTO> duplicates = new ArrayList<>();
-        for (List<DuplicateSubjectDTO> list : bySubject.values()) {
+        for (List<DuplicateSubjectDTO> list : bySubjectCode.values()) {
             if (list.size() > 1) {
                 duplicates.addAll(list);
             }
