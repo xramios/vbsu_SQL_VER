@@ -361,9 +361,10 @@ public class StudentDashboard extends javax.swing.JFrame {
 		tblSelectedSubjects = new javax.swing.JTable(selectedSubjectsTableModel);
 		tblSelectedSubjects.setRowHeight(26);
 		tblSelectedSubjects.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		tblSelectedSubjects.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		tblSelectedSubjects.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		tblSelectedSubjects.getTableHeader().setReorderingAllowed(false);
-		tblSelectedSubjects.getTableHeader().setResizingAllowed(false);
+		tblSelectedSubjects.getTableHeader().setResizingAllowed(true);
+		configureSelectedSubjectsColumns();
 		configureSelectedSubjectsRenderer();
 
 		// Hide offering ID
@@ -373,6 +374,16 @@ public class StudentDashboard extends javax.swing.JFrame {
 
 		jScrollPane3.setViewportView(tblSelectedSubjects);
 		refreshSelectedSubjectsPreview();
+	}
+
+	private void configureSelectedSubjectsColumns() {
+		tblSelectedSubjects.getColumnModel().getColumn(0).setPreferredWidth(120);
+		tblSelectedSubjects.getColumnModel().getColumn(1).setPreferredWidth(200);
+		tblSelectedSubjects.getColumnModel().getColumn(2).setPreferredWidth(120);
+		tblSelectedSubjects.getColumnModel().getColumn(3).setPreferredWidth(180);
+		tblSelectedSubjects.getColumnModel().getColumn(4).setPreferredWidth(220);
+		tblSelectedSubjects.getColumnModel().getColumn(5).setPreferredWidth(140);
+		tblSelectedSubjects.getColumnModel().getColumn(6).setPreferredWidth(90);
 	}
 
 	private void loadSemesterProgress() {
