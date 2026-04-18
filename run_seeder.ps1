@@ -87,10 +87,10 @@ Write-Host "`nRunning real_seeder..." -ForegroundColor Cyan
 Set-Location $scriptsDir
 
 try {
-    if ($env:JAVA_DB) {
-        python -m real_seeder.cli --db-type derby --database sample --user app --password app
-    } else {
+    if ($env:MYSQL) {
         python -m real_seeder.cli --db-type mysql --database sample --user root --password password 
+    } else {
+        python -m real_seeder.cli --db-type derby --database sample --user app --password app
     }
     if ($LASTEXITCODE -ne 0) {
         throw "Seeder failed with exit code $LASTEXITCODE"
