@@ -306,11 +306,11 @@ public class StudentDashboard extends javax.swing.JFrame {
 private javax.swing.JTable tblSelectedSubjects;
         private final javax.swing.table.DefaultTableModel selectedSubjectsTableModel = new javax.swing.table.DefaultTableModel(
                 new Object[][] {},
-                new String[] { "Selected", "Code", "Title", "Units", "Schedule", "Section", "Instructor", "Offering ID" }
+                new String[] { "Selected", "Subject Code", "Name", "Section", "Instructor", "Schedule", "Room", "Credits", "Offering ID" }
         ) {
                 @Override
                 public Class<?> getColumnClass(int columnIndex) {
-                        return columnIndex == 0 ? Boolean.class : (columnIndex == 7 ? Long.class : String.class);
+                        return columnIndex == 0 ? Boolean.class : (columnIndex == 8 ? Long.class : String.class);
                 }
 
                 @Override
@@ -324,11 +324,13 @@ private javax.swing.JTable tblSelectedSubjects;
                 tblSelectedSubjects = new javax.swing.JTable(selectedSubjectsTableModel);
                 tblSelectedSubjects.setRowHeight(26);
                 tblSelectedSubjects.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                tblSelectedSubjects.getTableHeader().setReorderingAllowed(false);
+                tblSelectedSubjects.getTableHeader().setResizingAllowed(false);
                 
                 // Hide offering ID
-                tblSelectedSubjects.getColumnModel().getColumn(7).setMinWidth(0);
-                tblSelectedSubjects.getColumnModel().getColumn(7).setMaxWidth(0);
-                tblSelectedSubjects.getColumnModel().getColumn(7).setWidth(0);
+                tblSelectedSubjects.getColumnModel().getColumn(8).setMinWidth(0);
+                tblSelectedSubjects.getColumnModel().getColumn(8).setMaxWidth(0);
+                tblSelectedSubjects.getColumnModel().getColumn(8).setWidth(0);
 
                 selectedSubjectsTableModel.addTableModelListener(evt -> {
                         if (isUpdatingSelectedSubjects) return;
@@ -337,7 +339,7 @@ private javax.swing.JTable tblSelectedSubjects;
                         if (col == 0 && row >= 0) {
                                 boolean isChecked = (boolean) selectedSubjectsTableModel.getValueAt(row, 0);
                                 if (!isChecked) {
-                                        Long offeringId = (Long) selectedSubjectsTableModel.getValueAt(row, 7);
+                                        Long offeringId = (Long) selectedSubjectsTableModel.getValueAt(row, 8);
                                         transientSelectedOfferingIds.remove(offeringId);
 
                                         javax.swing.table.DefaultTableModel catalogModel = (javax.swing.table.DefaultTableModel) tblSubjectCatalog.getModel();
@@ -771,20 +773,25 @@ private javax.swing.JTable tblSelectedSubjects;
 
                         List<Schedule> schedules = ScheduleService.getInstance().getSchedulesByOffering(offeringIdStr);
                         StringBuilder facultyString = new StringBuilder();
+                        StringBuilder roomString = new StringBuilder();
                         for (Schedule sched : schedules) {
                                 com.group5.paul_esys.modules.faculty.services.FacultyService.getInstance().getFacultyById(sched.getFacultyId())
                                                 .ifPresent(f -> facultyString.append(f.getLastName()).append(", ").append(f.getFirstName()).append(" "));
+                                com.group5.paul_esys.modules.rooms.services.RoomService.getInstance().getRoomById(sched.getRoomId())
+                                                .ifPresent(r -> roomString.append(r.getRoom()).append(" "));
                         }
                         String facultyValue = facultyString.length() == 0 ? "TBA" : facultyString.toString().trim();
+                        String roomValue = roomString.length() == 0 ? "TBA" : roomString.toString().trim();
 
                         selectedSubjectsTableModel.addRow(new Object[] {
                                 true,
                                 code,
                                 subjectName,
-                                units,
-                                schedule,
                                 section,
                                 facultyValue,
+                                schedule,
+                                roomValue,
+                                formatUnits(units),
                                 offeringIdStr
                         });
                         totalUnits += units;
@@ -825,7 +832,7 @@ private javax.swing.JTable tblSelectedSubjects;
 				: "Subject Catalog - " + periodLabel + " (Preview only)";
 
 		List<Offering> offerings = OfferingService.getInstance()
-				.getOfferingsByEnrollmentPeriod(enrollmentPeriod.getId());
+				.getScheduledOfferingsByEnrollmentPeriod(enrollmentPeriod.getId());
 		if (offerings.isEmpty()) {
 			return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, List.of());
 		}
@@ -2676,4 +2683,9 @@ private javax.swing.JTable tblSelectedSubjects;
 	private com.group5.paul_esys.components.WindowBar windowBar1;
 	// End of variables declaration//GEN-END:variables
 }
+
+
+
+
+
 
