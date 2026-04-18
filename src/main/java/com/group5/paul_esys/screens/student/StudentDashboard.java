@@ -120,6 +120,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 	private final Set<Long> transientSelectedOfferingIds = new HashSet<>();
 	private final Map<Long, Long> selectedSubjectIdsByOfferingId = new HashMap<>();
 	private final Set<Long> duplicateSelectedSubjectIds = new HashSet<>();
+	private final Set<Long> scheduleConflictOfferingIds = new HashSet<>();
 
 	/**
 	 * Creates new form Dashboard
@@ -605,12 +606,18 @@ public class StudentDashboard extends javax.swing.JFrame {
 		selectedSubjectsTableModel.setRowCount(0);
 		selectedSubjectIdsByOfferingId.clear();
 		duplicateSelectedSubjectIds.clear();
+		scheduleConflictOfferingIds.clear();
 		float totalUnits = 0.0f;
 		Map<Long, Integer> subjectSelectionCounts = new HashMap<>();
+		Map<Long, List<Schedule>> schedulesByOfferingId = new HashMap<>();
 
 		DefaultTableModel catalogModel = (DefaultTableModel) tblSubjectCatalog.getModel();
 		for (int modelRow = 0; modelRow < catalogModel.getRowCount(); modelRow++) {
-			Long offeringIdStr = (Long) catalogModel.getValueAt(modelRow, CATALOG_COL_OFFERING_ID);
+			Long offeringIdStr = parseLongCell(catalogModel.getValueAt(modelRow, CATALOG_COL_OFFERING_ID));
+			if (offeringIdStr == null) {
+				continue;
+			}
+
 			if (isCatalogRowChecked(catalogModel, modelRow)) {
 				transientSelectedOfferingIds.add(offeringIdStr);
 			} else {
@@ -633,6 +640,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 			String section = String.valueOf(catalogModel.getValueAt(modelRow, 4));
 
 			List<Schedule> schedules = ScheduleService.getInstance().getSchedulesByOffering(offeringIdStr);
+			schedulesByOfferingId.put(offeringIdStr, schedules);
 			StringBuilder facultyString = new StringBuilder();
 			StringBuilder roomString = new StringBuilder();
 			for (Schedule sched : schedules) {
@@ -663,11 +671,56 @@ public class StudentDashboard extends javax.swing.JFrame {
 			}
 		}
 
+		markScheduleConflictOfferings(schedulesByOfferingId);
+
 		selectedCatalogUnits = totalUnits;
 		float displayLimit = resolveDisplayedEnrollmentUnitLimit(totalUnits);
 		jLabel17.setText(formatUnits(totalUnits) + " / " + formatUnits(displayLimit) + " units");
 		tblSelectedSubjects.repaint();
 		updateBackgroundState();
+	}
+
+	private void markScheduleConflictOfferings(Map<Long, List<Schedule>> schedulesByOfferingId) {
+		List<ScheduleEntry> scheduleEntries = new ArrayList<>();
+		for (Map.Entry<Long, List<Schedule>> entry : schedulesByOfferingId.entrySet()) {
+			Long offeringId = entry.getKey();
+			if (offeringId == null || entry.getValue() == null) {
+				continue;
+			}
+
+			for (Schedule schedule : entry.getValue()) {
+				if (schedule == null || schedule.getDay() == null || schedule.getStartTime() == null
+						|| schedule.getEndTime() == null) {
+					continue;
+				}
+
+				scheduleEntries.add(new ScheduleEntry(offeringId, schedule));
+			}
+		}
+
+		for (int index = 0; index < scheduleEntries.size(); index++) {
+			ScheduleEntry first = scheduleEntries.get(index);
+			for (int otherIndex = index + 1; otherIndex < scheduleEntries.size(); otherIndex++) {
+				ScheduleEntry second = scheduleEntries.get(otherIndex);
+				if (first.offeringId.equals(second.offeringId)) {
+					continue;
+				}
+
+				if (first.schedule.getDay() != second.schedule.getDay()) {
+					continue;
+				}
+
+				long firstStart = first.schedule.getStartTime().getTime();
+				long firstEnd = first.schedule.getEndTime().getTime();
+				long secondStart = second.schedule.getStartTime().getTime();
+				long secondEnd = second.schedule.getEndTime().getTime();
+
+				if (firstStart < secondEnd && firstEnd > secondStart) {
+					scheduleConflictOfferingIds.add(first.offeringId);
+					scheduleConflictOfferingIds.add(second.offeringId);
+				}
+			}
+		}
 	}
 
 	private void configureSelectedSubjectsRenderer() {
@@ -685,10 +738,19 @@ public class StudentDashboard extends javax.swing.JFrame {
 				Long offeringId = parseLongCell(table.getModel().getValueAt(modelRow, 7));
 				Long subjectId = offeringId == null ? null : selectedSubjectIdsByOfferingId.get(offeringId);
 				boolean duplicate = subjectId != null && duplicateSelectedSubjectIds.contains(subjectId);
+				boolean scheduleConflict = offeringId != null && scheduleConflictOfferingIds.contains(offeringId);
 
-				if (duplicate) {
+				if (duplicate && scheduleConflict) {
+					component.setBackground(isSelected ? new Color(255, 210, 185) : new Color(255, 235, 220));
+					component.setForeground(new Color(145, 35, 0));
+					component.setFont(component.getFont().deriveFont(Font.BOLD));
+				} else if (duplicate) {
 					component.setBackground(isSelected ? new Color(255, 220, 220) : new Color(255, 240, 240));
 					component.setForeground(new Color(170, 0, 0));
+					component.setFont(component.getFont().deriveFont(Font.BOLD));
+				} else if (scheduleConflict) {
+					component.setBackground(isSelected ? new Color(255, 230, 185) : new Color(255, 245, 225));
+					component.setForeground(new Color(120, 72, 0));
 					component.setFont(component.getFont().deriveFont(Font.BOLD));
 				} else if (isSelected) {
 					component.setBackground(table.getSelectionBackground());
@@ -698,6 +760,18 @@ public class StudentDashboard extends javax.swing.JFrame {
 					component.setBackground(table.getBackground());
 					component.setForeground(table.getForeground());
 					component.setFont(component.getFont().deriveFont(Font.PLAIN));
+				}
+
+				if (component instanceof JComponent jComponent) {
+					if (duplicate && scheduleConflict) {
+						jComponent.setToolTipText("Duplicate subject selected and schedule conflict detected.");
+					} else if (duplicate) {
+						jComponent.setToolTipText("Duplicate subject selected.");
+					} else if (scheduleConflict) {
+						jComponent.setToolTipText("Schedule conflict detected with another selected subject.");
+					} else {
+						jComponent.setToolTipText(null);
+					}
 				}
 
 				return component;
@@ -2593,6 +2667,16 @@ public class StudentDashboard extends javax.swing.JFrame {
 			return Long.parseLong(value.toString().trim());
 		} catch (NumberFormatException ex) {
 			return null;
+		}
+	}
+
+	private static final class ScheduleEntry {
+		private final Long offeringId;
+		private final Schedule schedule;
+
+		private ScheduleEntry(Long offeringId, Schedule schedule) {
+			this.offeringId = offeringId;
+			this.schedule = schedule;
 		}
 	}
 
