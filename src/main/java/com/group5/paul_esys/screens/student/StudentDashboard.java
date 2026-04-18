@@ -77,7 +77,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 			.ofPattern("MMM d, yyyy h:mm a");
 
 	private Student currentStudent;
-	private final DefaultListModel<String> selectedSubjectsModel = new DefaultListModel<>();
+	
 	private final StudentEnrolledSubjectService studentEnrolledSubjectService = StudentEnrolledSubjectService
 			.getInstance();
 	private final StudentSemesterProgressService semesterProgressService = StudentSemesterProgressService.getInstance();
@@ -112,14 +112,10 @@ public class StudentDashboard extends javax.swing.JFrame {
 	private boolean hasActiveEnrollmentPeriod;
 	private int activeBackgroundTasks;
 
+        private final java.util.Set<Long> transientSelectedOfferingIds = new java.util.HashSet<>();
 
-	
 
-	
-
-	
-
-	/**
+        /**
 	 * Creates new form Dashboard
 	 */
 	public StudentDashboard() {
@@ -307,8 +303,56 @@ public class StudentDashboard extends javax.swing.JFrame {
 		tableSchedules.setRowHeight(26);
 	}
 
-	private void configureSelectedSubjectsPanel() {
-		jList1.setModel(selectedSubjectsModel);
+private javax.swing.JTable tblSelectedSubjects;
+        private final javax.swing.table.DefaultTableModel selectedSubjectsTableModel = new javax.swing.table.DefaultTableModel(
+                new Object[][] {},
+                new String[] { "Selected", "Code", "Title", "Units", "Schedule", "Section", "Instructor", "Offering ID" }
+        ) {
+                @Override
+                public Class<?> getColumnClass(int columnIndex) {
+                        return columnIndex == 0 ? Boolean.class : (columnIndex == 7 ? Long.class : String.class);
+                }
+
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                        return column == 0;
+                }
+        };
+        private boolean isUpdatingSelectedSubjects = false;
+
+        private void configureSelectedSubjectsPanel() {
+                tblSelectedSubjects = new javax.swing.JTable(selectedSubjectsTableModel);
+                tblSelectedSubjects.setRowHeight(26);
+                tblSelectedSubjects.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                
+                // Hide offering ID
+                tblSelectedSubjects.getColumnModel().getColumn(7).setMinWidth(0);
+                tblSelectedSubjects.getColumnModel().getColumn(7).setMaxWidth(0);
+                tblSelectedSubjects.getColumnModel().getColumn(7).setWidth(0);
+
+                selectedSubjectsTableModel.addTableModelListener(evt -> {
+                        if (isUpdatingSelectedSubjects) return;
+                        int row = evt.getFirstRow();
+                        int col = evt.getColumn();
+                        if (col == 0 && row >= 0) {
+                                boolean isChecked = (boolean) selectedSubjectsTableModel.getValueAt(row, 0);
+                                if (!isChecked) {
+                                        Long offeringId = (Long) selectedSubjectsTableModel.getValueAt(row, 7);
+                                        transientSelectedOfferingIds.remove(offeringId);
+
+                                        javax.swing.table.DefaultTableModel catalogModel = (javax.swing.table.DefaultTableModel) tblSubjectCatalog.getModel();
+                                        for (int i = 0; i < catalogModel.getRowCount(); i++) {
+                                                Long catOffId = (Long) catalogModel.getValueAt(i, CATALOG_COL_OFFERING_ID);
+                                                if (catOffId != null && catOffId.equals(offeringId)) {
+                                                        catalogModel.setValueAt(false, i, CATALOG_COL_SELECTED);
+                                                        break;
+                                                }
+                                        }
+                                }
+                        }
+                });
+
+                jScrollPane3.setViewportView(tblSelectedSubjects);
 		refreshSelectedSubjectsPreview();
 	}
 
@@ -702,27 +746,55 @@ public class StudentDashboard extends javax.swing.JFrame {
 	}
 
 	private void refreshSelectedSubjectsPreview() {
-		selectedSubjectsModel.clear();
-		float totalUnits = 0.0f;
+                isUpdatingSelectedSubjects = true;
+                selectedSubjectsTableModel.setRowCount(0);
+                float totalUnits = 0.0f;
 
-		DefaultTableModel catalogModel = (DefaultTableModel) tblSubjectCatalog.getModel();
-		for (int modelRow = 0; modelRow < catalogModel.getRowCount(); modelRow++) {
-			if (!isCatalogRowChecked(catalogModel, modelRow)) {
-				continue;
-			}
+                DefaultTableModel catalogModel = (DefaultTableModel) tblSubjectCatalog.getModel();
+                for (int modelRow = 0; modelRow < catalogModel.getRowCount(); modelRow++) {
+                        Long offeringIdStr = (Long) catalogModel.getValueAt(modelRow, CATALOG_COL_OFFERING_ID);
+                        if (isCatalogRowChecked(catalogModel, modelRow)) {
+                                transientSelectedOfferingIds.add(offeringIdStr);
+                        } else {
+                                transientSelectedOfferingIds.remove(offeringIdStr);
+                        }
+                        if (!isCatalogRowChecked(catalogModel, modelRow)) {
+                                continue;
+                        }
 
-			String code = String.valueOf(catalogModel.getValueAt(modelRow, CATALOG_COL_CODE));
-			String subjectName = String.valueOf(catalogModel.getValueAt(modelRow, CATALOG_COL_SUBJECT_NAME));
-			float units = parseUnitsCell(catalogModel.getValueAt(modelRow, CATALOG_COL_UNITS));
+                        String code = String.valueOf(catalogModel.getValueAt(modelRow, CATALOG_COL_CODE));
+                        String subjectName = String.valueOf(catalogModel.getValueAt(modelRow, CATALOG_COL_SUBJECT_NAME));
+                        float units = parseUnitsCell(catalogModel.getValueAt(modelRow, CATALOG_COL_UNITS));
 
-			selectedSubjectsModel.addElement(code + " - " + subjectName + " (" + formatUnits(units) + ")");
-			totalUnits += units;
-		}
+                        String schedule = String.valueOf(catalogModel.getValueAt(modelRow, 5));
+                        String section = String.valueOf(catalogModel.getValueAt(modelRow, 4));
 
-		jLabel17.setText(formatUnits(totalUnits) + " / " + formatUnits(MAX_ENROLLMENT_UNITS) + " units");
-	}
+                        List<Schedule> schedules = ScheduleService.getInstance().getSchedulesByOffering(offeringIdStr);
+                        StringBuilder facultyString = new StringBuilder();
+                        for (Schedule sched : schedules) {
+                                com.group5.paul_esys.modules.faculty.services.FacultyService.getInstance().getFacultyById(sched.getFacultyId())
+                                                .ifPresent(f -> facultyString.append(f.getLastName()).append(", ").append(f.getFirstName()).append(" "));
+                        }
+                        String facultyValue = facultyString.length() == 0 ? "TBA" : facultyString.toString().trim();
 
-	private void loadSubjectCatalogAsync(String keyword) {
+                        selectedSubjectsTableModel.addRow(new Object[] {
+                                true,
+                                code,
+                                subjectName,
+                                units,
+                                schedule,
+                                section,
+                                facultyValue,
+                                offeringIdStr
+                        });
+                        totalUnits += units;
+                }
+
+                jLabel17.setText(formatUnits(totalUnits) + " / " + formatUnits(MAX_ENROLLMENT_UNITS) + " units");
+                isUpdatingSelectedSubjects = false;
+        }
+
+        private void loadSubjectCatalogAsync(String keyword) {
 		executeDatabaseTask(
 				() -> fetchSubjectCatalogSnapshot(keyword),
 				this::applySubjectCatalogSnapshot,
@@ -816,7 +888,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 				continue;
 			}
 
-			boolean isSelected = selectedOfferingIds.contains(offering.getId());
+			boolean isSelected = selectedOfferingIds.contains(offering.getId()) || transientSelectedOfferingIds.contains(offering.getId());
 			rows.add(buildSubjectCatalogRow(subject, section, offering, isSelected));
 		}
 
@@ -2604,3 +2676,4 @@ public class StudentDashboard extends javax.swing.JFrame {
 	private com.group5.paul_esys.components.WindowBar windowBar1;
 	// End of variables declaration//GEN-END:variables
 }
+
