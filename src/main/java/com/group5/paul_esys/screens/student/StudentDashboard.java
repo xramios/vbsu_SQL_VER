@@ -753,7 +753,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 				: "Subject Catalog - " + periodLabel + " (Preview only)";
 
 		List<Offering> offerings = OfferingService.getInstance()
-				.getScheduledOfferingsByEnrollmentPeriod(enrollmentPeriod.getId());
+				.getOfferingsByEnrollmentPeriod(enrollmentPeriod.getId());
 		if (offerings.isEmpty()) {
 			return new SubjectCatalogSnapshot(activePeriod, announcement, catalogLabel, List.of());
 		}
