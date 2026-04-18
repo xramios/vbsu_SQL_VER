@@ -22,6 +22,7 @@ public class ConnectionService {
     public static Connection getConnection() {
         try {
             Class.forName("org.apache.derby.client.ClientAutoloadedDriver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
             return DriverManager.getConnection(Config.DB_URL, Config.DB_USER, Config.DB_PASS);
         } catch (SQLException e) {
             logger.error("ERROR: " + e.getMessage(), e);
