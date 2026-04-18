@@ -87,6 +87,59 @@ class EnrollmentServicesTest extends ServiceTestSupport {
   }
 
   @Test
+  void enrollmentServiceRejectsSubmittedEnrollmentBelowMinimumUnitsOnCreate() {
+    Enrollment enrollment = new Enrollment()
+        .setStudentId("20250001")
+        .setEnrollmentPeriodId(1L)
+        .setStatus(EnrollmentStatus.SUBMITTED)
+        .setMaxUnits(24.0f)
+        .setTotalUnits(17.0f);
+
+    assertFalse(EnrollmentService.getInstance().createEnrollment(enrollment));
+  }
+
+  @Test
+  void enrollmentServiceRejectsSubmittedEnrollmentBelowMinimumUnitsOnUpdate() {
+    Enrollment enrollment = new Enrollment()
+        .setId(1L)
+        .setStudentId("20250001")
+        .setEnrollmentPeriodId(1L)
+        .setStatus(EnrollmentStatus.SUBMITTED)
+        .setMaxUnits(24.0f)
+        .setTotalUnits(17.0f);
+
+    assertFalse(EnrollmentService.getInstance().updateEnrollment(enrollment));
+  }
+
+  @Test
+  void enrollmentServiceAllowsSubmittedEnrollmentAtMinimumUnits() throws Exception {
+    Enrollment enrollment = new Enrollment()
+        .setId(1L)
+        .setStudentId("20250001")
+        .setEnrollmentPeriodId(1L)
+        .setStatus(EnrollmentStatus.SUBMITTED)
+        .setMaxUnits(24.0f)
+        .setTotalUnits(18.0f);
+
+    withConnection(mockUpdateConnectionOnly(1), () ->
+        assertTrue(EnrollmentService.getInstance().updateEnrollment(enrollment)));
+  }
+
+  @Test
+  void enrollmentServiceAllowsSubmittedEnrollmentAboveMinimumUnits() throws Exception {
+    Enrollment enrollment = new Enrollment()
+        .setId(1L)
+        .setStudentId("20250001")
+        .setEnrollmentPeriodId(1L)
+        .setStatus(EnrollmentStatus.SUBMITTED)
+        .setMaxUnits(24.0f)
+        .setTotalUnits(21.0f);
+
+    withConnection(mockUpdateConnectionOnly(1), () ->
+        assertTrue(EnrollmentService.getInstance().updateEnrollment(enrollment)));
+  }
+
+  @Test
   void enrollmentServiceAllowsCreateWhenAnotherOpenPeriodExists() throws Exception {
     JdbcMock jdbc = mockUpdateConnection(1);
     when(jdbc.resultSet().next()).thenReturn(true, false);

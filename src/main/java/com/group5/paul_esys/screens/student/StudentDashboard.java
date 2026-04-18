@@ -72,6 +72,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 	private static final int CATALOG_COL_UNITS = 3;
 	private static final int CATALOG_COL_OFFERING_ID = 7;
 	private static final int CATALOG_COL_SUBJECT_ID = 8;
+	private static final float MIN_SUBMISSION_UNITS = 18.0f;
 	private static final float MAX_ENROLLMENT_UNITS = 24.0f;
 	private static final DateTimeFormatter PROGRESS_TIMESTAMP_FORMATTER = DateTimeFormatter
 			.ofPattern("MMM d, yyyy h:mm a");
@@ -111,6 +112,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 	};
 	private boolean hasActiveEnrollmentPeriod;
 	private int activeBackgroundTasks;
+	private float selectedCatalogUnits;
 
         private final java.util.Set<Long> transientSelectedOfferingIds = new java.util.HashSet<>();
 
@@ -183,7 +185,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 		setCursor(busy ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
 		txtSearch.setEnabled(!busy);
 		btnSearchSubject.setEnabled(!busy);
-		btnSubmitSchedule.setEnabled(!busy && hasActiveEnrollmentPeriod);
+		btnSubmitSchedule.setEnabled(!busy && hasActiveEnrollmentPeriod && hasMinimumSubmissionUnits(selectedCatalogUnits));
 		btnSaveDraft.setEnabled(!busy && hasActiveEnrollmentPeriod);
 	}
 
@@ -797,9 +799,15 @@ private javax.swing.JTable tblSelectedSubjects;
                         totalUnits += units;
                 }
 
+				selectedCatalogUnits = totalUnits;
                 jLabel17.setText(formatUnits(totalUnits) + " / " + formatUnits(MAX_ENROLLMENT_UNITS) + " units");
                 isUpdatingSelectedSubjects = false;
+				updateBackgroundState();
         }
+
+			private boolean hasMinimumSubmissionUnits(float units) {
+				return units + 0.0001f >= MIN_SUBMISSION_UNITS;
+			}
 
         private void loadSubjectCatalogAsync(String keyword) {
 		executeDatabaseTask(
@@ -2299,6 +2307,18 @@ private javax.swing.JTable tblSelectedSubjects;
 								+ " (based on configured room/section capacity).");
 				return;
 			}
+		}
+
+		float totalSelectedUnits = 0.0f;
+		for (OfferingSelection selection : selectedOfferings) {
+			totalSelectedUnits += selection.units;
+		}
+
+		if (targetStatus == EnrollmentStatus.SUBMITTED && !hasMinimumSubmissionUnits(totalSelectedUnits)) {
+			showValidationErrorAndRefresh(
+					"Validation Error",
+					"You must enroll at least 18 units before submitting your schedule.");
+			return;
 		}
 
 		Enrollment activeEnrollment = resolveOrCreateEnrollment(activeEnrollmentPeriodId, targetStatus);

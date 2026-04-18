@@ -24,6 +24,7 @@ public class EnrollmentService {
 
   private static final EnrollmentService INSTANCE = new EnrollmentService();
   private static final Logger logger = LoggerFactory.getLogger(EnrollmentService.class);
+  private static final float MIN_SUBMITTED_UNITS = 18.0f;
 
   private EnrollmentService() {
   }
@@ -112,6 +113,12 @@ public class EnrollmentService {
       return false;
     }
 
+    if (EnrollmentStatus.SUBMITTED.equals(enrollment.getStatus())
+        && !meetsMinimumSubmittedUnits(enrollment.getTotalUnits())) {
+      logger.warn("Unable to create enrollment: submitted status requires at least {} units", MIN_SUBMITTED_UNITS);
+      return false;
+    }
+
     try (Connection conn = ConnectionService.getConnection();
         PreparedStatement ps = conn.prepareStatement(
             "INSERT INTO enrollments (student_id, enrollment_period_id, status, max_units, total_units, submitted_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -160,6 +167,23 @@ public class EnrollmentService {
   }
 
   public boolean updateEnrollment(Enrollment enrollment) {
+    if (enrollment == null) {
+      logger.warn("Unable to update enrollment: request is null");
+      return false;
+    }
+
+    if (enrollment.getStatus() == null) {
+      logger.warn("Unable to update enrollment {}: status is required", enrollment.getId());
+      return false;
+    }
+
+    if (EnrollmentStatus.SUBMITTED.equals(enrollment.getStatus())
+        && !meetsMinimumSubmittedUnits(enrollment.getTotalUnits())) {
+      logger.warn("Unable to update enrollment {}: submitted status requires at least {} units",
+          enrollment.getId(), MIN_SUBMITTED_UNITS);
+      return false;
+    }
+
     try (Connection conn = ConnectionService.getConnection();
       PreparedStatement ps = conn.prepareStatement(
         "UPDATE enrollments SET student_id = ?, enrollment_period_id = ?, status = ?, max_units = ?, total_units = ?, submitted_at = ? WHERE id = ?"
@@ -382,5 +406,9 @@ public class EnrollmentService {
     }
 
     return null;
+  }
+
+  private boolean meetsMinimumSubmittedUnits(Float totalUnits) {
+    return totalUnits != null && totalUnits + 0.0001f >= MIN_SUBMITTED_UNITS;
   }
 }
