@@ -200,14 +200,19 @@ public class StudentDashboard extends javax.swing.JFrame {
 	private void updateBackgroundState() {
 		boolean busy = activeBackgroundTasks > 0;
 		boolean withinEnrollmentLimit = !exceedsEnrollmentUnitLimit(selectedCatalogUnits);
+		boolean hasScheduleConflict = !scheduleConflictOfferingIds.isEmpty();
 		setCursor(busy ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
 		txtSearch.setEnabled(!busy);
 		btnSearchSubject.setEnabled(!busy);
 		btnSubmitSchedule.setEnabled(!busy
 				&& hasActiveEnrollmentPeriod
 				&& hasMinimumSubmissionUnits(selectedCatalogUnits)
-				&& withinEnrollmentLimit);
-		btnSaveDraft.setEnabled(!busy && hasActiveEnrollmentPeriod && withinEnrollmentLimit);
+				&& withinEnrollmentLimit
+				&& !hasScheduleConflict);
+		btnSaveDraft.setEnabled(!busy
+				&& hasActiveEnrollmentPeriod
+				&& withinEnrollmentLimit
+				&& !hasScheduleConflict);
 	}
 
 	private void configureLogoutAction() {
