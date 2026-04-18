@@ -18,8 +18,8 @@
 CREATE TABLE IF NOT EXISTS enrollment_period
 (
     id          bigint PRIMARY KEY AUTO_INCREMENT,
-    school_year varchar(24) not null,
-    semester    varchar(24) not null,
+    school_year varchar(32) not null,
+    semester    varchar(64) not null,
     start_date  datetime    not null,
     end_date    datetime    not null,
     description text,
@@ -35,11 +35,27 @@ CREATE TABLE IF NOT EXISTS enrollment_period
 CREATE TABLE IF NOT EXISTS users
 (
     id         bigint PRIMARY KEY AUTO_INCREMENT,
-    email      varchar(255),
+    email      varchar(64) UNIQUE NOT NULL,
     password   char(60),
     role       ENUM ('STUDENT', 'REGISTRAR', 'FACULTY', 'ADMIN'),
     created_at timestamp default current_timestamp(),
     updated_at timestamp default current_timestamp()
+);
+
+/**
+ * Stores temporary tokens for password reset functionality.
+ * Tokens are linked to a user and have an expiration timestamp.
+ * Used to verify the identity of a user attempting to reset their password via email.
+ */
+CREATE TABLE IF NOT EXISTS password_reset_tokens
+(
+    id          bigint PRIMARY KEY AUTO_INCREMENT,
+    user_id     bigint      NOT NULL,
+    token       varchar(128) UNIQUE NOT NULL,
+    expires_at  timestamp   NOT NULL,
+    created_at  timestamp default current_timestamp(),
+    used_at     timestamp,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 /**
@@ -50,8 +66,8 @@ CREATE TABLE IF NOT EXISTS admins
 (
     id             bigint PRIMARY KEY AUTO_INCREMENT,
     user_id        bigint,
-    first_name     varchar(128),
-    last_name      varchar(128),
+    first_name     varchar(64),
+    last_name      varchar(64),
     contact_number varchar(20),
     updated_at     timestamp default current_timestamp(),
     created_at     timestamp default current_timestamp()
@@ -66,9 +82,9 @@ CREATE TABLE IF NOT EXISTS students
 (
     student_id     varchar(32) PRIMARY KEY,
     user_id        bigint,
-    first_name     varchar(128) NOT NULL,
-    last_name      varchar(128) NOT NULL,
-    middle_name    varchar(48)  NULL,
+    first_name     varchar(64) NOT NULL,
+    last_name      varchar(64) NOT NULL,
+    middle_name    varchar(32),
     birthdate      date         NOT NULL,
     student_status ENUM ('REGULAR', 'IRREGULAR') DEFAULT 'REGULAR',
     course_id      bigint,
@@ -86,7 +102,7 @@ CREATE TABLE IF NOT EXISTS students
 CREATE TABLE IF NOT EXISTS subjects
 (
     id            bigint PRIMARY KEY AUTO_INCREMENT,
-    subject_name  varchar(32),
+    subject_name  varchar(64),
     subject_code  varchar(32),
     units         float,
     estimated_time int default 90,
@@ -104,7 +120,7 @@ CREATE TABLE IF NOT EXISTS subjects
 CREATE TABLE IF NOT EXISTS sections
 (
     id           bigint PRIMARY KEY AUTO_INCREMENT,
-    section_code varchar(48) NOT NULL,
+    section_code varchar(64) NOT NULL,
     capacity     int NOT NULL,
     status       ENUM ('OPEN', 'CLOSED', 'WAITLIST', 'DISSOLVED') DEFAULT 'OPEN',
     updated_at   timestamp default current_timestamp(),
@@ -135,7 +151,7 @@ CREATE TABLE IF NOT EXISTS semester
 (
     id            bigint PRIMARY KEY AUTO_INCREMENT,
     curriculum_id  bigint NOT NULL,
-    semester      varchar(24) NOT NULL,
+    semester      varchar(64) NOT NULL,
     year_level    int NOT NULL,
     created_at    timestamp default current_timestamp(),
     updated_at    timestamp default current_timestamp()
@@ -216,11 +232,12 @@ CREATE TABLE IF NOT EXISTS faculty
 (
     id             bigint PRIMARY KEY AUTO_INCREMENT,
     user_id        bigint,
-    first_name     varchar(128),
-    last_name      varchar(128),
-    middle_name    varchar(48),
+    first_name     varchar(64),
+    last_name      varchar(64),
+    middle_name    varchar(32),
     contact_number varchar(20),
     birthdate      date,
+    is_dep_head    boolean default false,
     department_id  bigint,
     updated_at     timestamp default current_timestamp(),
     created_at     timestamp default current_timestamp()
@@ -257,7 +274,8 @@ CREATE TABLE IF NOT EXISTS schedules
     start_time  time,
     end_time    time,
     updated_at  timestamp default current_timestamp(),
-    created_at  timestamp default current_timestamp()
+    created_at  timestamp default current_timestamp(),
+    UNIQUE (offering_id, day, start_time)
 );
 
 /**
@@ -338,7 +356,7 @@ CREATE TABLE IF NOT EXISTS faculty_student_drop_requests
 CREATE TABLE IF NOT EXISTS courses
 (
     id            bigint PRIMARY KEY AUTO_INCREMENT,
-    course_name   varchar(48),
+    course_name   varchar(64),
     description   text,
     department_id bigint,
     updated_at    timestamp default current_timestamp(),
@@ -368,7 +386,7 @@ CREATE TABLE IF NOT EXISTS prerequisites
 CREATE TABLE IF NOT EXISTS departments
 (
     id              bigint PRIMARY KEY AUTO_INCREMENT,
-    department_name varchar(48),
+    department_name varchar(64),
     department_code varchar(24),
     description     text,
     updated_at      timestamp default current_timestamp(),
@@ -504,15 +522,6 @@ ALTER TABLE enrollments_details
 ALTER TABLE enrollments_details
     ADD CONSTRAINT fk_ed_offering FOREIGN KEY (offering_id) REFERENCES offerings (id);
 
-ALTER TABLE faculty_student_drop_requests
-    ADD CONSTRAINT fk_drop_requests_faculty FOREIGN KEY (faculty_id) REFERENCES faculty (id);
-
-ALTER TABLE faculty_student_drop_requests
-    ADD CONSTRAINT fk_drop_requests_student FOREIGN KEY (student_id) REFERENCES students (student_id);
-
-ALTER TABLE faculty_student_drop_requests
-    ADD CONSTRAINT fk_drop_requests_offering FOREIGN KEY (offering_id) REFERENCES offerings (id);
-
 ALTER TABLE offerings
     ADD CONSTRAINT fk_offerings_subject FOREIGN KEY (subject_id) REFERENCES subjects (id);
 
@@ -534,6 +543,3 @@ ALTER TABLE prerequisites
 
 ALTER TABLE prerequisites
     ADD CONSTRAINT fk_prereq_subject FOREIGN KEY (subject_id) REFERENCES subjects (id);
-C R E A T E   T A B L E   I F   N O T   E X I S T S   a u d i t _ l o g s   ( i d   b i g i n t   P R I M A R Y   K E Y   A U T O _ I N C R E M E N T ,   u s e r _ i d   v a r c h a r ( 6 4 ) ,   a c t i o n   v a r c h a r ( 6 4 )   N O T   N U L L ,   d e t a i l s   t e x t ,   c r e a t e d _ a t   t i m e s t a m p   D E F A U L T   C U R R E N T _ T I M E S T A M P ( ) ) ; 
- 
- 
