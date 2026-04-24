@@ -49,6 +49,81 @@ public class StudentEnrolledSubjectService {
     return subjects;
   }
 
+  public List<StudentEnrolledSubject> getCompletedSubjectsForStudent(String studentId) {
+    if (studentId == null || studentId.isBlank()) {
+      return List.of();
+    }
+
+    List<StudentEnrolledSubject> directCompletedSubjects = getCompletedByStudent(studentId);
+    if (!directCompletedSubjects.isEmpty()) {
+      return directCompletedSubjects;
+    }
+
+    return getCompletedByEnrollmentHistory(studentId);
+  }
+
+  public List<StudentEnrolledSubject> getCompletedByStudent(String studentId) {
+    List<StudentEnrolledSubject> subjects = new ArrayList<>();
+    String sql =
+        "SELECT * FROM student_enrolled_subjects WHERE student_id = ? AND status = 'COMPLETED' ORDER BY updated_at DESC, created_at DESC";
+
+    try (
+      Connection conn = ConnectionService.getConnection();
+      PreparedStatement ps = conn.prepareStatement(sql)
+    ) {
+      ps.setString(1, studentId);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          subjects.add(StudentEnrolledSubjectUtils.mapResultSetToStudentEnrolledSubject(rs));
+        }
+      }
+    } catch (SQLException e) {
+      logger.error("ERROR: " + e.getMessage(), e);
+    }
+
+    return subjects;
+  }
+
+  private List<StudentEnrolledSubject> getCompletedByEnrollmentHistory(String studentId) {
+    List<StudentEnrolledSubject> subjects = new ArrayList<>();
+    String sql =
+        "SELECT "
+            + "e.student_id, "
+            + "e.id AS enrollment_id, "
+            + "ed.offering_id, "
+            + "o.semester_subject_id, "
+            + "'COMPLETED' AS status, "
+            + "COALESCE(ses.created_at, ed.created_at, e.created_at) AS created_at, "
+            + "COALESCE(ses.updated_at, ed.updated_at, e.updated_at) AS updated_at "
+            + "FROM enrollments e "
+            + "JOIN enrollments_details ed ON ed.enrollment_id = e.id "
+            + "JOIN offerings o ON o.id = ed.offering_id "
+            + "LEFT JOIN student_enrolled_subjects ses "
+            + "ON ses.student_id = e.student_id "
+            + "AND ses.enrollment_id = e.id "
+            + "AND ses.offering_id = ed.offering_id "
+            + "WHERE e.student_id = ? "
+            + "AND e.status = 'COMPLETED' "
+            + "AND ed.status = 'SELECTED' "
+            + "ORDER BY COALESCE(ses.updated_at, ed.updated_at, e.updated_at) DESC";
+
+    try (
+      Connection conn = ConnectionService.getConnection();
+      PreparedStatement ps = conn.prepareStatement(sql)
+    ) {
+      ps.setString(1, studentId);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          subjects.add(StudentEnrolledSubjectUtils.mapResultSetToStudentEnrolledSubject(rs));
+        }
+      }
+    } catch (SQLException e) {
+      logger.error("ERROR: " + e.getMessage(), e);
+    }
+
+    return subjects;
+  }
+
   public Optional<StudentEnrolledSubject> getByStudentAndSemesterSubject(String studentId, Long semesterSubjectId) {
     String sql = "SELECT * FROM student_enrolled_subjects WHERE student_id = ? AND semester_subject_id = ? ORDER BY updated_at DESC" + SqlDialectUtil.limitOneClause();
 

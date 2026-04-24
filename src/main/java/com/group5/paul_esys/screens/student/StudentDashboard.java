@@ -411,6 +411,8 @@ public class StudentDashboard extends javax.swing.JFrame {
 			return new SemesterProgressSnapshot("No student profile is available.", rows);
 		}
 
+		semesterProgressService.syncStudentProgress(currentStudent.getStudentId());
+
 		List<StudentSemesterProgress> progressRecords = semesterProgressService
 				.getProgressByStudent(currentStudent.getStudentId());
 		if (progressRecords.isEmpty()) {
@@ -488,10 +490,7 @@ public class StudentDashboard extends javax.swing.JFrame {
 		}
 
 		List<StudentEnrolledSubject> completedSubjects = studentEnrolledSubjectService
-				.getByStudent(currentStudent.getStudentId())
-				.stream()
-				.filter(subject -> subject.getStatus() == StudentEnrolledSubjectStatus.COMPLETED)
-				.toList();
+				.getCompletedSubjectsForStudent(currentStudent.getStudentId());
 
 		if (completedSubjects.isEmpty()) {
 			return new CompletedSubjectsSnapshot("No completed subjects have been recorded yet.", rows);
